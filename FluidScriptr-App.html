@@ -1,0 +1,1746 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8"/>
+        <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+        <title>FluidScriptr — From Page to Screen</title>
+        <link rel="icon" type="image/png" href="data:image/png;base64,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"/>
+        <link rel="preconnect" href="https://fonts.googleapis.com"/>
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+        <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Open+Sans:wght@600;700;800&display=swap" rel="stylesheet"/>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/mammoth/1.6.0/mammoth.browser.min.js"></script>
+        <style>@keyframes spin { to {  transform: rotate(360deg); } } @keyframes fadeUp { from {  opacity: 0;  transform: translateY(10px); }  to {  opacity: 1;  transform: translateY(0); } } @keyframes pulse { 0%, 100% {  opacity: 1;  transform: scale(1);  box-shadow: 0 0 6px var(--blue); }  50% {  opacity: 0.6;  transform: scale(1.5);  box-shadow: 0 0 14px var(--blue); } } @keyframes floatPill { 0%, 100% {  transform: translateX(-50%) translateY(0px); }  50% {  transform: translateX(-50%) translateY(-6px); } } @keyframes floatPillV { 0%, 100% {  transform: translateY(-50%) translateX(0px); }  50% {  transform: translateY(-50%) translateX(5px); } } @keyframes floatPillB { 0%, 100% {  transform: translateX(-50%) translateY(0px); }  50% {  transform: translateX(-50%) translateY(6px); } } @keyframes centerPulse { 0%, 100% {  box-shadow: 0 0 20px var(--blue), 0 0 50px var(--blue-glow); }  50% {  box-shadow: 0 0 30px var(--blue), 0 0 70px rgba(232,64,64,0.25), 0 0 100px rgba(232,64,64,0.1); } } @keyframes popIn { 0% {  opacity: 0;  transform: scale(0.95); }  100% {  opacity: 1;  transform: scale(1); } } @keyframes float { 0%, 100% {  transform: translateY(0px); }  50% {  transform: translateY(-8px); } } @keyframes ringPulse { 0%, 100% {  box-shadow: -14px -14px 34px var(--nm-l2), 14px 14px 34px var(--nm-d2), inset 2px 2px 4px var(--nm-l), inset -2px -2px 4px var(--nm-d); }  50% {  box-shadow: -16px -16px 40px var(--nm-l2), 16px 16px 40px var(--nm-d2), inset 2px 2px 4px var(--nm-l), inset -2px -2px 4px var(--nm-d); } } *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; } :root { --bg: #E8ECF1; --bg2: #F0F2F5; --card: #FFFFFF; --nm-l: #FFFFFF; --nm-d: #C4CAD4; --nm-l2: #FFFFFF; --nm-d2: #B4BAC4; --navy: #1A1A2E; --navy2: #2D2D44; --blue: #E84040; --blue-lt: #F05555; --blue-glow: rgba(232,64,64,0.2); --blue-rim: rgba(232,64,64,0.4); --red: #E8333A; --redDk: #C42830; --redLt: #FF5560; --grey: #6B7280; --greyLt: #9CA3AF; --text: #2D3A4A; --text2: #5A6A7E; --text3: #9AA6B4; --border: rgba(0,0,0,0.07); --border2: rgba(0,0,0,0.12); --sh-sm: 0 2px 8px rgba(0,0,0,0.06),0 1px 3px rgba(0,0,0,0.04); --sh-md: 0 4px 20px rgba(0,0,0,0.08),0 2px 8px rgba(0,0,0,0.05); --sh-lg: 0 8px 40px rgba(0,0,0,0.10),0 4px 16px rgba(0,0,0,0.06); --sh-raise: -6px -6px 14px var(--nm-l),6px 6px 14px var(--nm-d); --sh-raise-sm: -3px -3px 8px var(--nm-l),3px 3px 8px var(--nm-d); --sh-inset: inset -4px -4px 10px var(--nm-d),inset 4px 4px 10px var(--nm-l); --sh-inset-sm: inset -3px -3px 7px var(--nm-d),inset 3px 3px 7px var(--nm-l); --sh-card: -10px -10px 24px var(--nm-l),10px 10px 24px var(--nm-d); --sh-red: 0 6px 20px rgba(232,51,58,0.35); --sh-in: inset -4px -4px 10px var(--nm-d),inset 4px 4px 10px var(--nm-l); --r-sm: 8px; --r-md: 14px; --r-lg: 20px; --r-xl: 28px; --r-full: 999px; --transition-smooth: all 0.2s cubic-bezier(0.32, 0.08, 0.24, 1); } html, body { height: 100%; overflow: hidden; } #app-shell { display: flex; flex-direction: column; height: 100vh; overflow: hidden; } html { scroll-behavior: smooth; } body { font-family: 'Inter',system-ui,sans-serif; background: var(--bg); color: var(--navy); display: flex; flex-direction: column; } /* ── Navbar ── */.nav-wrap { padding: 16px 16px 0; flex-shrink: 0; z-index: 100; } .navbar { display: flex; align-items: center; justify-content: space-between; background: var(--bg); border-radius: var(--r-full); padding: 10px 14px 10px 18px; box-shadow: -6px -6px 14px var(--nm-l),6px 6px 14px var(--nm-d),inset 1px 1px 2px rgba(255,255,255,0.4); border: 1px solid transparent; } .nav-logo { display: flex; align-items: center; gap: 10px; text-decoration: none; } .nav-full-logo { height: 28px; width: auto; object-fit: contain; display: block; flex-shrink: 0; } .nav-right { display: flex; align-items: center; gap: 10px; } .nav-step { font-size: 12px; color: var(--grey); } .nav-step strong { color: var(--red); } .btn-key-toggle { background: var(--navy); color: white; border: none; border-radius: var(--r-full); padding: 8px 18px; font-size: 13px; font-weight: 600; cursor: pointer; font-family: 'Inter',sans-serif; transition: background 0.15s; display: flex; align-items: center; gap: 6px; } .btn-key-toggle:hover { background: var(--navy2); } .btn-key-toggle.open { background: var(--red); } /* ── Key panel ── */.key-wrap { padding: 0 16px; flex-shrink: 0; } .key-panel { display: none; background: var(--bg); border-radius: var(--r-lg); padding: 1.25rem 1.5rem; box-shadow: var(--sh-inset); border: none; gap: 10px; align-items: center; flex-wrap: wrap; margin-top: 10px; } .key-panel.open { display: flex; } .key-lbl { font-size: 12px; color: var(--grey); white-space: nowrap; font-weight: 500; } .key-inp { flex: 1; min-width: 180px; background: #F4F6F9; border: none; border-radius: var(--r-full); padding: 9px 16px; font-size: 13px; color: var(--navy); font-family: 'Inter',sans-serif; outline: none; transition: box-shadow 0.2s; box-shadow: inset -3px -3px 7px var(--nm-l),inset 3px 3px 7px var(--nm-d); } .key-inp:focus { box-shadow: inset -3px -3px 7px var(--nm-l),inset 3px 3px 7px var(--nm-d),0 0 0 2px var(--blue-rim); } .key-inp::placeholder { color: var(--greyLt); } .btn-ks { background: var(--blue); color: white; border: none; border-radius: var(--r-full); padding: 8px 16px; font-size: 12px; font-weight: 600; cursor: pointer; font-family: 'Inter',sans-serif; transition: background 0.15s,box-shadow 0.15s; box-shadow: -3px -3px 7px rgba(255,255,255,0.45),5px 7px 18px rgba(160,15,15,0.45); } .btn-ks:hover { background: var(--blue-lt); box-shadow: -3px -3px 7px rgba(255,255,255,0.45),7px 9px 22px rgba(160,15,15,0.55); } .btn-ks.ghost { background: var(--bg); color: var(--text2); border: none; box-shadow: var(--sh-inset-sm); } .btn-ks.ghost:hover { color: var(--blue); box-shadow: var(--sh-inset-sm); } .key-ok { font-size: 11px; color: var(--red); display: none; font-weight: 700; } /* ── Page ── */.page { max-width: 1200px; margin: 0 auto; padding: 2rem 3rem 3rem; flex: 1; overflow-y: auto; overflow-x: hidden; height: 0; /* flex child stretches to fill */ } /* ── Step indicator — uses your exact circle images via CSS ── */.steps-nav { display: flex; align-items: center; background: var(--bg); border-radius: var(--r-lg); padding: 1.25rem 1.5rem; margin-bottom: 2rem; box-shadow: -8px -8px 18px var(--nm-l),8px 8px 18px var(--nm-d),inset 1px 1px 2px rgba(255,255,255,0.5); border: none; animation: popIn 0.3s ease-out; } .step-item { display: flex; align-items: center; gap: 8px; flex: 1; } .step-num { width: 48px; height: 48px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 18px; font-weight: 700; font-family: 'Open Sans','Inter',sans-serif; flex-shrink: 0; transition: var(--transition-smooth);  /* Default: outline style (completed) */ background: var(--bg); color: var(--blue); border: 3px solid var(--blue); box-shadow: var(--sh-raise-sm); } .step-num.upcoming { /* Not yet reached */ background: var(--bg); color: var(--text3); border: 2px solid rgba(0,0,0,0.1); box-shadow: var(--sh-inset-sm); font-size: 16px; } .step-num.active { /* Current step — filled blue with glow */ background: var(--blue); color: white; border: 3px solid var(--blue); box-shadow: 0 6px 18px rgba(232,64,64,0.45),0 0 20px var(--blue-glow); font-size: 18px; } .step-label { font-size: 12px; color: var(--greyLt); white-space: nowrap; font-weight: 500; letter-spacing: 0.02em; } .step-label.active { color: var(--navy); font-weight: 600; } .step-label.done { color: var(--red); font-weight: 600; } .step-connector { flex: 1; height: 2px; background: var(--border2); margin: 0 8px; min-width: 8px; border-radius: 1px; transition: background 0.3s ease; } .step-connector.done { background: var(--red); } /* ── Panels ── */.panel { display: none; } .panel.active { display: block; animation: fadeUp 0.25s ease; } /* ── Typography ── */.eyebrow { font-size: 11px; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; color: var(--red); margin-bottom: 8px; text-align: center; } .panel-title { font-family: 'Open Sans','Inter',sans-serif; font-size: clamp(2rem,4vw,2.8rem); font-weight: 700; line-height: 1.05; margin-bottom: 1rem; color: var(--navy); letter-spacing: -0.03em; text-align: center; } .panel-title em { color: var(--red); } .panel-sub { font-size: 15px; color: var(--grey); margin-bottom: 2rem; line-height: 1.75; max-width: 660px; text-align: center; margin-left: auto; margin-right: auto; } /* ── Cards ── */.card { background: var(--bg); border-radius: var(--r-xl); padding: 2rem; margin-bottom: 1.5rem; box-shadow: -10px -10px 24px var(--nm-l),10px 10px 24px var(--nm-d),inset 1px 1px 2px rgba(255,255,255,0.5),inset -1px -1px 2px rgba(0,0,0,0.05); border: none; animation: popIn 0.4s ease-out; } /* ── Path chooser (Step 1) ── */.path-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem; margin-bottom: 2rem; } .path-card { background: var(--bg); border: none; border-radius: var(--r-xl); padding: 2.5rem 2rem; cursor: pointer; transition: var(--transition-smooth); text-align: center; box-shadow: -12px -12px 28px var(--nm-l2),12px 12px 28px var(--nm-d2),inset 1px 1px 2px rgba(255,255,255,0.5); animation: popIn 0.4s ease-out; } .path-card:hover { transform: translateY(-6px); box-shadow: -16px -16px 40px var(--nm-l2),16px 16px 40px var(--nm-d2),inset 1px 1px 3px rgba(255,255,255,0.6); } .path-card.selected { box-shadow: -16px -16px 40px var(--nm-l2),16px 16px 40px var(--nm-d2),inset -2px -2px 6px rgba(232,64,64,0.15),inset 1px 1px 2px rgba(255,255,255,0.5); background: rgba(232,64,64,0.04); } .path-icon { font-size: 3rem; margin-bottom: 1.25rem; display: block; } .path-card h3 { font-family: 'Open Sans','Inter',sans-serif; font-size: 0.85rem; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; margin-bottom: 0.75rem; color: var(--navy); } .path-card p { font-size: 14px; color: var(--grey); line-height: 1.6; margin-bottom: 1rem; } .path-card .path-tag { display: inline-flex; font-size: 10px; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; color: var(--red); border: 1.5px solid var(--red); border-radius: var(--r-full); padding: 4px 14px; } /* ── Output chooser ── */.output-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem; margin-bottom: 2rem; } .output-card { background: var(--bg); border: none; border-radius: var(--r-xl); padding: 2rem 1.75rem; cursor: pointer; transition: var(--transition-smooth); text-align: center; box-shadow: -12px -12px 28px var(--nm-l2),12px 12px 28px var(--nm-d2),inset 1px 1px 2px rgba(255,255,255,0.5); animation: popIn 0.4s ease-out; } .output-card:hover { transform: translateY(-5px); box-shadow: -16px -16px 40px var(--nm-l2),16px 16px 40px var(--nm-d2),inset 1px 1px 3px rgba(255,255,255,0.6); } .output-card.selected { box-shadow: -16px -16px 40px var(--nm-l2),16px 16px 40px var(--nm-d2),inset -2px -2px 6px rgba(232,64,64,0.15),inset 1px 1px 2px rgba(255,255,255,0.5); background: rgba(232,64,64,0.04); } .output-card .oc-icon { font-size: 2.5rem; margin-bottom: 1rem; display: block; } .output-card h3 { font-family: 'Open Sans','Inter',sans-serif; font-size: 16px; font-weight: 700; margin-bottom: 6px; color: var(--navy); } .output-card p { font-size: 13px; color: var(--grey); line-height: 1.6; } .output-card .oc-format { font-size: 11px; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase; color: var(--red); margin-top: 10px; } /* ── Form ── */label.lbl { display: block; font-size: 12px; color: var(--text2); margin-bottom: 8px; letter-spacing: 0.04em; text-transform: uppercase; font-weight: 600; } input[type=text], select, textarea { width: 100%; font-family: 'Inter',sans-serif; font-size: 15px; color: var(--text); background: #F4F6F9; border: none; border-radius: var(--r-md); padding: 12px 16px; outline: none; transition: box-shadow 0.2s; box-shadow: inset -3px -3px 7px var(--nm-l),inset 3px 3px 7px var(--nm-d); } input[type=text]:focus, select:focus, textarea:focus { box-shadow: inset -3px -3px 7px var(--nm-l),inset 3px 3px 7px var(--nm-d),0 0 0 2px var(--blue-rim); } select { appearance: none; background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%236B7280' stroke-width='2'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E"); background-repeat: no-repeat; background-position: right 14px center; padding-right: 36px; background-color: var(--bg); cursor: pointer; } select option { background: white; } textarea { resize: vertical; line-height: 1.65; min-height: 100px; } .field { margin-bottom: 1.5rem; } .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem; } /* ── Guided questions (idea path) ── */.question-block { background: var(--bg); border-radius: var(--r-lg); padding: 1.75rem; margin-bottom: 1.25rem; border: none; box-shadow: inset -3px -3px 8px var(--nm-d),inset 3px 3px 8px var(--nm-l); transition: var(--transition-smooth); } .question-block:hover { box-shadow: inset -3px -3px 8px var(--nm-d),inset 3px 3px 8px var(--nm-l),0 0 0 1px rgba(232,64,64,0.1); } .q-num { display: inline-flex; width: 32px; height: 32px; border-radius: 50%; background: var(--blue); color: white; font-size: 13px; font-weight: 700; align-items: center; justify-content: center; margin-bottom: 1rem; box-shadow: 0 4px 12px rgba(232,64,64,0.3); } .q-label { font-size: 15px; font-weight: 600; color: var(--navy); margin-bottom: 6px; display: block; } .q-hint { font-size: 13px; color: var(--grey); margin-bottom: 1rem; } /* ── Buttons ── */.btn-primary { background: var(--blue); color: white; border: none; padding: 12px 28px; border-radius: var(--r-full); font-size: 13px; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase; cursor: pointer; font-family: 'Inter',sans-serif; display: inline-flex; align-items: center; gap: 8px; transition: var(--transition-smooth); box-shadow: -3px -3px 7px rgba(255,255,255,0.45),5px 7px 18px rgba(160,15,15,0.45); } .btn-primary:hover { background: var(--blue-lt); transform: translateY(-2px); box-shadow: -3px -3px 7px rgba(255,255,255,0.45),7px 9px 22px rgba(160,15,15,0.55); } .btn-primary:active { transform: translateY(0); box-shadow: 0 2px 8px rgba(232,51,58,0.2); } .btn-primary:disabled { opacity: 0.5; cursor: not-allowed; transform: none; box-shadow: none; } .btn-secondary { background: var(--bg); border: none; padding: 11px 22px; border-radius: var(--r-full); font-size: 13px; cursor: pointer; color: var(--text); font-family: 'Inter',sans-serif; display: inline-flex; align-items: center; gap: 8px; transition: var(--transition-smooth); font-weight: 600; letter-spacing: 0.06em; text-transform: uppercase; box-shadow: var(--sh-inset-sm); } .btn-secondary:hover { color: var(--blue); box-shadow: var(--sh-inset-sm),0 0 8px rgba(232,64,64,0.2); } .btn-secondary:active { box-shadow: var(--sh-inset-sm); } .btn-row { display: flex; gap: 12px; align-items: center; flex-wrap: wrap; margin-top: 2rem; justify-content: center; text-align: center; } /* ── Upload zone ── */.upload-zone { border: 2px dashed rgba(0,0,0,0.1); border-radius: var(--r-lg); padding: 3.5rem 2.5rem; text-align: center; cursor: pointer; transition: var(--transition-smooth); background: var(--bg); box-shadow: inset -4px -4px 10px var(--nm-d),inset 4px 4px 10px var(--nm-l); margin-bottom: 1.5rem; } .upload-zone:hover, .upload-zone.drag-over { border-color: var(--blue); background: rgba(232,64,64,0.04); box-shadow: inset -4px -4px 10px var(--nm-d),inset 4px 4px 12px var(--nm-l); } .upload-zone input { display: none; } .upload-icon { font-size: 3rem; margin-bottom: 1.25rem; display: block; } .upload-zone h3 { font-family: 'Open Sans','Inter',sans-serif; font-size: 1.2rem; font-weight: 700; margin-bottom: 8px; color: var(--navy); } .upload-zone p { font-size: 14px; color: var(--grey); } .upload-prog { display: none; align-items: center; gap: 10px; padding: 12px 16px; background: var(--bg2); border-radius: var(--r-md); margin-bottom: 1rem; font-size: 13px; color: var(--grey); border: 1px solid var(--border); } .upload-prog.on { display: flex; } .file-info { background: rgba(232,51,58,0.05); border: 1px solid rgba(232,51,58,0.2); border-radius: var(--r-md); padding: 1rem 1.25rem; display: none; margin-bottom: 1.25rem; } .file-info.on { display: block; } .file-info .fn { font-weight: 600; font-size: 14px; margin-bottom: 3px; color: var(--navy); } .file-info .fm { font-size: 12px; color: var(--grey); } /* ── Bible sections ── */.bible-section { margin-bottom: 1.5rem; } .bible-lbl { font-size: 11px; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; color: var(--red); margin-bottom: 8px; } .bible-section textarea { min-height: 100px; font-size: 14px; line-height: 1.6; } /* ── Format / approach cards ── */.format-grid { display: grid; grid-template-columns: repeat(2,1fr); gap: 1rem; margin-bottom: 1.5rem; } .format-card { background: var(--bg); border: none; border-radius: var(--r-lg); padding: 1.5rem; cursor: pointer; transition: var(--transition-smooth); box-shadow: -6px -6px 14px var(--nm-l),6px 6px 14px var(--nm-d),inset 1px 1px 2px rgba(255,255,255,0.4); } .format-card:hover { transform: translateY(-3px); box-shadow: -8px -8px 18px var(--nm-l2),8px 8px 18px var(--nm-d2),inset 1px 1px 2px rgba(255,255,255,0.5); } .format-card.selected { background: rgba(232,64,64,0.03); box-shadow: -8px -8px 18px var(--nm-l2),8px 8px 18px var(--nm-d2),inset -2px -2px 5px rgba(232,64,64,0.12),inset 1px 1px 2px rgba(255,255,255,0.4); } .format-card h3 { font-size: 15px; font-weight: 700; margin-bottom: 6px; color: var(--navy); } .format-card p { font-size: 13px; color: var(--grey); line-height: 1.6; } .format-card .fm-meta { font-size: 11px; color: var(--red); font-weight: 700; margin-top: 10px; letter-spacing: 0.04em; } .approach-grid { display: grid; grid-template-columns: repeat(3,1fr); gap: 1rem; margin-bottom: 1.5rem; } .approach-card { background: var(--bg); border: none; border-radius: var(--r-md); padding: 1.25rem; cursor: pointer; transition: var(--transition-smooth); text-align: center; box-shadow: -6px -6px 14px var(--nm-l),6px 6px 14px var(--nm-d),inset 1px 1px 2px rgba(255,255,255,0.4); } .approach-card:hover { transform: translateY(-3px); box-shadow: -8px -8px 18px var(--nm-l2),8px 8px 18px var(--nm-d2),inset 1px 1px 2px rgba(255,255,255,0.5); } .approach-card.selected { background: rgba(232,64,64,0.03); box-shadow: -8px -8px 18px var(--nm-l2),8px 8px 18px var(--nm-d2),inset -2px -2px 5px rgba(232,64,64,0.12),inset 1px 1px 2px rgba(255,255,255,0.4); } .approach-card h3 { font-size: 14px; font-weight: 700; margin-bottom: 6px; color: var(--navy); } .approach-card p { font-size: 12px; color: var(--grey); line-height: 1.5; } /* ── Calc box ── */.calc-box { background: var(--bg); border: none; border-radius: var(--r-lg); padding: 1.75rem; margin-bottom: 1.5rem; box-shadow: inset -4px -4px 10px var(--nm-d),inset 4px 4px 10px var(--nm-l); } .calc-box h3 { font-size: 12px; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; color: var(--red); margin-bottom: 1.25rem; } .calc-row { display: flex; justify-content: space-between; align-items: center; padding: 11px 0; border-bottom: 1px solid var(--border); font-size: 14px; } .calc-row:last-child { border-bottom: none; font-weight: 700; } .calc-row .l { color: var(--grey); } .calc-row .r { color: var(--navy); font-weight: 600; } .calc-row.hi .r { color: var(--red); font-weight: 700; } .calc-row.wa .r { color: #D97706; font-weight: 700; } /* ── Briefing ── */.briefing-box { background: var(--bg); border: none; border-radius: var(--r-lg); padding: 2rem; margin-bottom: 1.5rem; box-shadow: -8px -8px 18px var(--nm-l),8px 8px 18px var(--nm-d),inset 1px 1px 2px rgba(255,255,255,0.4); } .briefing-box h3 { font-size: 15px; font-weight: 700; margin-bottom: 1.5rem; color: var(--navy); } .b-row { display: flex; gap: 14px; align-items: flex-start; padding: 12px 0; border-bottom: 1px solid var(--border); font-size: 14px; } .b-row:last-child { border-bottom: none; } .b-row .ico { font-size: 18px; flex-shrink: 0; } .b-row .txt { color: var(--grey); line-height: 1.7; } .b-row .txt strong { color: var(--navy); font-weight: 600; } .honest-note { background: rgba(232,51,58,0.05); border: 1.5px solid rgba(232,51,58,0.15); border-radius: var(--r-md); padding: 1.5rem; font-size: 14px; color: var(--navy); line-height: 1.8; margin-bottom: 1.5rem; } .honest-note strong { color: var(--red); font-weight: 700; } /* ── Progress ── */.progress-card { background: var(--bg); border-radius: var(--r-xl); padding: 2.5rem; box-shadow: -12px -12px 28px var(--nm-l),12px 12px 28px var(--nm-d),inset 1px 1px 3px rgba(255,255,255,0.5); border: none; margin-bottom: 1.5rem; animation: popIn 0.4s ease-out; } .prog-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem; } .prog-label { font-family: 'Open Sans','Inter',sans-serif; font-size: 1.25rem; font-weight: 700; color: var(--navy); } .prog-pct { font-size: 28px; color: var(--red); font-weight: 800; font-family: 'Open Sans','Inter',sans-serif; } .prog-bar-bg { width: 100%; height: 8px; background: var(--bg); border-radius: 4px; overflow: hidden; margin-bottom: 1rem; box-shadow: var(--sh-inset-sm); } .prog-bar-fill { height: 100%; background: var(--red); border-radius: 4px; width: 0%; transition: width 0.5s ease; } .prog-status { font-size: 14px; color: var(--grey); } .prog-pages { font-size: 13px; color: var(--grey); margin-top: 6px; } .prog-log { background: var(--bg2); border: 1px solid var(--border); border-radius: var(--r-lg); padding: 1.25rem; max-height: 240px; overflow-y: auto; margin-top: 1.5rem; } .log-item { font-size: 13px; color: var(--grey); padding: 7px 0; border-bottom: 1px solid var(--border); display: flex; gap: 10px; } .log-item:last-child { border-bottom: none; color: var(--navy); font-weight: 500; } .log-time { color: var(--red); flex-shrink: 0; font-family: 'Courier New',monospace; font-size: 11px; font-weight: 600; } /* ── Output ── */.output-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 1.5rem; flex-wrap: wrap; gap: 12px; } .meta-pill { font-size: 12px; padding: 6px 14px; border-radius: var(--r-full); background: var(--bg2); color: var(--grey); border: 1px solid var(--border); font-weight: 500; } .meta-pill.red { background: rgba(232,51,58,0.1); color: var(--red); border-color: rgba(232,51,58,0.2); } .screenplay-out { font-family: 'Courier New',monospace; font-size: 13px; line-height: 1.8; background: var(--bg2); border-radius: var(--r-lg); padding: 2.5rem 3rem; white-space: pre-wrap; color: var(--navy2); border: 1px solid var(--border); max-height: 600px; overflow-y: auto; margin-bottom: 1.5rem; box-shadow: var(--sh-sm); } .manuscript-out { font-family: 'Inter',sans-serif; font-size: 14px; line-height: 1.8; background: var(--bg2); border-radius: var(--r-lg); padding: 2rem; white-space: pre-wrap; color: var(--navy); border: 1px solid var(--border); max-height: 600px; overflow-y: auto; margin-bottom: 1.5rem; box-shadow: var(--sh-sm); } /* ── Export buttons ── */.export-grid { display: grid; grid-template-columns: repeat(3,1fr); gap: 1rem; margin-bottom: 1.5rem; } .export-btn { background: var(--bg); border: none; border-radius: var(--r-lg); padding: 1.5rem 1.25rem; text-align: center; cursor: pointer; transition: var(--transition-smooth); font-family: 'Inter',sans-serif; color: var(--text); box-shadow: -6px -6px 14px var(--nm-l),6px 6px 14px var(--nm-d),inset 1px 1px 2px rgba(255,255,255,0.4); } .export-btn:hover { transform: translateY(-4px); box-shadow: -8px -8px 18px var(--nm-l2),8px 8px 18px var(--nm-d2),inset 1px 1px 3px rgba(255,255,255,0.5); } .export-btn .ei { font-size: 2rem; margin-bottom: 10px; display: block; } .export-btn .el { font-size: 14px; font-weight: 700; display: block; margin-bottom: 4px; } .export-btn .ed { font-size: 12px; color: var(--grey); } /* ── Red circle badge (for step 1 icons) ── */.red-circle { width: 52px; height: 52px; border-radius: 50%; background: var(--red); display: flex; align-items: center; justify-content: center; font-size: 24px; margin: 0 auto 1rem; box-shadow: 0 4px 12px rgba(232,51,58,0.3); } /* ── Spinner ── */.spinner { width: 15px; height: 15px; border: 2px solid rgba(255,255,255,0.3); border-top-color: white; border-radius: 50%; animation: spin 0.7s linear infinite; display: inline-block; } .spinner-dark { border-color: rgba(0,0,0,0.12); border-top-color: var(--navy); }
+input[type=range] { -webkit-appearance: none; width: 100%; height: 6px; border-radius: 3px; background: var(--bg2); box-shadow: var(--sh-inset-sm); outline: none; padding: 0; border: none; cursor: pointer; }
+input[type=range]::-webkit-slider-thumb { -webkit-appearance: none; width: 20px; height: 20px; border-radius: 50%; background: var(--red); box-shadow: 0 2px 8px rgba(232,51,58,0.4); cursor: pointer; }
+input[type=range]::-moz-range-thumb { width: 20px; height: 20px; border-radius: 50%; background: var(--red); border: none; box-shadow: 0 2px 8px rgba(232,51,58,0.4); cursor: pointer; }
+ .btn-cancel-nav { background: var(--bg); color: var(--text2); border: none; border-radius: var(--r-full); padding: 8px 16px; font-size: 13px; font-weight: 600; cursor: pointer; font-family: 'Inter',sans-serif; transition: background 0.15s; box-shadow: var(--sh-inset-sm); }
+ .btn-cancel-nav:hover { color: var(--red); }
+ .btn-glossary-toggle { background: none; border: none; color: var(--red); font-size: 12px; font-weight: 600; cursor: pointer; font-family: 'Inter',sans-serif; padding: 4px 0; text-decoration: underline; text-underline-offset: 3px; }
+ .glossary-box { background: rgba(232,51,58,0.04); border: 1.5px solid rgba(232,51,58,0.15); border-radius: var(--r-md); padding: 1.25rem 1.5rem; margin-bottom: 1.25rem; }
+ .glossary-item { font-size: 13px; color: var(--text); line-height: 1.7; padding: 8px 0; border-bottom: 1px solid rgba(0,0,0,0.06); }
+ .glossary-item:last-child { border-bottom: none; padding-bottom: 0; }
+ .glossary-item strong { color: var(--navy); }
+ .btn-cancel-conversion { background: var(--bg); border: none; border-radius: var(--r-full); padding: 12px 28px; font-size: 14px; font-weight: 700; cursor: pointer; font-family: 'Inter',sans-serif; color: var(--text2); box-shadow: -3px -3px 7px var(--nm-l),3px 3px 7px var(--nm-d); transition: var(--transition-smooth); }
+ .btn-cancel-conversion:hover { color: var(--red); box-shadow: -4px -4px 10px var(--nm-l),4px 4px 10px var(--nm-d); }
+ .results-cols { display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem; margin-bottom: 1.5rem; align-items: start; }
+ .results-bible, .results-output { background: var(--bg); border-radius: var(--r-xl); padding: 1.5rem; box-shadow: -8px -8px 18px var(--nm-l),8px 8px 18px var(--nm-d),inset 1px 1px 2px rgba(255,255,255,0.4); }
+ .results-col-header { font-size: 13px; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase; color: var(--red); margin-bottom: 1.25rem; padding-bottom: 0.75rem; border-bottom: 1px solid var(--border); }
+ .bible-scroll { max-height: 70vh; overflow-y: auto; padding-right: 4px; }
+ .output-scroll { max-height: 70vh; overflow-y: auto; margin-bottom: 1rem; }
+ .bible-result-section { padding: 10px 0; border-bottom: 1px solid var(--border); }
+ .bible-result-text { font-size: 13px; color: var(--text); line-height: 1.65; white-space: pre-wrap; margin-top: 6px; }
+ .export-section { border-top: 1px solid var(--border); padding-top: 1.25rem; margin-top: 0.5rem; }
+ @media (max-width: 768px) { .results-cols { grid-template-columns: 1fr; } } /* ── Divider ── */.divider { border: none; border-top: 1px solid var(--border); margin: 2rem 0; } /* ── Responsive ── */@media (max-width:640px){ .grid-2, .format-grid, .approach-grid, .path-grid, .output-grid, .export-grid {  grid-template-columns: 1fr; }  .steps-nav .step-label {  display: none; }  .screenplay-out, .manuscript-out {  padding: 1.5rem; }  .nav-wrap {  padding: 8px 8px 0; } } /* ── Resume banner ── */#resume-banner { display:none; align-items:center; gap:14px; background:var(--navy); color:white; border-radius:var(--r-lg); padding:1rem 1.5rem; margin-bottom:1.5rem; box-shadow:var(--sh-md); flex-wrap:wrap; } #resume-banner .rb-icon { font-size:1.5rem; flex-shrink:0; } #resume-banner .rb-text { flex:1; min-width:160px; } #resume-banner .rb-title { font-size:14px; font-weight:700; margin-bottom:2px; } #resume-banner .rb-sub { font-size:12px; opacity:0.7; } #resume-banner .rb-actions { display:flex; gap:8px; flex-shrink:0; } #resume-banner .rb-btn { background:var(--red); color:white; border:none; border-radius:var(--r-full); padding:8px 18px; font-size:12px; font-weight:700; letter-spacing:0.05em; text-transform:uppercase; cursor:pointer; font-family:'Inter',sans-serif; } #resume-banner .rb-dismiss { background:transparent; color:rgba(255,255,255,0.6); border:1px solid rgba(255,255,255,0.2); border-radius:var(--r-full); padding:8px 14px; font-size:12px; font-weight:600; cursor:pointer; font-family:'Inter',sans-serif; letter-spacing:0.04em; text-transform:uppercase; }</style>
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Open+Sans&display=swap">
+        
+        
+    </head>
+    <body>
+
+    <!-- ── License Gate ──────────────────────────────────── -->
+    <div id="license-gate" style="
+      position: fixed; inset: 0; z-index: 9999;
+      background: #E8ECF1;
+      display: flex; align-items: center; justify-content: center;
+      font-family: 'Inter', system-ui, sans-serif;
+    ">
+      <div style="
+        background: #E8ECF1;
+        border-radius: 28px;
+        padding: 48px 44px 40px;
+        width: 100%; max-width: 420px;
+        box-shadow: -16px -16px 40px #FFFFFF, 16px 16px 40px #C4CAD4;
+        text-align: center;
+      ">
+        <img src="data:image/png;base64,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" alt="FluidScriptr" style="height: 34px; width: auto; display: block; margin: 0 auto 24px;" />
+
+        <div style="font-size: 11px; font-weight: 700; letter-spacing: 0.12em; text-transform: uppercase; color: #E8333A; margin-bottom: 8px;">Founding Member Access</div>
+        <div style="font-size: 15px; color: #555; margin-bottom: 28px; line-height: 1.6;">Enter your license key from your Gumroad receipt.</div>
+
+        <div style="margin-bottom: 20px; text-align: left;">
+          <label style="display: block; font-size: 11px; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; color: #6B7280; margin-bottom: 6px;">License Key</label>
+          <input id="gate-license" type="text" autocomplete="off" placeholder="XXXXXXXX-XXXXXXXX-XXXXXXXX-XXXXXXXX"
+            style="width: 100%; box-sizing: border-box; font-family: 'Courier New', monospace; font-size: 14px; color: #1A1A2E; background: #F0F2F5; border: none; border-radius: 12px; padding: 12px 16px; outline: none; box-shadow: inset -3px -3px 7px #FFFFFF, inset 3px 3px 7px #C4CAD4; letter-spacing: 0.05em;" />
+        </div>
+
+        <div id="gate-error" style="display: none; font-size: 13px; color: #E8333A; margin-bottom: 16px; font-weight: 600;"></div>
+
+        <button id="gate-btn" onclick="doLicenseCheck()" style="
+          width: 100%; background: #E8333A; color: white; border: none;
+          border-radius: 999px; padding: 13px 28px;
+          font-size: 14px; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase;
+          cursor: pointer; font-family: 'Inter', sans-serif;
+          box-shadow: -3px -3px 7px rgba(255,255,255,0.45), 5px 7px 18px rgba(160,15,15,0.45);
+        ">Unlock</button>
+
+        <div style="font-size: 12px; color: #9CA3AF; margin-top: 20px;">
+          Don't have a key? <a href="https://kerospad.gumroad.com/l/fluidscriptr" target="_blank" style="color: #E8333A; text-decoration: none;">Get founding member access →</a>
+        </div>
+      </div>
+    </div>
+
+    <script>
+    (function() {
+      const LS_KEY = 'fsr_license_key';
+      const WORKER = 'https://fluidscriptr-license.kerospad.workers.dev';
+      const gate = document.getElementById('license-gate');
+      const errEl = document.getElementById('gate-error');
+      const btn = document.getElementById('gate-btn');
+
+      // Check if already validated in this browser
+      const saved = localStorage.getItem(LS_KEY);
+      if (saved) {
+        gate.remove();
+        return;
+      }
+
+      window.doLicenseCheck = async function() {
+        const key = document.getElementById('gate-license').value.trim().toUpperCase();
+        if (!key) {
+          errEl.textContent = 'Please enter your license key.';
+          errEl.style.display = 'block';
+          return;
+        }
+
+        btn.disabled = true;
+        btn.textContent = 'Verifying…';
+        errEl.style.display = 'none';
+
+        try {
+          const res = await fetch(WORKER, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ license_key: key })
+          });
+          const data = await res.json();
+
+          if (data.success) {
+            localStorage.setItem(LS_KEY, key);
+            gate.style.opacity = '0';
+            gate.style.transition = 'opacity 0.3s ease';
+            setTimeout(() => gate.remove(), 320);
+          } else {
+            errEl.textContent = data.error || 'Invalid license key.';
+            errEl.style.display = 'block';
+            btn.disabled = false;
+            btn.textContent = 'Unlock';
+          }
+        } catch(e) {
+          errEl.textContent = 'Connection error. Please try again.';
+          errEl.style.display = 'block';
+          btn.disabled = false;
+          btn.textContent = 'Unlock';
+        }
+      };
+
+      document.getElementById('gate-license').addEventListener('keydown', e => {
+        if (e.key === 'Enter') window.doLicenseCheck();
+      });
+    })();
+    </script>
+
+        <div id="app-shell">
+        <!-- Navbar -->
+        <div class="nav-wrap">
+            <nav class="navbar">
+                <a class="nav-logo" href="#" onclick="return false;"><img class="nav-full-logo" src="data:image/png;base64,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" alt="FluidScriptr"/></a>
+                <div class="nav-right">
+                    <span class="nav-step">Step <strong id="step-badge-num">1</strong> of 6</span>
+                    <button class="btn-cancel-nav" id="cancel-nav-btn" onclick="startOver()" style="display:none;">✕ Cancel</button>
+                    <button class="btn-key-toggle" id="key-toggle-btn" onclick="toggleKeyPanel()">🔑 API Key</button>
+                </div>
+            </nav>
+        </div>
+        <!-- Key panel -->
+        <div class="key-wrap">
+            <div class="key-panel" id="key-panel">
+                <span class="key-lbl">Anthropic API key</span>
+                <input type="password" class="key-inp" id="api-key" placeholder="sk-ant-..." autocomplete="off"/>
+                <button class="btn-ks" onclick="saveKey()">Save</button>
+                <button class="btn-ks ghost" onclick="clearKey()">Forget</button>
+                <span class="key-ok" id="key-saved">✓ Saved</span>
+            </div>
+        </div>
+        <div class="page">
+            <!-- Step nav -->
+            <nav class="steps-nav" id="steps-nav">
+                <div class="step-item">
+                    <div class="step-num active" id="sn-1">1</div>
+                    <div class="step-label active" id="sl-1">Start</div>
+                </div>
+                <div class="step-connector" id="sc-1"></div>
+                <div class="step-item">
+                    <div class="step-num upcoming" id="sn-2">2</div>
+                    <div class="step-label" id="sl-2">Story Bible</div>
+                </div>
+                <div class="step-connector" id="sc-2"></div>
+                <div class="step-item">
+                    <div class="step-num upcoming" id="sn-3">3</div>
+                    <div class="step-label" id="sl-3">Output</div>
+                </div>
+                <div class="step-connector" id="sc-3"></div>
+                <div class="step-item">
+                    <div class="step-num upcoming" id="sn-4">4</div>
+                    <div class="step-label" id="sl-4">Format</div>
+                </div>
+                <div class="step-connector" id="sc-4"></div>
+                <div class="step-item">
+                    <div class="step-num upcoming" id="sn-5">5</div>
+                    <div class="step-label" id="sl-5">Convert</div>
+                </div>
+                <div class="step-connector" id="sc-5"></div>
+                <div class="step-item">
+                    <div class="step-num upcoming" id="sn-6">6</div>
+                    <div class="step-label" id="sl-6">Export</div>
+                </div>
+            </nav>
+            <!-- ══ STEP 1: START ══════════════════════════════════════ -->
+            <div class="panel active" id="panel-1">
+                <div id="resume-banner">
+                  <span class="rb-icon">⏸</span>
+                  <div class="rb-text">
+                    <div class="rb-title">Partial conversion found: <span id="resume-banner-title"></span></div>
+                    <div class="rb-sub"><span id="resume-banner-progress"></span> — jump back to your results?</div>
+                  </div>
+                  <div class="rb-actions">
+                    <button class="rb-btn" onclick="resumePartialSession()">▶ Resume</button>
+                    <button class="rb-dismiss" onclick="dismissResumeBanner()">Discard</button>
+                  </div>
+                </div>
+                <div class="eyebrow">Step 1 — How would you like to start?</div>
+                <h1 class="panel-title">Every great story<br><em style="font-style: normal;">starts somewhere.</em></h1>
+                <p class="panel-sub">Choose how you want to begin. Both paths lead to a professional screenplay or publish-ready manuscript.</p>
+                <div class="path-grid">
+                    <div class="path-card" id="path-manuscript" onclick="selectPath('manuscript')">
+                        <span class="path-icon">📄</span>
+                        <h3>I have a manuscript</h3>
+                        <p>Upload your PDF or DOCX. FluidScriptr reads the full text and builds your Story Bible automatically.</p>
+                        <span class="path-tag">Convert or Enhance</span>
+                    </div>
+                    <div class="path-card" id="path-idea" onclick="selectPath('idea')">
+                        <span class="path-icon">💡</span>
+                        <h3>I have a story idea</h3>
+                        <p>Answer a few guided questions about your story. No writing experience or existing draft needed.</p>
+                        <span class="path-tag">Write from Scratch</span>
+                    </div>
+                </div>
+                <!-- Manuscript sub-panel -->
+                <div id="manuscript-panel" style="display:none;">
+                    <div class="upload-zone" id="upload-zone" onclick="document.getElementById('file-input').click()" ondragover="event.preventDefault();this.classList.add('drag-over')" ondragleave="this.classList.remove('drag-over')" ondrop="handleDrop(event)">
+                        <input type="file" id="file-input" accept=".pdf,.doc,.docx" onchange="handleFileSelect(event)"/>
+                        <span class="upload-icon">📄</span>
+                        <h3>Drop your manuscript here</h3>
+                        <p>PDF or DOCX · Up to 150,000 words</p>
+                    </div>
+                    <div class="upload-prog" id="upload-progress">
+                        <div class="spinner spinner-dark"></div>
+                        <span id="upload-progress-text">Extracting text…</span>
+                    </div>
+                    <div class="file-info" id="file-info">
+                        <div class="fn" id="file-name"></div>
+                        <div class="fm" id="file-meta"></div>
+                    </div>
+                    <div class="card">
+                        <div class="grid-2">
+                            <div class="field">
+                                <label class="lbl">Book title</label>
+                                <input type="text" id="book-title" placeholder="e.g. A Fox, Pausing in Snow"/>
+                            </div>
+                            <div class="field">
+                                <label class="lbl">Author</label>
+                                <input type="text" id="book-author" placeholder="e.g. Steve Walker"/>
+                            </div>
+                        </div>
+                        <div class="field" style="margin-bottom:0">
+                            <label class="lbl">Genre</label>
+                            <select id="genre">
+                                <option value="literary drama">Literary / Prestige Drama</option>
+                                <option value="thriller">Thriller</option>
+                                <option value="romance">Romance</option>
+                                <option value="horror">Horror</option>
+                                <option value="action adventure">Action / Adventure</option>
+                                <option value="comedy">Comedy</option>
+                                <option value="sci-fi">Science Fiction</option>
+                                <option value="fantasy">Fantasy</option>
+                                <option value="historical drama">Historical Drama</option>
+                                <option value="children family">Children's / Family</option>
+                                <option value="biography">Biography / True Story</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="btn-row">
+                        <button class="btn-primary" id="bible-btn" onclick="generateBible()" disabled>Generate Story Bible →</button>
+                    </div>
+                </div>
+                <!-- Idea sub-panel -->
+                <div id="idea-panel" style="display:none;">
+                    <div class="card">
+                        <div class="grid-2" style="margin-bottom:1.25rem;">
+                            <div class="field">
+                                <label class="lbl">Working title (can change later)</label>
+                                <input type="text" id="idea-title" placeholder="e.g. The Last Summer"/>
+                            </div>
+                            <div class="field">
+                                <label class="lbl">Genre</label>
+                                <select id="idea-genre">
+                                    <option value="literary drama">Literary / Prestige Drama</option>
+                                    <option value="thriller">Thriller</option>
+                                    <option value="romance">Romance</option>
+                                    <option value="horror">Horror</option>
+                                    <option value="action adventure">Action / Adventure</option>
+                                    <option value="comedy">Comedy</option>
+                                    <option value="sci-fi">Science Fiction</option>
+                                    <option value="fantasy">Fantasy</option>
+                                    <option value="historical drama">Historical Drama</option>
+                                    <option value="children family">Children's / Family</option>
+                                    <option value="biography">Biography / True Story</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="question-block">
+                            <div class="q-num">1</div>
+                            <span class="q-label">What is your story about?</span>
+                            <span class="q-hint">Describe it in a few sentences — like you're telling a friend.</span>
+                            <textarea id="q1" rows="3" placeholder="e.g. A retired fisherman in a small coastal town discovers letters from his estranged daughter, and sets out on a journey to find her before it's too late…"></textarea>
+                        </div>
+                        <div class="question-block">
+                            <div class="q-num">2</div>
+                            <span class="q-label">Who is your main character?</span>
+                            <span class="q-hint">Name, age, what kind of person are they? What do they want most in life?</span>
+                            <textarea id="q2" rows="3" placeholder="e.g. Eduardo, 68, a stubborn but warm-hearted fisherman who has spent his life avoiding emotional honesty. He wants to make peace with his past before he runs out of time…"></textarea>
+                        </div>
+                        <div class="question-block">
+                            <div class="q-num">3</div>
+                            <span class="q-label">What is the central conflict or problem?</span>
+                            <span class="q-hint">What stands between your character and what they want?</span>
+                            <textarea id="q3" rows="3" placeholder="e.g. His daughter doesn't know he's looking for her — and when he finds her, she doesn't want to be found. He has to earn her forgiveness without knowing if she'll ever give it…"></textarea>
+                        </div>
+                        <div class="question-block">
+                            <div class="q-num">4</div>
+                            <span class="q-label">Where and when is your story set?</span>
+                            <span class="q-hint">Time period, location, atmosphere — paint a picture of the world.</span>
+                            <textarea id="q4" rows="2" placeholder="e.g. Present day, a small fishing village in the Visayas, Philippines. Hot, humid, beautiful. The kind of place where everyone knows everyone and nothing stays secret for long…"></textarea>
+                        </div>
+                        <div class="question-block">
+                            <div class="q-num">5</div>
+                            <span class="q-label">How does the story end?</span>
+                            <span class="q-hint">Don't worry about spoilers — this helps build a coherent arc. Even a rough idea is fine.</span>
+                            <textarea id="q5" rows="2" placeholder="e.g. He finds his daughter and they have one honest conversation — not a full reconciliation, but a beginning. He returns home knowing he did the right thing, even if it came too late…"></textarea>
+                        </div>
+                        <div class="question-block" style="margin-bottom:0;">
+                            <div class="q-num">6</div>
+                            <span class="q-label">What themes or ideas run through your story?</span>
+                            <span class="q-hint">What is it really about underneath the plot?</span>
+                            <textarea id="q6" rows="2" placeholder="e.g. Forgiveness, the cost of pride, the stories we tell ourselves about our failures, the possibility of change in old age…"></textarea>
+                        </div>
+                    </div>
+                    <div class="btn-row">
+                        <button class="btn-primary" id="idea-bible-btn" onclick="generateBibleFromIdea()">Build My Story Bible →</button>
+                    </div>
+                </div>
+            </div>
+            <!-- ══ STEP 2: STORY BIBLE ════════════════════════════════ -->
+            <div class="panel" id="panel-2">
+                <div class="eyebrow">Step 2 — Story Bible</div>
+                <h1 class="panel-title">Your Story Bible.</h1>
+                <p class="panel-sub">FluidScriptr has read your story and built this structured bible. Review each section and edit anything — this is your creative brief for everything that follows.</p>
+                <div class="card">
+                    <div class="bible-section">
+                        <div class="bible-lbl">Logline</div>
+                        <textarea id="b-logline" rows="2" placeholder="One compelling sentence…"></textarea>
+                    </div>
+                    <div class="bible-section">
+                        <div class="bible-lbl">Characters & Arcs</div>
+                        <textarea id="b-characters" rows="5" placeholder="Main characters and their arcs…"></textarea>
+                    </div>
+                    <div class="bible-section">
+                        <div class="bible-lbl">World & Tone</div>
+                        <textarea id="b-world" rows="3" placeholder="Setting, atmosphere, visual language…"></textarea>
+                    </div>
+                    <div class="bible-section">
+                        <div class="bible-lbl">Themes</div>
+                        <textarea id="b-themes" rows="2" placeholder="Core themes…"></textarea>
+                    </div>
+                    <div class="bible-section">
+                        <div class="bible-lbl">Three-Act Structure</div>
+                        <textarea id="b-structure" rows="4" placeholder="Act 1 / Act 2 / Act 3…"></textarea>
+                    </div>
+                    <div class="bible-section">
+                        <div class="bible-lbl">Key Motifs</div>
+                        <textarea id="b-motifs" rows="2" placeholder="Recurring images, objects, phrases…"></textarea>
+                    </div>
+                    <div class="bible-section" style="margin-bottom:0">
+                        <div class="bible-lbl">Ending</div>
+                        <textarea id="b-ending" rows="2" placeholder="What happens and what it means…"></textarea>
+                    </div>
+                </div>
+                <div class="btn-row">
+                    <button class="btn-primary" onclick="goToStep(3)">Bible looks good →</button>
+                    <button class="btn-secondary" onclick="printBible()">🖨 Print Bible</button>
+                    <button class="btn-secondary" onclick="regenerateBible()">
+                        <span class="spinner spinner-dark" id="regen-spinner" style="display:none;"></span> Regenerate
+                    </button>
+                </div>
+            </div>
+            <!-- ══ STEP 3: OUTPUT TYPE ════════════════════════════════ -->
+            <div class="panel" id="panel-3">
+                <div class="eyebrow">Step 3 — Choose your output</div>
+                <h1 class="panel-title">What do you want<br>to create?</h1>
+                <p class="panel-sub" id="output-sub">Choose what FluidScriptr will produce from your Story Bible.</p>
+                <div class="output-grid" id="output-options">
+                    <!-- Options injected by JS based on path -->
+                </div>
+                <div class="btn-row">
+                    <button class="btn-primary" id="output-next-btn" onclick="goToStep(4)" disabled>Continue →</button>
+                    <button class="btn-secondary" onclick="goToStep(2)">← Back to Bible</button>
+                </div>
+            </div>
+            <!-- ══ STEP 4: FORMAT ══════════════════════════════════════ -->
+            <div class="panel" id="panel-4">
+                <div class="eyebrow">Step 4 — Format & Approach</div>
+                <h1 class="panel-title">Choose your format.</h1>
+                <p class="panel-sub" id="format-sub">Select how your output will be structured and paced.</p>
+                <!-- Screenplay format options -->
+                <div id="screenplay-format-options">
+                    <div class="card" style="margin-bottom:1.25rem;">
+                        <label class="lbl" style="margin-bottom:12px;">Target format</label>
+                        <div class="format-grid">
+                            <div class="format-card selected" onclick="selectFormat(this,'feature')">
+                                <h3>🎬 Feature Film</h3>
+                                <p>A standalone film for theatrical or streaming release.</p>
+                                <div class="fm-meta">Target: 90–110 pages · ~95 min</div>
+                            </div>
+                            <div class="format-card" onclick="selectFormat(this,'limited')">
+                                <h3>📺 Limited Series</h3>
+                                <p>Multi-episode series for complex, sprawling stories.</p>
+                                <div class="fm-meta">2–8 episodes · 40–55 min each</div>
+                            </div>
+                            <div class="format-card" onclick="selectFormat(this,'pilot')">
+                                <h3>📡 TV Pilot</h3>
+                                <p>First episode that sets up the world and hooks viewers.</p>
+                                <div class="fm-meta">Target: 50–60 pages · ~50 min</div>
+                            </div>
+                            <div class="format-card" onclick="selectFormat(this,'short')">
+                                <h3>🎞️ Short Film</h3>
+                                <p>Focused adaptation of a key scene or chapter.</p>
+                                <div class="fm-meta">Target: 10–30 pages · 10–30 min</div>
+                            </div>
+                        </div>
+                        <div class="field" id="episodes-field" style="display:none;">
+                            <label class="lbl">Number of episodes</label>
+                            <select id="episodes" onchange="updateCalc()">
+                                <option value="2">2 episodes</option>
+                                <option value="3">3 episodes</option>
+                                <option value="4" selected>4 episodes</option>
+                                <option value="6">6 episodes</option>
+                                <option value="8">8 episodes</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="card" style="margin-bottom:1.25rem;">
+                        <label class="lbl" style="margin-bottom:12px;">Adaptation approach</label>
+                        <div style="margin-bottom:0.75rem;">
+                            <button class="btn-glossary-toggle" onclick="toggleGlossary()" type="button">📖 What do these mean?</button>
+                        </div>
+                        <div class="glossary-box" id="approach-glossary" style="display:none;">
+                            <div class="glossary-item"><strong>Compress</strong> — Every subplot and character arc from your source is preserved, but scenes are tightened, dialogue is trimmed, and descriptions are cut to fit the target page count. Best when your story is already well-structured and you want nothing left out.</div>
+                            <div class="glossary-item"><strong>Select Best</strong> — The AI identifies the most cinematic, dramatic, and emotionally powerful scenes from your source and builds the screenplay around those. Weaker subplots may be dropped entirely. Best for sprawling books where ruthless editing is needed.</div>
+                            <div class="glossary-item"><strong>Faithful</strong> — Stays as close to the source material as possible — same scene order, same dialogue where practical, same pacing. Ideal when you have an existing adaptation contract or need to stay true to the book for rights reasons.</div>
+                        </div>
+                        <div class="approach-grid">
+                            <div class="approach-card selected" onclick="selectApproach(this,'compress')">
+                                <h3>Compress</h3>
+                                <p>Full story preserved, tightened to fit</p>
+                            </div>
+                            <div class="approach-card" onclick="selectApproach(this,'selective')">
+                                <h3>Select Best</h3>
+                                <p>AI picks most cinematic scenes</p>
+                            </div>
+                            <div class="approach-card" onclick="selectApproach(this,'faithful')">
+                                <h3>Faithful</h3>
+                                <p>Stay close to source within constraints</p>
+                            </div>
+                        </div>
+                        <div class="grid-2">
+                            <div class="field">
+                                <label class="lbl">Tone</label>
+                                <select id="tone">
+                                    <option value="faithful to source">Faithful to source</option>
+                                    <option value="cinematic visual-first">Cinematic / visual-first</option>
+                                    <option value="compressed tight pacing">Compressed / tight pacing</option>
+                                    <option value="expanded with subtext">Expanded with subtext</option>
+                                </select>
+                            </div>
+                            <div class="field" style="margin-bottom:0">
+                                <label class="lbl">Dialogue style</label>
+                                <select id="dialogue">
+                                    <option value="naturalistic">Naturalistic</option>
+                                    <option value="stylized literary">Stylized / Literary</option>
+                                    <option value="minimal visual">Minimal — let visuals carry</option>
+                                    <option value="heavy subtext">Heavy subtext</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="calc-box">
+                        <h3>Conversion estimate</h3>
+                        <div class="calc-row">
+                            <span class="l">Your manuscript</span>
+                            <span class="r" id="calc-pages">—</span>
+                        </div>
+                        <div class="calc-row">
+                            <span class="l">Target format</span>
+                            <span class="r" id="calc-format">Feature Film</span>
+                        </div>
+                        <div class="calc-row hi">
+                            <span class="l">Compression ratio</span>
+                            <span class="r" id="calc-ratio">—</span>
+                        </div>
+                        <div class="calc-row wa">
+                            <span class="l">Estimated processing time</span>
+                            <span class="r" id="calc-time">—</span>
+                        </div>
+                        <div class="calc-row">
+                            <span class="l">Estimated output</span>
+                            <span class="r" id="calc-output">—</span>
+                        </div>
+                    </div>
+                </div>
+                <!-- Manuscript format options -->
+                <div id="manuscript-format-options" style="display:none;">
+                    <div class="card">
+                        <div class="honest-note" style="margin-bottom:0;">
+                            <strong>Manuscript format:</strong> Your output will be formatted to industry-standard submission specs — Times New Roman 12pt, double-spaced, 1-inch margins, DOCX. Ready for literary agents, publishers, or Amazon KDP.
+                        </div>
+                    </div>
+                    <div class="card">
+                        <label class="lbl" style="margin-bottom:12px;">Writing approach</label>
+                        <div style="margin-bottom:0.75rem;">
+                            <button class="btn-glossary-toggle" onclick="toggleGlossaryMs()" type="button">📖 What do these mean?</button>
+                        </div>
+                        <div class="glossary-box" id="ms-approach-glossary" style="display:none;">
+                            <div class="glossary-item"><strong>Expand</strong> — Takes your Story Bible and develops each section into full, richly-written prose chapters. The AI adds scene detail, sensory description, and inner character monologue that wasn't in your original answers.</div>
+                            <div class="glossary-item"><strong>Faithful</strong> — Writes prose chapters that stay closely aligned with what you described — no embellishment, no invented subplots. What you wrote in the Story Bible is what you get, rendered into clean narrative prose.</div>
+                            <div class="glossary-item"><strong>Literary</strong> — Elevated, stylistically ambitious prose. Think Cormac McCarthy or Toni Morrison — sparse or ornate, but always intentional. Slower pacing, deeper interiority, precise word choice. Best for prestige fiction with a strong authorial voice.</div>
+                        </div>
+                        <div class="approach-grid">
+                            <div class="approach-card selected" onclick="selectApproach(this,'expand')">
+                                <h3>Expand</h3>
+                                <p>Develop your story bible into full prose chapters</p>
+                            </div>
+                            <div class="approach-card" onclick="selectApproach(this,'faithful')">
+                                <h3>Faithful</h3>
+                                <p>Stay true to your story as described</p>
+                            </div>
+                            <div class="approach-card" onclick="selectApproach(this,'literary')">
+                                <h3>Literary</h3>
+                                <p>Elevated prose, rich description, deep interiority</p>
+                            </div>
+                        </div>
+                        <div class="field" style="margin-top:1rem;margin-bottom:0;">
+                            <label class="lbl">Target length</label>
+                            <select id="manuscript-length">
+                                <option value="short">Short story / Novella (~20,000 words)</option>
+                                <option value="medium" selected>Novel (~60,000 words)</option>
+                                <option value="long">Long novel (~90,000 words)</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+                <div class="btn-row">
+                    <button class="btn-primary" onclick="goToStep(5)">Review & begin →</button>
+                    <button class="btn-secondary" onclick="goToStep(3)">← Back</button>
+                </div>
+            </div>
+            <!-- ══ STEP 5: REVIEW ════════════════════════════════════ -->
+            <div class="panel" id="panel-5">
+                <div class="eyebrow">Step 5 — Review</div>
+                <h1 class="panel-title">Ready to convert.</h1>
+                <p class="panel-sub">Here's exactly what FluidScriptr will produce. Once you begin, cancelling will still count as one conversion.</p>
+                <div class="briefing-box">
+                    <h3>Conversion summary</h3>
+                    <div class="b-row">
+                        <span class="ico">📖</span>
+                        <span class="txt"><strong id="brief-title">Your story</strong> · <span id="brief-pages">—</span> · <span id="brief-genre">—</span></span>
+                    </div>
+                    <div class="b-row">
+                        <span class="ico">🎯</span>
+                        <span class="txt">Output: <strong id="brief-output">Screenplay</strong> · Format: <strong id="brief-format">Feature Film</strong></span>
+                    </div>
+                    <div class="b-row">
+                        <span class="ico">🗜️</span>
+                        <span class="txt">Approach: <strong id="brief-approach">Compress</strong> · Ratio: <strong id="brief-ratio">—</strong></span>
+                    </div>
+                    <div class="b-row">
+                        <span class="ico">⏱️</span>
+                        <span class="txt">Estimated time: <strong id="brief-time" style="color:var(--red)">—</strong></span>
+                    </div>
+                </div>
+                <div class="honest-note">
+                    <strong>A note on creative choices:</strong> FluidScriptr preserves your core story arc, main characters, and key themes. Some subplots may be merged and scenes condensed. The output is a <strong>professional first draft</strong> — the starting point you refine with your own voice.
+                </div>
+                <div class="card" style="margin-bottom:1.5rem;">
+                    <div class="bible-lbl" style="margin-bottom:0.75rem;">Partial conversion (optional)</div>
+                    <p style="font-size:13px;color:var(--grey);margin-bottom:1rem;line-height:1.6;">Convert only the first portion of your manuscript — useful for previewing the output before committing the full run.</p>
+                    <div style="display:flex;align-items:center;gap:14px;">
+                        <input type="range" id="partial-range" min="0" max="100" value="100" step="10"
+                            oninput="updatePartialLabel(this.value)"
+                            style="flex:1;accent-color:var(--red);background:transparent;box-shadow:none;padding:0;">
+                        <span id="partial-label" style="font-size:14px;font-weight:700;color:var(--navy);min-width:60px;text-align:right;">Full</span>
+                    </div>
+                </div>
+                <div class="btn-row">
+                    <button class="btn-primary" id="convert-btn" onclick="startConversion()" style="font-family:'Open Sans','Inter',sans-serif;font-size:16px;padding:14px 32px;">🎬 Begin Conversion</button>
+                    <button class="btn-secondary" onclick="goToStep(4)">← Change format</button>
+                </div>
+            </div>
+
+            <!-- ══ STEP 5.5: CONVERSION IN PROGRESS ═════════════════════ -->
+            <div class="panel" id="panel-conv">
+                <div class="eyebrow">Converting…</div>
+                <h1 class="panel-title">Your story is being written.</h1>
+                <p class="panel-sub">This may take a few minutes. You can cancel at any time — this will still count as one conversion.</p>
+                <div class="progress-card">
+                    <div class="prog-header">
+                        <span class="prog-label" id="progress-label">Initializing…</span>
+                        <span class="prog-pct" id="progress-pct">0%</span>
+                    </div>
+                    <div class="prog-bar-bg">
+                        <div class="prog-bar-fill" id="progress-bar"></div>
+                    </div>
+                    <div class="prog-status" id="progress-status">Reading your story…</div>
+                    <div class="prog-pages" id="progress-pages"></div>
+                    <div class="prog-log" id="progress-log"></div>
+                </div>
+                <div class="btn-row" style="margin-top:1.5rem;">
+                    <button class="btn-cancel-conversion" id="cancel-conv-btn" onclick="cancelConversion()">✕ Cancel Conversion</button>
+                </div>
+                <div class="honest-note" style="margin-top:1.5rem;font-size:13px;">
+                    <strong>Note:</strong> Cancelling will stop generation immediately. This conversion will still be counted toward your usage.
+                </div>
+            </div>
+            <!-- ══ STEP 6: EXPORT ══════════════════════════════════════ -->
+            <div class="panel" id="panel-6" style="max-width:100%;">
+                <div class="eyebrow">Step 6 — Export</div>
+                <h1 class="panel-title">Your output is ready.</h1>
+                <div style="display:flex;gap:8px;flex-wrap:wrap;justify-content:center;margin-bottom:1.5rem;">
+                    <span class="meta-pill red" id="out-stat1">—</span>
+                    <span class="meta-pill" id="out-stat2">—</span>
+                    <span class="meta-pill" id="out-stat3">—</span>
+                </div>
+                <!-- Two-column results layout -->
+                <div class="results-cols">
+                    <!-- Left: Story Bible -->
+                    <div class="results-bible">
+                        <div class="results-col-header">📚 Story Bible</div>
+                        <div class="bible-scroll">
+                            <div class="bible-result-section"><div class="bible-lbl">Logline</div><div class="bible-result-text" id="res-logline"></div></div>
+                            <div class="bible-result-section"><div class="bible-lbl">Characters & Arcs</div><div class="bible-result-text" id="res-characters"></div></div>
+                            <div class="bible-result-section"><div class="bible-lbl">World & Tone</div><div class="bible-result-text" id="res-world"></div></div>
+                            <div class="bible-result-section"><div class="bible-lbl">Themes</div><div class="bible-result-text" id="res-themes"></div></div>
+                            <div class="bible-result-section"><div class="bible-lbl">Structure</div><div class="bible-result-text" id="res-structure"></div></div>
+                            <div class="bible-result-section"><div class="bible-lbl">Key Motifs</div><div class="bible-result-text" id="res-motifs"></div></div>
+                            <div class="bible-result-section" style="border-bottom:none;"><div class="bible-lbl">Ending</div><div class="bible-result-text" id="res-ending"></div></div>
+                        </div>
+                    </div>
+                    <!-- Right: Generated Output -->
+                    <div class="results-output">
+                        <div id="screenplay-output-section">
+                            <div class="results-col-header">🎬 Screenplay</div>
+                            <div class="screenplay-out output-scroll" id="screenplay-out"></div>
+                            <div class="export-section">
+                                <label class="lbl" style="margin-bottom:10px;text-align:left;">Export as</label>
+                                <div class="export-grid">
+                                    <div class="export-btn" onclick="exportFountain()">
+                                        <span class="ei">📝</span>
+                                        <span class="el">.fountain</span>
+                                        <span class="ed">Final Draft, Highland</span>
+                                    </div>
+                                    <div class="export-btn" onclick="exportFDX()">
+                                        <span class="ei">🎬</span>
+                                        <span class="el">.fdx</span>
+                                        <span class="ed">Final Draft native</span>
+                                    </div>
+                                    <div class="export-btn" onclick="exportScreenplayPDF()">
+                                        <span class="ei">📄</span>
+                                        <span class="el">PDF</span>
+                                        <span class="ed">Standard format</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div id="manuscript-output-section" style="display:none;">
+                            <div class="results-col-header">📖 Manuscript</div>
+                            <div class="manuscript-out output-scroll" id="manuscript-out"></div>
+                            <div class="export-section">
+                                <label class="lbl" style="margin-bottom:10px;text-align:left;">Export as</label>
+                                <div class="export-grid" style="grid-template-columns:repeat(2,1fr);">
+                                    <div class="export-btn" onclick="exportManuscriptDOCX()">
+                                        <span class="ei">📝</span>
+                                        <span class="el">DOCX</span>
+                                        <span class="ed">Times New Roman 12pt, double-spaced</span>
+                                    </div>
+                                    <div class="export-btn" onclick="exportManuscriptPDF()">
+                                        <span class="ei">📄</span>
+                                        <span class="el">PDF</span>
+                                        <span class="ed">Print-ready format</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <hr class="divider"/>
+                <div class="btn-row">
+                    <div id="partial-continue-row" style="display:none;gap:12px;align-items:center;flex-wrap:wrap;justify-content:center;">
+                        <span style="font-size:13px;color:var(--grey);font-weight:500;">This was a partial conversion.</span>
+                        <button class="btn-primary" onclick="continueConversion()">▶ Continue Conversion</button>
+                        <button class="btn-secondary" onclick="startOver()">✕ Cancel & Start Over</button>
+                    </div>
+                    <button id="new-project-btn" class="btn-secondary" onclick="startOver()">← Start new project</button>
+                </div>
+            </div>
+        </div>
+        <!-- /page -->
+        </div><!-- /app-shell -->
+        <script>
+pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+
+// ── State ─────────────────────────────────────────────────
+const state = {
+  path: '', // 'manuscript' | 'idea'
+  outputType: '', // 'screenplay' | 'manuscript' | 'enhance'
+  rawText: '', pageCount: 0, title: '', author: '', genre: '',
+  bible: {}, format: 'feature', approach: 'compress',
+  tone: '', dialogue: '', episodes: 4,
+  manuscriptLength: 'medium',
+  output: '', currentStep: 1
+};
+
+const FORMAT_TARGETS = {
+  feature: { pages: 95, label: 'Feature Film', range: '90–110 pages' },
+  limited: { pages: null, label: 'Limited Series', range: 'varies by episodes' },
+  pilot:   { pages: 55, label: 'TV Pilot', range: '50–60 pages' },
+  short:   { pages: 20, label: 'Short Film', range: '10–30 pages' }
+};
+
+// ── API Key ───────────────────────────────────────────────
+const LS_KEY = 'fsr_api_key';
+const LS_PARTIAL = 'fsr_partial_session';
+
+// ── Partial session persistence ───────────────────────────
+function savePartialSession() {
+  try {
+    const data = {
+      title: state.title,
+      output: state.output,
+      _partialOutput: state._partialOutput,
+      _partialFrom: state._partialFrom,
+      _chunksConverted: state._chunksConverted,
+      _totalChunks: state._totalChunks,
+      format: state.format,
+      rawText: state.rawText,
+      bible: state.bible,
+      path: state.path,
+      outputType: state.outputType
+    };
+    localStorage.setItem(LS_PARTIAL, JSON.stringify(data));
+  } catch(e) { /* storage full or unavailable */ }
+}
+function clearPartialSession() {
+  localStorage.removeItem(LS_PARTIAL);
+}
+function checkPartialSession() {
+  try {
+    const raw = localStorage.getItem(LS_PARTIAL);
+    if (!raw) return;
+    const data = JSON.parse(raw);
+    if (!data._partialOutput || !data._partialFrom) return;
+    // Restore state
+    Object.assign(state, data);
+    // Show resume banner
+    const banner = document.getElementById('resume-banner');
+    if (banner) {
+      document.getElementById('resume-banner-title').textContent = data.title || 'your manuscript';
+      document.getElementById('resume-banner-progress').textContent =
+        `Sections ${data._chunksConverted} of ${data._totalChunks} converted`;
+      banner.style.display = 'flex';
+    }
+  } catch(e) { clearPartialSession(); }
+}
+(function() {
+  const k = localStorage.getItem(LS_KEY);
+  if (k) { document.getElementById('api-key').value = k; showKeySaved(); }
+})();
+// Check for a saved partial session from a previous page load
+document.addEventListener('DOMContentLoaded', checkPartialSession);
+function saveKey() {
+  const k = document.getElementById('api-key').value.trim();
+  if (!k) return;
+  localStorage.setItem(LS_KEY, k);
+  showKeySaved();
+}
+function clearKey() {
+  localStorage.removeItem(LS_KEY);
+  document.getElementById('api-key').value = '';
+  document.getElementById('key-saved').style.display = 'none';
+}
+function showKeySaved() { document.getElementById('key-saved').style.display = 'inline'; }
+function toggleKeyPanel() {
+  const p = document.getElementById('key-panel');
+  const b = document.getElementById('key-toggle-btn');
+  const open = p.classList.toggle('open');
+  b.classList.toggle('open', open);
+}
+function getKey() { return document.getElementById('api-key').value.trim(); }
+
+// ── Step navigation ───────────────────────────────────────
+function _navigateToStep(n) {
+  document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
+  document.getElementById('panel-' + n).classList.add('active');
+
+  for (let i = 1; i <= 6; i++) {
+    const num = document.getElementById('sn-' + i);
+    const lbl = document.getElementById('sl-' + i);
+    const con = document.getElementById('sc-' + i);
+    if (i < n) {
+      // Completed — outline red circle with number
+      num.className = 'step-num';
+      num.textContent = i;
+      lbl.className = 'step-label done';
+      if (con) con.className = 'step-connector done';
+    } else if (i === n) {
+      // Active — filled red circle
+      num.className = 'step-num active';
+      num.textContent = i;
+      lbl.className = 'step-label active';
+    } else {
+      // Upcoming — grey
+      num.className = 'step-num upcoming';
+      num.textContent = i;
+      lbl.className = 'step-label';
+      if (con) con.className = 'step-connector';
+    }
+  }
+
+  const badge = document.getElementById('step-badge-num');
+  if (badge) badge.textContent = n;
+  document.getElementById('key-panel')?.classList.remove('open');
+  document.getElementById('key-toggle-btn')?.classList.remove('open');
+  state.currentStep = n;
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+
+// ── Path selection ────────────────────────────────────────
+function selectPath(path) {
+  state.path = path;
+  document.getElementById('path-manuscript').classList.toggle('selected', path === 'manuscript');
+  document.getElementById('path-idea').classList.toggle('selected', path === 'idea');
+  document.getElementById('manuscript-panel').style.display = path === 'manuscript' ? 'block' : 'none';
+  document.getElementById('idea-panel').style.display = path === 'idea' ? 'block' : 'none';
+}
+
+// ── Output type selection (Step 3) ────────────────────────
+function buildOutputOptions() {
+  const container = document.getElementById('output-options');
+  const sub = document.getElementById('output-sub');
+  const btn = document.getElementById('output-next-btn');
+  btn.disabled = true;
+  state.outputType = '';
+
+  if (state.path === 'manuscript') {
+    sub.textContent = 'What do you want to do with your manuscript?';
+    container.innerHTML = `
+      <div class="output-card" onclick="pickOutput(this,'screenplay')">
+        <span class="oc-icon">🎬</span>
+        <h3>Convert to Screenplay</h3>
+        <p>Adapt your manuscript into a professional screenplay — coherently, chapter by chapter.</p>
+        <div class="oc-format">PDF · .fountain · .fdx</div>
+      </div>
+      <div class="output-card" onclick="pickOutput(this,'enhance')">
+        <span class="oc-icon">✨</span>
+        <h3>Enhance Manuscript</h3>
+        <p>Rewrite and improve your draft — stronger prose, tighter structure, clearer character voices.</p>
+        <div class="oc-format">DOCX · Times New Roman 12pt</div>
+      </div>`;
+  } else {
+    sub.textContent = 'What do you want FluidScriptr to write for you?';
+    container.innerHTML = `
+      <div class="output-card" onclick="pickOutput(this,'manuscript')">
+        <span class="oc-icon">📖</span>
+        <h3>Write a Manuscript</h3>
+        <p>A publish-ready novel or novella based on your story — formatted to industry submission standards.</p>
+        <div class="oc-format">DOCX · Times New Roman 12pt · Double-spaced</div>
+      </div>
+      <div class="output-card" onclick="pickOutput(this,'screenplay')">
+        <span class="oc-icon">🎬</span>
+        <h3>Write a Screenplay</h3>
+        <p>A professional screenplay in standard format — ready for Final Draft, Highland, or Fade In.</p>
+        <div class="oc-format">PDF · .fountain · .fdx</div>
+      </div>`;
+  }
+}
+
+function pickOutput(el, type) {
+  document.querySelectorAll('.output-card').forEach(c => c.classList.remove('selected'));
+  el.classList.add('selected');
+  state.outputType = type;
+  document.getElementById('output-next-btn').disabled = false;
+
+  // Show/hide format options in step 4
+  const isScreenplay = (type === 'screenplay');
+  document.getElementById('screenplay-format-options').style.display = isScreenplay ? 'block' : 'none';
+  document.getElementById('manuscript-format-options').style.display = isScreenplay ? 'none' : 'block';
+}
+
+// goToStep — injects output options when entering step 3, briefing on step 5
+function goToStep(n) {
+  if (n === 3) buildOutputOptions();
+  if (n === 5) populateBriefing();
+  // Show cancel btn during active workflow (steps 2+), hide on step 1
+  const cancelBtn = document.getElementById('cancel-nav-btn');
+  if (cancelBtn) cancelBtn.style.display = (n > 1) ? 'flex' : 'none';
+  _navigateToStep(n);
+}
+
+// ── File upload ───────────────────────────────────────────
+function handleDrop(e) {
+  e.preventDefault();
+  document.getElementById('upload-zone').classList.remove('drag-over');
+  const file = e.dataTransfer.files[0];
+  if (file) extractFile(file);
+}
+function handleFileSelect(e) {
+  const file = e.target.files[0];
+  if (file) extractFile(file);
+}
+
+async function extractFile(file) {
+  const prog = document.getElementById('upload-progress');
+  const progText = document.getElementById('upload-progress-text');
+  const zone = document.getElementById('upload-zone');
+  const name = file.name.toLowerCase();
+  const isPDF = name.endsWith('.pdf');
+  const isDOCX = name.endsWith('.docx') || name.endsWith('.doc');
+  if (!isPDF && !isDOCX) { alert('Please upload a PDF or DOCX file.'); return; }
+
+  prog.classList.add('on');
+  zone.style.opacity = '0.5';
+  progText.textContent = isPDF ? 'Extracting text from PDF…' : 'Extracting text from DOCX…';
+
+  try {
+    let text = '';
+    if (isPDF) {
+      const buf = await file.arrayBuffer();
+      const pdf = await pdfjsLib.getDocument({ data: buf }).promise;
+      const total = pdf.numPages;
+      for (let i = 1; i <= total; i++) {
+        progText.textContent = `Reading page ${i} of ${total}…`;
+        const page = await pdf.getPage(i);
+        const content = await page.getTextContent();
+        text += content.items.map(it => it.str).join(' ') + '\n';
+      }
+      state.pageCount = total;
+    } else {
+      const buf = await file.arrayBuffer();
+      const result = await mammoth.extractRawText({ arrayBuffer: buf });
+      text = result.value;
+      const wc = text.trim().split(/\s+/).length;
+      state.pageCount = Math.round(wc / 250);
+    }
+
+    state.rawText = text.trim();
+
+    const autoTitle = file.name.replace(/\.[^.]+$/, '').replace(/[-_]/g, ' ').replace(/\b\w/g, c => c.toUpperCase());
+    const titleEl = document.getElementById('book-title');
+    if (!titleEl.value) titleEl.value = autoTitle;
+
+    const wc = state.rawText.split(/\s+/).length;
+    document.getElementById('file-name').textContent = file.name;
+    document.getElementById('file-meta').textContent = `${state.pageCount.toLocaleString()} pages · ${wc.toLocaleString()} words · ready for bible generation`;
+    document.getElementById('file-info').classList.add('on');
+    document.getElementById('bible-btn').disabled = false;
+    document.getElementById('calc-pages').textContent = `${state.pageCount.toLocaleString()} pages`;
+    updateCalc();
+  } catch(err) {
+    alert('Error reading file: ' + (err.message || 'Please try a different file.'));
+  }
+
+  prog.classList.remove('on');
+  zone.style.opacity = '1';
+  document.getElementById('file-input').value = '';
+}
+
+// ── Bible from manuscript ─────────────────────────────────
+async function generateBible() {
+  const key = getKey();
+  if (!key) { alert('Please enter your Anthropic API key first.'); return; }
+  if (!state.rawText) { alert('Please upload a manuscript first.'); return; }
+
+  state.title = document.getElementById('book-title').value.trim() || 'Untitled';
+  state.author = document.getElementById('book-author').value.trim() || 'Unknown';
+  state.genre = document.getElementById('genre').value;
+
+  const btn = document.getElementById('bible-btn');
+  btn.disabled = true;
+  btn.innerHTML = '<span class="spinner spinner-dark"></span> Generating bible…';
+
+  const words = state.rawText.split(/\s+/);
+  const truncated = words.slice(0, 60000).join(' ');
+
+  try {
+    const res = await callAPI(key, getBibleSystemPrompt(), `Book: "${state.title}" by ${state.author}\nGenre: ${state.genre}\n\nManuscript:\n${truncated}`, 2000);
+    parseBible(res);
+    goToStep(2);
+  } catch(err) {
+    alert('Error: ' + (err.message || 'Check your API key.'));
+  }
+
+  btn.disabled = false;
+  btn.innerHTML = 'Generate Story Bible →';
+}
+
+// ── Bible from idea ───────────────────────────────────────
+async function generateBibleFromIdea() {
+  const key = getKey();
+  if (!key) { alert('Please enter your Anthropic API key first.'); return; }
+
+  const q1 = document.getElementById('q1').value.trim();
+  const q2 = document.getElementById('q2').value.trim();
+  if (!q1 || !q2) { alert('Please answer at least the first two questions.'); return; }
+
+  state.title = document.getElementById('idea-title').value.trim() || 'Untitled';
+  state.genre = document.getElementById('idea-genre').value;
+  state.author = 'Original story';
+  state.rawText = '';
+  state.pageCount = 0;
+
+  const btn = document.getElementById('idea-bible-btn');
+  btn.disabled = true;
+  btn.innerHTML = '<span class="spinner spinner-dark"></span> Building your bible…';
+
+  const ideaText = `
+STORY CONCEPT: ${q1}
+MAIN CHARACTER: ${q2}
+CENTRAL CONFLICT: ${document.getElementById('q3').value}
+SETTING & WORLD: ${document.getElementById('q4').value}
+ENDING: ${document.getElementById('q5').value}
+THEMES: ${document.getElementById('q6').value}
+`.trim();
+
+  try {
+    const res = await callAPI(key, getBibleSystemPrompt(),
+      `Genre: ${state.genre}\nTitle: "${state.title}"\n\nStory concept provided by the author:\n${ideaText}\n\nBuild a comprehensive Story Bible from this concept. Be specific and creative — fill in details that feel true to the genre and concept, and help the author see their story more clearly.`,
+      2000);
+    parseBible(res);
+    goToStep(2);
+  } catch(err) {
+    alert('Error: ' + (err.message || 'Check your API key.'));
+  }
+
+  btn.disabled = false;
+  btn.innerHTML = 'Build My Story Bible →';
+}
+
+async function regenerateBible() {
+  const sp = document.getElementById('regen-spinner');
+  sp.style.display = 'inline-block';
+  if (state.path === 'idea') await generateBibleFromIdea();
+  else await generateBible();
+  sp.style.display = 'none';
+}
+
+function getBibleSystemPrompt() {
+  return `You are a story analyst and script development consultant. Build a comprehensive Story Bible.
+
+Output in EXACTLY this structure:
+
+LOGLINE
+One compelling sentence.
+
+CHARACTERS
+Each major character: NAME — role, arc summary.
+
+WORLD & TONE
+Setting, period, atmosphere, visual language, emotional register.
+
+THEMES
+2-4 core themes, one per line.
+
+STRUCTURE
+Act 1: [summary]
+Act 2: [summary]
+Act 3: [summary]
+
+KEY MOTIFS
+Recurring images, objects, phrases worth preserving.
+
+ENDING
+What happens and what it means thematically.
+
+Be specific and insightful. Reference actual names and plot points.`;
+}
+
+async function callAPI(key, system, userMsg, maxTokens = 2000) {
+  const res = await fetch('https://api.anthropic.com/v1/messages', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', 'x-api-key': key, 'anthropic-version': '2023-06-01', 'anthropic-dangerous-direct-browser-access': 'true' },
+    body: JSON.stringify({ model: 'claude-sonnet-4-6', max_tokens: maxTokens, system, messages: [{ role: 'user', content: userMsg }] })
+  });
+  const data = await res.json();
+  return data.content?.map(b => b.text || '').join('') || '';
+}
+
+function parseBible(raw) {
+  const parse = (label) => {
+    const regex = new RegExp(label + '\\n([\\s\\S]*?)(?=\\n[A-Z &]+\\n|$)');
+    const match = raw.match(regex);
+    return match ? match[1].trim() : '';
+  };
+  state.bible = {
+    logline: parse('LOGLINE'), characters: parse('CHARACTERS'),
+    world: parse('WORLD & TONE'), themes: parse('THEMES'),
+    structure: parse('STRUCTURE'), motifs: parse('KEY MOTIFS'), ending: parse('ENDING')
+  };
+  document.getElementById('b-logline').value = state.bible.logline;
+  document.getElementById('b-characters').value = state.bible.characters;
+  document.getElementById('b-world').value = state.bible.world;
+  document.getElementById('b-themes').value = state.bible.themes;
+  document.getElementById('b-structure').value = state.bible.structure;
+  document.getElementById('b-motifs').value = state.bible.motifs;
+  document.getElementById('b-ending').value = state.bible.ending;
+}
+
+// ── Format / approach ─────────────────────────────────────
+function selectFormat(el, format) {
+  document.querySelectorAll('.format-card').forEach(c => c.classList.remove('selected'));
+  el.classList.add('selected');
+  state.format = format;
+  document.getElementById('episodes-field').style.display = format === 'limited' ? 'block' : 'none';
+  updateCalc();
+}
+
+function selectApproach(el, approach) {
+  document.querySelectorAll('.approach-card').forEach(c => c.classList.remove('selected'));
+  el.classList.add('selected');
+  state.approach = approach;
+}
+
+function updateCalc() {
+  const pages = state.pageCount || 0;
+  let target, formatLabel, range;
+  if (state.format === 'feature') { target = 95; formatLabel = 'Feature Film'; range = '90–110 pages'; }
+  else if (state.format === 'limited') {
+    const eps = parseInt(document.getElementById('episodes')?.value || 4);
+    state.episodes = eps; target = eps * 50;
+    formatLabel = `Limited Series (${eps} eps)`; range = `~${eps * 50} pages`;
+  }
+  else if (state.format === 'pilot') { target = 55; formatLabel = 'TV Pilot'; range = '50–60 pages'; }
+  else { target = 20; formatLabel = 'Short Film'; range = '10–30 pages'; }
+
+  const ratio = pages > 0 ? (pages / target).toFixed(1) + ':1' : '—';
+  const chunks = Math.ceil(target / 8);
+  const minT = Math.round(chunks * 0.4), maxT = Math.round(chunks * 0.8);
+
+  document.getElementById('calc-pages').textContent = pages > 0 ? `${pages.toLocaleString()} pages` : '—';
+  document.getElementById('calc-format').textContent = formatLabel;
+  document.getElementById('calc-ratio').textContent = pages > 0 ? ratio : '—';
+  document.getElementById('calc-time').textContent = pages > 0 ? `${minT}–${maxT} minutes` : '—';
+  document.getElementById('calc-output').textContent = range;
+}
+
+// ── Briefing ──────────────────────────────────────────────
+function populateBriefing() {
+  // Collect current bible edits
+  state.bible.logline    = document.getElementById('b-logline').value;
+  state.bible.characters = document.getElementById('b-characters').value;
+  state.bible.world      = document.getElementById('b-world').value;
+  state.bible.themes     = document.getElementById('b-themes').value;
+  state.bible.structure  = document.getElementById('b-structure').value;
+  state.bible.motifs     = document.getElementById('b-motifs').value;
+  state.bible.ending     = document.getElementById('b-ending').value;
+  state.tone             = document.getElementById('tone')?.value || 'faithful to source';
+  state.dialogue         = document.getElementById('dialogue')?.value || 'naturalistic';
+  state.manuscriptLength = document.getElementById('manuscript-length')?.value || 'medium';
+
+  const isScreenplay = state.outputType === 'screenplay';
+  const isEnhance    = state.outputType === 'enhance';
+
+  let fmtLabel = isScreenplay ? FORMAT_TARGETS[state.format]?.label || 'Feature Film' :
+                 isEnhance ? 'Enhanced Manuscript' : 'Original Manuscript';
+  let targetLabel = isScreenplay ? FORMAT_TARGETS[state.format]?.range || '90–110 pages' :
+                    isEnhance ? 'DOCX · industry format' : 'DOCX · industry format';
+
+  const chunks = isScreenplay ? Math.ceil((state.format === 'limited' ? state.episodes * 50 : (FORMAT_TARGETS[state.format]?.pages || 20)) / 8) : 15;
+  const minT = Math.round(chunks * 0.4), maxT = Math.round(chunks * 0.8);
+
+  document.getElementById('brief-title').textContent = state.title || 'Your story';
+  document.getElementById('brief-pages').textContent = state.pageCount > 0 ? `${state.pageCount} pages` : 'From idea';
+  document.getElementById('brief-genre').textContent = state.genre;
+  document.getElementById('brief-output').textContent = isScreenplay ? 'Screenplay' : isEnhance ? 'Enhanced Manuscript' : 'Original Manuscript';
+  document.getElementById('brief-format').textContent = fmtLabel;
+  document.getElementById('brief-approach').textContent = state.approach;
+  document.getElementById('brief-ratio').textContent = state.pageCount > 0 && isScreenplay ? (state.pageCount / (FORMAT_TARGETS[state.format]?.pages || 20)).toFixed(1) + ':1' : 'N/A';
+  document.getElementById('brief-time').textContent = `${minT}–${maxT} minutes`;
+}
+
+// ── Progress helpers ──────────────────────────────────────
+let conversionLog = [];
+function addLog(msg) {
+  const time = new Date().toLocaleTimeString('en-US', { hour12: false });
+  conversionLog.push({ time, msg });
+  const log = document.getElementById('progress-log');
+  log.innerHTML = conversionLog.map(l => `<div class="log-item"><span class="log-time">${l.time}</span><span>${l.msg}</span></div>`).join('');
+  log.scrollTop = log.scrollHeight;
+}
+function setProgress(pct, label, status, pages) {
+  document.getElementById('progress-bar').style.width = pct + '%';
+  document.getElementById('progress-pct').textContent = Math.round(pct) + '%';
+  if (label)  document.getElementById('progress-label').textContent = label;
+  if (status) document.getElementById('progress-status').textContent = status;
+  if (pages !== undefined) document.getElementById('progress-pages').textContent = pages;
+}
+
+// ── Main conversion ───────────────────────────────────────
+async function startConversion() {
+  const key = getKey();
+  if (!key) { alert('Please enter your Anthropic API key.'); return; }
+
+  const btn = document.getElementById('convert-btn');
+  btn.disabled = true;
+  btn.innerHTML = '<span class="spinner"></span> Starting…';
+  conversionLog = [];
+  // Navigate to dedicated conversion page
+  document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
+  document.getElementById('panel-conv').classList.add('active');
+  document.getElementById('cancel-nav-btn').style.display = 'flex';
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+  state._cancelled = false;
+
+  const bibleText = `STORY BIBLE: "${state.title}"
+LOGLINE: ${state.bible.logline}
+CHARACTERS: ${state.bible.characters}
+WORLD & TONE: ${state.bible.world}
+THEMES: ${state.bible.themes}
+STRUCTURE: ${state.bible.structure}
+KEY MOTIFS: ${state.bible.motifs}
+ENDING: ${state.bible.ending}`;
+
+  if (state.outputType === 'screenplay') {
+    await convertToScreenplay(key, bibleText);
+  } else if (state.outputType === 'enhance') {
+    await enhanceManuscript(key, bibleText);
+  } else {
+    await writeManuscript(key, bibleText);
+  }
+}
+
+// ── Screenplay conversion ─────────────────────────────────
+async function convertToScreenplay(key, bibleText) {
+  let targetPages;
+  if (state.format === 'feature') targetPages = 95;
+  else if (state.format === 'limited') targetPages = state.episodes * 50;
+  else if (state.format === 'pilot') targetPages = 55;
+  else targetPages = 20;
+
+  const sourceText = state.rawText || synthesizeSourceFromBible();
+  const words = sourceText.split(/\s+/);
+  const chunkSize = 2000;
+  const chunks = [];
+  for (let i = 0; i < words.length; i += chunkSize) chunks.push(words.slice(i, i + chunkSize).join(' '));
+
+  const totalChunks = chunks.length;
+  const pagesPerChunk = (targetPages / totalChunks).toFixed(1);
+  const formatLabel = FORMAT_TARGETS[state.format]?.label || 'Feature Film';
+
+  addLog(`Converting "${state.title}" → ${formatLabel}`);
+  addLog(`${state.pageCount || 'Idea-based'} → target ${targetPages} screenplay pages`);
+  setProgress(2, 'Starting…', 'Preparing sections…', `0 of ~${targetPages} pages`);
+
+  const progressMsgs = [
+    'Reading opening act…','Establishing characters…','Setting the scene…',
+    'Developing conflict…','Compressing subplots…','Building tension…',
+    'Writing act two…','Deepening arcs…','Approaching midpoint…',
+    'Raising the stakes…','Writing turning points…','Approaching climax…',
+    'Writing the resolution…','Closing the story…','Final scenes…'
+  ];
+
+  const approachNote = state.approach === 'compress'
+    ? 'Compress the full story arc to fit the target format.'
+    : state.approach === 'selective'
+    ? 'Select the most cinematic and dramatically powerful scenes.'
+    : 'Stay as faithful to the source as possible within page constraints.';
+
+  const systemPrompt = `You are a professional Hollywood screenplay writer adapting "${state.title}" into a ${formatLabel} (${state.genre} genre).
+
+${bibleText}
+
+APPROACH: ${approachNote}
+TONE: ${state.tone}
+DIALOGUE: ${state.dialogue}
+TARGET: ~${targetPages} total pages · ~${pagesPerChunk} pages this section
+
+FOUNTAIN FORMAT:
+- Scene headings: INT./EXT. LOCATION - DAY/NIGHT (ALL CAPS)
+- Action: present tense, active voice, max 4 lines
+- Character cues: ALL CAPS before dialogue
+- Parentheticals: only when essential
+- Blank line between elements
+- NO markdown, NO asterisks`;
+
+  const parts = [];
+  let pagesWritten = 0;
+
+  // Respect partial conversion slider
+  const partialPct = parseInt(document.getElementById('partial-range')?.value || 100);
+  const startChunk = state._partialFrom || 0;
+  const endChunk = startChunk + Math.ceil(totalChunks * (partialPct / 100));
+  const chunksToRun = Math.min(endChunk, totalChunks);
+  const isPartial = chunksToRun < totalChunks;
+
+  for (let i = startChunk; i < chunksToRun; i++) {
+    if (state._cancelled) break;
+    const pct = 5 + (((i - startChunk) / (chunksToRun - startChunk)) * 88);
+    const msg = progressMsgs[Math.min(Math.floor(((i - startChunk) / (chunksToRun - startChunk)) * progressMsgs.length), progressMsgs.length - 1)];
+    setProgress(pct, `Section ${i + 1} of ${totalChunks}`, msg, `~${pagesWritten} of ~${targetPages} pages`);
+    addLog(`Section ${i + 1}/${totalChunks} — ${msg}`);
+
+    const prev = parts.length > 0 ? '\n\nPREVIOUS ENDING:\n' + parts[parts.length - 1].split('\n').slice(-12).join('\n') : '';
+    const prompt = `${prev}\n\nSOURCE — Section ${i + 1} of ${totalChunks}:\n${chunks[i]}\n\nConvert this section to screenplay format now. Write the full ${pagesPerChunk} pages — do not stop early or summarize. Every scene should be fully written out in Fountain format with scene headings, action lines, and dialogue.`;
+
+    try {
+      const part = await callAPI(key, systemPrompt, prompt, 4000);
+      parts.push(part);
+      pagesWritten += Math.round(part.split('\n').filter(l => l.trim()).length / 55);
+    } catch(err) {
+      addLog(`⚠️ Section ${i + 1} error`);
+      parts.push(`\n\n[Section ${i + 1} could not be generated]\n\n`);
+    }
+  }
+  state._chunksConverted = chunksToRun;
+  state._totalChunks = totalChunks;
+
+  setProgress(96, 'Assembling…', 'Stitching sections…');
+  const titlePage = `Title: ${state.title}\nAdapted by FluidScriptr\nFormat: ${formatLabel}\n\n===\n\n`;
+  const assembled = (state._partialOutput ? state._partialOutput + '\n\n' : titlePage) + parts.join('\n\n');
+  state.output = assembled;
+
+  // Preserve partial state for Continue, or clear if fully done
+  if (!isPartial) {
+    state._partialOutput = null;
+    state._partialFrom = 0;
+    clearPartialSession();
+  } else {
+    state._partialOutput = assembled;
+    state._partialFrom = chunksToRun;
+    savePartialSession();
+  }
+
+  setProgress(100, isPartial ? `Sections 1–${chunksToRun} of ${totalChunks} complete.` : 'Complete!', isPartial ? 'Continue below to convert remaining sections.' : 'Your screenplay is ready.');
+  addLog('✓ Conversion complete!');
+
+  const sceneCount = (state.output.match(/^(INT\.|EXT\.)/gm) || []).length;
+  const runtime = Math.round(pagesWritten * 0.95);
+
+  document.getElementById('screenplay-out').textContent = state.output;
+  document.getElementById('screenplay-output-section').style.display = 'block';
+  document.getElementById('manuscript-output-section').style.display = 'none';
+  document.getElementById('out-stat1').textContent = `~${pagesWritten} pages`;
+  document.getElementById('out-stat2').textContent = `${sceneCount} scenes`;
+  document.getElementById('out-stat3').textContent = `~${runtime} min`;
+
+  setTimeout(() => {
+    populateResultsBible();
+    // Show continue/cancel row if partial, hide the simple new-project btn
+    const contRow = document.getElementById('partial-continue-row');
+    const newBtn = document.getElementById('new-project-btn');
+    if (isPartial && !state._cancelled) {
+      if (contRow) contRow.style.display = 'flex';
+      if (newBtn) newBtn.style.display = 'none';
+    } else {
+      if (contRow) contRow.style.display = 'none';
+      if (newBtn) newBtn.style.display = 'inline-flex';
+    }
+    goToStep(6);
+  }, 1200);
+}
+
+// ── Manuscript writing ────────────────────────────────────
+async function writeManuscript(key, bibleText) {
+  const lengthTargets = { short: 20000, medium: 60000, long: 90000 };
+  const targetWords = lengthTargets[state.manuscriptLength] || 60000;
+  const chapters = state.approach === 'literary' ? 15 : 12;
+  const wordsPerChapter = Math.round(targetWords / chapters);
+
+  addLog(`Writing "${state.title}" — target ${targetWords.toLocaleString()} words`);
+  addLog(`${chapters} chapters · ~${wordsPerChapter.toLocaleString()} words each`);
+  setProgress(2, 'Starting…', 'Building your manuscript…', `0 of ~${chapters} chapters`);
+
+  const systemPrompt = `You are a professional novelist writing "${state.title}" — a ${state.genre} story.
+
+${bibleText}
+
+WRITING STYLE: ${state.approach === 'literary' ? 'Elevated literary prose — rich description, deep interiority, precise language.' : state.approach === 'faithful' ? 'Clear, accessible prose faithful to the story concept.' : 'Engaging narrative prose — vivid scenes, strong character voice, flowing dialogue.'}
+
+FORMAT REQUIREMENTS (strictly follow):
+- Write in flowing prose paragraphs
+- Chapter title on first line: CHAPTER [NUMBER]: [TITLE]
+- New paragraph for each scene shift or speaker
+- Show don't tell — use specific sensory details
+- Dialogue must feel natural and character-specific
+- Target approximately ${wordsPerChapter} words for this chapter
+- NO markdown, NO asterisks, NO bullet points`;
+
+  const parts = [];
+  let wordsWritten = 0;
+
+  // Build chapter outlines from bible structure
+  const structureLines = state.bible.structure.split('\n').filter(l => l.trim());
+
+  for (let i = 0; i < chapters; i++) {
+    const pct = 5 + ((i / chapters) * 88);
+    const chapterNum = i + 1;
+    const isFirstThird = i < chapters / 3;
+    const isLastThird = i >= (chapters * 2) / 3;
+    const actLabel = isFirstThird ? 'Act 1' : isLastThird ? 'Act 3' : 'Act 2';
+
+    const statusMsgs = [
+      'Opening the story…','Introducing your world…','Establishing the conflict…',
+      'Building momentum…','Deepening character bonds…','Raising the stakes…',
+      'Hitting the midpoint…','Complications deepen…','Crisis approaches…',
+      'The darkest moment…','Racing to the climax…','Resolution begins…'
+    ];
+    const status = statusMsgs[Math.min(i, statusMsgs.length - 1)];
+
+    setProgress(pct, `Chapter ${chapterNum} of ${chapters}`, status, `~${wordsWritten.toLocaleString()} of ~${targetWords.toLocaleString()} words written`);
+    addLog(`Chapter ${chapterNum}/${chapters} — ${actLabel} — ${status}`);
+
+    const prev = parts.length > 0 ? '\n\nPREVIOUS CHAPTER ENDING:\n' + parts[parts.length - 1].split('\n').slice(-8).join('\n') : '';
+    const prompt = `${prev}\n\nWrite Chapter ${chapterNum} of ${chapters} (${actLabel}) of "${state.title}".\n\nThis chapter should: ${actLabel === 'Act 1' ? 'Establish the world, introduce key characters, and plant the central conflict.' : actLabel === 'Act 3' ? 'Resolve the central conflict, deliver the emotional payoff, and close character arcs.' : 'Develop complications, deepen character relationships, and build toward the climax.'}\n\nWrite approximately ${wordsPerChapter} words of polished prose.`;
+
+    try {
+      const part = await callAPI(key, systemPrompt, prompt, 2000);
+      parts.push(part);
+      wordsWritten += part.split(/\s+/).length;
+    } catch(err) {
+      addLog(`⚠️ Chapter ${chapterNum} error`);
+      parts.push(`\n\nCHAPTER ${chapterNum}\n\n[Chapter could not be generated — please retry]\n\n`);
+    }
+  }
+
+  setProgress(96, 'Assembling manuscript…', 'Formatting to submission standards…');
+  state.output = parts.join('\n\n');
+  setProgress(100, 'Complete!', 'Your manuscript is ready.');
+  addLog('✓ Manuscript complete!');
+
+  document.getElementById('manuscript-out').textContent = state.output;
+  document.getElementById('manuscript-output-section').style.display = 'block';
+  document.getElementById('screenplay-output-section').style.display = 'none';
+  document.getElementById('out-stat1').textContent = `~${wordsWritten.toLocaleString()} words`;
+  document.getElementById('out-stat2').textContent = `${chapters} chapters`;
+  document.getElementById('out-stat3').textContent = `~${Math.round(wordsWritten / 250)} pages`;
+
+  setTimeout(() => {
+    populateResultsBible();
+    // Show continue/cancel row if partial, hide the simple new-project btn
+    const contRow = document.getElementById('partial-continue-row');
+    const newBtn = document.getElementById('new-project-btn');
+    if (isPartial && !state._cancelled) {
+      if (contRow) contRow.style.display = 'flex';
+      if (newBtn) newBtn.style.display = 'none';
+    } else {
+      if (contRow) contRow.style.display = 'none';
+      if (newBtn) newBtn.style.display = 'inline-flex';
+    }
+    goToStep(6);
+  }, 1200);
+}
+
+// ── Manuscript enhancement ────────────────────────────────
+async function enhanceManuscript(key, bibleText) {
+  const words = state.rawText.split(/\s+/);
+  const chunkSize = 2500;
+  const chunks = [];
+  for (let i = 0; i < words.length; i += chunkSize) chunks.push(words.slice(i, i + chunkSize).join(' '));
+  const totalChunks = chunks.length;
+
+  addLog(`Enhancing "${state.title}" — ${totalChunks} sections`);
+  setProgress(2, 'Starting…', 'Preparing enhancement…');
+
+  const systemPrompt = `You are a professional developmental editor and literary stylist working on "${state.title}" by ${state.author || 'the author'}.
+
+${bibleText}
+
+Your task: Rewrite and enhance this manuscript section while preserving the author's voice and core story. Improve:
+- Prose clarity and rhythm
+- Character voice distinctiveness
+- Scene-by-scene tension and pacing
+- Dialogue naturalness
+- Sensory detail and showing vs telling
+
+CRITICAL: Preserve the story, characters, and plot exactly. Only improve the writing quality. Output clean prose — no markdown, no commentary.`;
+
+  const parts = [];
+  let wordsWritten = 0;
+
+  for (let i = 0; i < totalChunks; i++) {
+    const pct = 5 + ((i / totalChunks) * 88);
+    setProgress(pct, `Section ${i + 1} of ${totalChunks}`, 'Enhancing prose…', `~${wordsWritten.toLocaleString()} words enhanced`);
+    addLog(`Enhancing section ${i + 1}/${totalChunks}…`);
+
+    try {
+      const part = await callAPI(key, systemPrompt, `Enhance this section:\n\n${chunks[i]}`, 2000);
+      parts.push(part);
+      wordsWritten += part.split(/\s+/).length;
+    } catch(err) {
+      addLog(`⚠️ Section ${i + 1} error`);
+      parts.push(chunks[i]);
+    }
+  }
+
+  setProgress(96, 'Assembling…', 'Finalizing enhanced manuscript…');
+  state.output = parts.join('\n\n');
+  setProgress(100, 'Complete!', 'Your enhanced manuscript is ready.');
+  addLog('✓ Enhancement complete!');
+
+  document.getElementById('manuscript-out').textContent = state.output;
+  document.getElementById('manuscript-output-section').style.display = 'block';
+  document.getElementById('screenplay-output-section').style.display = 'none';
+  document.getElementById('out-stat1').textContent = `~${wordsWritten.toLocaleString()} words`;
+  document.getElementById('out-stat2').textContent = `Enhanced`;
+  document.getElementById('out-stat3').textContent = `~${Math.round(wordsWritten / 250)} pages`;
+
+  setTimeout(() => {
+    populateResultsBible();
+    // Show continue/cancel row if partial, hide the simple new-project btn
+    const contRow = document.getElementById('partial-continue-row');
+    const newBtn = document.getElementById('new-project-btn');
+    if (isPartial && !state._cancelled) {
+      if (contRow) contRow.style.display = 'flex';
+      if (newBtn) newBtn.style.display = 'none';
+    } else {
+      if (contRow) contRow.style.display = 'none';
+      if (newBtn) newBtn.style.display = 'inline-flex';
+    }
+    goToStep(6);
+  }, 1200);
+}
+
+// Helper — synthesize source text from bible if no manuscript uploaded
+function synthesizeSourceFromBible() {
+  return `${state.bible.logline}\n\n${state.bible.structure}\n\n${state.bible.characters}\n\n${state.bible.world}`;
+}
+
+// ── Export functions ──────────────────────────────────────
+function downloadFile(content, filename, mime) {
+  const blob = new Blob([content], { type: mime });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url; a.download = filename;
+  document.body.appendChild(a); a.click();
+  document.body.removeChild(a); URL.revokeObjectURL(url);
+}
+
+function getSlug() {
+  return (state.title || 'output').toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
+}
+
+function exportFountain() {
+  const date = new Date().toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' });
+  const content = `Title: ${state.title}\nAdapted by FluidScriptr\nDraft date: ${date}\n\n===\n\n${state.output}`;
+  downloadFile(content, getSlug() + '.fountain', 'text/plain;charset=utf-8');
+}
+
+function exportFDX() {
+  const lines = state.output.split('\n');
+  let fdx = '';
+  for (const line of lines) {
+    const t = line.trim();
+    if (!t) { fdx += '<Paragraph Type="Action"><Text></Text></Paragraph>\n'; continue; }
+    if (/^(INT\.|EXT\.)/.test(t)) fdx += `<Paragraph Type="Scene Heading"><Text>${t}</Text></Paragraph>\n`;
+    else if (t === t.toUpperCase() && t.length < 40 && !t.endsWith('.')) fdx += `<Paragraph Type="Character"><Text>${t}</Text></Paragraph>\n`;
+    else if (t.startsWith('(') && t.endsWith(')')) fdx += `<Paragraph Type="Parenthetical"><Text>${t}</Text></Paragraph>\n`;
+    else if (/^(FADE|CUT|SMASH|DISSOLVE)/.test(t)) fdx += `<Paragraph Type="Transition"><Text>${t}</Text></Paragraph>\n`;
+    else fdx += `<Paragraph Type="Action"><Text>${t}</Text></Paragraph>\n`;
+  }
+  const xml = `<?xml version="1.0" encoding="UTF-8"?>\n<FinalDraft DocumentType="Script" Template="No" Version="5">\n<Content>\n${fdx}</Content>\n</FinalDraft>`;
+  downloadFile(xml, getSlug() + '.fdx', 'application/xml');
+}
+
+function exportScreenplayPDF() {
+  const w = window.open('', '_blank');
+  w.document.write(`<!DOCTYPE html><html><head><title>${state.title}</title>
+  <style>
+    body{font-family:'Courier New',monospace;font-size:12pt;
+      margin-top:1in;margin-bottom:1in;margin-left:1.5in;margin-right:1in;
+      line-height:1;color:#000;background:#fff;white-space:pre-wrap;}
+    @media print{body{margin-top:1in;margin-bottom:1in;margin-left:1.5in;margin-right:1in;}}
+  </style></head><body>${state.output.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')}</body></html>`);
+  w.document.close();
+  setTimeout(() => w.print(), 600);
+}
+
+function exportManuscriptDOCX() {
+  // Generate a basic DOCX-compatible RTF wrapped as .docx hint
+  // For true DOCX we build an RTF with Times New Roman 12pt, double-spaced, 1-inch margins
+  const rtf = `{\\rtf1\\ansi\\deff0
+{\\fonttbl{\\f0 Times New Roman;}}
+{\\info{\\title ${state.title}}}
+\\paperw12240\\paperh15840
+\\margl1440\\margr1440\\margt1440\\margb1440
+\\f0\\fs24\\sl480\\slmult1
+${state.output.replace(/\n\n/g, '\\par\\par ').replace(/\n/g, '\\par ')}
+}`;
+  // Download as .rtf (universally opens in Word with correct formatting)
+  downloadFile(rtf, getSlug() + '-manuscript.rtf', 'application/rtf');
+  // Also offer plain text fallback note
+  alert('Your manuscript has been downloaded as an RTF file — open it in Microsoft Word or Google Docs. It will open with Times New Roman 12pt, double-spaced, 1-inch margins automatically.');
+}
+
+function exportManuscriptPDF() {
+  const w = window.open('', '_blank');
+  w.document.write(`<!DOCTYPE html><html><head><title>${state.title}</title>
+  <style>
+    body{font-family:'Inter',sans-serif;font-size:12pt;
+      line-height:2;color:#000;background:#fff;
+      margin:1in;white-space:pre-wrap;word-wrap:break-word;}
+    @media print{body{margin:1in;}}
+  </style></head><body>${state.output.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')}</body></html>`);
+  w.document.close();
+  setTimeout(() => w.print(), 600);
+}
+
+// ── Start over ────────────────────────────────────────────
+function cancelConversion() {
+  if (!confirm("Cancel conversion? This will count as one usage.")) return;
+  state._cancelled = true;
+  document.getElementById('cancel-nav-btn').style.display = 'none';
+  goToStep(1);
+}
+
+function toggleGlossary() {
+  const el = document.getElementById('approach-glossary');
+  el.style.display = el.style.display === 'none' ? 'block' : 'none';
+}
+
+function toggleGlossaryMs() {
+  const el = document.getElementById('ms-approach-glossary');
+  el.style.display = el.style.display === 'none' ? 'block' : 'none';
+}
+
+function populateResultsBible() {
+  const b = state.bible;
+  const set = (id, val) => { const el = document.getElementById(id); if (el) el.textContent = val || '—'; };
+  set('res-logline', b.logline);
+  set('res-characters', b.characters);
+  set('res-world', b.world);
+  set('res-themes', b.themes);
+  set('res-structure', b.structure);
+  set('res-motifs', b.motifs);
+  set('res-ending', b.ending);
+}
+
+// ── Print Story Bible ────────────────────────────────────
+function printBible() {
+  const b = state.bible;
+  const sections = [
+    ['Logline', document.getElementById('b-logline')?.value || b.logline || ''],
+    ['Characters & Arcs', document.getElementById('b-characters')?.value || b.characters || ''],
+    ['World & Tone', document.getElementById('b-world')?.value || b.world || ''],
+    ['Themes', document.getElementById('b-themes')?.value || b.themes || ''],
+    ['Three-Act Structure', document.getElementById('b-structure')?.value || b.structure || ''],
+    ['Key Motifs', document.getElementById('b-motifs')?.value || b.motifs || ''],
+    ['Ending', document.getElementById('b-ending')?.value || b.ending || ''],
+  ];
+  const rows = sections.map(([lbl, val]) => `
+    <div style="margin-bottom:1.5rem;">
+      <div style="font-size:10px;font-weight:700;letter-spacing:0.1em;text-transform:uppercase;color:#E8333A;margin-bottom:6px;">${lbl}</div>
+      <div style="font-size:13px;line-height:1.75;color:#1A1A2E;white-space:pre-wrap;">${val || '—'}</div>
+    </div>`).join('');
+  const win = window.open('', '_blank');
+  win.document.write(`<!DOCTYPE html><html><head><title>Story Bible — ${state.title || 'FluidScriptr'}</title>
+    <style>body{font-family:'Inter',sans-serif;max-width:700px;margin:40px auto;padding:0 24px;color:#1A1A2E;}
+    h1{font-size:22px;font-weight:800;margin-bottom:4px;}
+    .sub{font-size:13px;color:#6B7280;margin-bottom:2rem;}
+    hr{border:none;border-top:1px solid #e0e0e0;margin:1.5rem 0;}
+    @media print{body{margin:20px;}}
+    </style></head><body>
+    <h1>Story Bible</h1>
+    <div class="sub">${state.title || 'Untitled'} &mdash; generated by FluidScriptr</div>
+    <hr>${rows}
+    <script>window.onload=function(){window.print();}<\/script>
+    </body></html>`);
+  win.document.close();
+}
+
+// ── Partial conversion slider ────────────────────────────
+function updatePartialLabel(val) {
+  const el = document.getElementById('partial-label');
+  if (!el) return;
+  el.textContent = val == 100 ? 'Full' : val + '%';
+}
+
+// ── Resume after page refresh ────────────────────────────
+function resumePartialSession() {
+  // state already restored by checkPartialSession(); just show results
+  document.getElementById('resume-banner').style.display = 'none';
+  document.getElementById('screenplay-out').textContent = state.output || '';
+  document.getElementById('screenplay-output-section').style.display = state.output ? 'block' : 'none';
+  document.getElementById('manuscript-output-section').style.display = 'none';
+  const contRow = document.getElementById('partial-continue-row');
+  const newBtn = document.getElementById('new-project-btn');
+  if (state._partialFrom > 0) {
+    if (contRow) contRow.style.display = 'flex';
+    if (newBtn) newBtn.style.display = 'none';
+  } else {
+    if (contRow) contRow.style.display = 'none';
+    if (newBtn) newBtn.style.display = 'inline-flex';
+  }
+  populateResultsBible();
+  goToStep(6);
+}
+function dismissResumeBanner() {
+  clearPartialSession();
+  Object.assign(state, { _partialOutput: null, _partialFrom: 0, _chunksConverted: 0, _totalChunks: 0, output: '' });
+  document.getElementById('resume-banner').style.display = 'none';
+}
+
+// ── Continue partial conversion ──────────────────────────
+async function continueConversion() {
+  if (!confirm('Continue converting from where you left off? This will count as another conversion.')) return;
+  // _partialOutput and _partialFrom are already set by convertToScreenplay when isPartial is true
+  // Just reset the slider to 100 so the remaining chunks all run
+  const slider = document.getElementById('partial-range');
+  if (slider) { slider.value = 100; updatePartialLabel(100); }
+  await startConversion(true);
+}
+
+function startOver() {
+  if (!confirm("Start a new project? Your current output will be lost unless you've exported it.")) return;
+  clearPartialSession();
+  Object.assign(state, {
+    path:'', outputType:'', rawText:'', pageCount:0,
+    title:'', author:'', genre:'', bible:{}, format:'feature',
+    approach:'compress', tone:'', dialogue:'', episodes:4,
+    manuscriptLength:'medium', output:'', currentStep:1, _cancelled: false,
+    _partialOutput: null, _partialFrom: 0, _chunksConverted: 0, _totalChunks: 0
+  });
+  const cancelBtn = document.getElementById('cancel-nav-btn');
+  if (cancelBtn) cancelBtn.style.display = 'none';
+  document.getElementById('file-info').classList.remove('on');
+  document.getElementById('bible-btn').disabled = true;
+  document.getElementById('upload-zone').style.opacity = '1';
+  document.getElementById('manuscript-panel').style.display = 'none';
+  document.getElementById('idea-panel').style.display = 'none';
+  document.getElementById('path-manuscript').classList.remove('selected');
+  document.getElementById('path-idea').classList.remove('selected');
+  document.getElementById('progress-section').style.display = 'none';
+  document.getElementById('convert-btn').disabled = false;
+  document.getElementById('convert-btn').innerHTML = '🎬 Begin Conversion';
+  conversionLog = [];
+  goToStep(1);
+}
+</script>
+    </body>
+</html>

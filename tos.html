@@ -1,0 +1,335 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Terms of Service — FluidScriptr</title>
+<meta name="description" content="Terms of Service for FluidScriptr LLC." />
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Merriweather:wght@400;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #E4E8EE;
+    --bg-2: #DDE2EA;
+    --ink: #2A3142;
+    --ink-soft: #5B6479;
+    --ink-muted: #8892A6;
+    --hi: rgba(255, 255, 255, 0.95);
+    --lo: rgba(163, 177, 198, 0.55);
+    --lo-strong: rgba(163, 177, 198, 0.85);
+    --radius-sm: 14px;
+    --radius: 22px;
+    --radius-lg: 34px;
+    --radius-pill: 999px;
+    --shadow-out: 12px 12px 28px var(--lo), -12px -12px 28px var(--hi);
+    --shadow-out-sm: 6px 6px 14px var(--lo), -6px -6px 14px var(--hi);
+    --shadow-in-sm: inset 4px 4px 8px var(--lo), inset -4px -4px 8px var(--hi);
+    --line: rgba(108, 122, 147, 0.25);
+    --transition: 280ms cubic-bezier(.2,.7,.2,1);
+  }
+
+  * { box-sizing: border-box; }
+  html, body { margin: 0; padding: 0; }
+  body {
+    font-family: 'Inter', system-ui, -apple-system, sans-serif;
+    background: var(--bg);
+    color: var(--ink);
+    line-height: 1.7;
+    -webkit-font-smoothing: antialiased;
+    overflow-x: hidden;
+  }
+  body::before {
+    content: "";
+    position: fixed;
+    inset: 0;
+    pointer-events: none;
+    background:
+      radial-gradient(1200px 800px at 10% -10%, rgba(255,255,255,0.7), transparent 60%),
+      radial-gradient(1000px 700px at 110% 110%, rgba(163,177,198,0.25), transparent 55%);
+    z-index: 0;
+  }
+
+  .container {
+    max-width: 800px;
+    margin: 0 auto;
+    padding: 0 28px;
+    position: relative;
+    z-index: 1;
+  }
+
+  /* NAV */
+  .nav-wrap {
+    position: sticky;
+    top: 18px;
+    z-index: 50;
+    padding: 18px 28px 0;
+  }
+  .nav {
+    max-width: 1200px;
+    margin: 0 auto;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 14px 22px 14px 26px;
+    background: var(--bg);
+    border-radius: var(--radius-pill);
+    box-shadow: var(--shadow-out);
+  }
+  .brand {
+    display: flex;
+    align-items: center;
+    text-decoration: none;
+  }
+  .back-link {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 10px 18px;
+    border-radius: var(--radius-pill);
+    background: var(--bg);
+    box-shadow: var(--shadow-out-sm);
+    color: var(--ink-soft);
+    text-decoration: none;
+    font-size: 0.88rem;
+    font-weight: 500;
+    transition: var(--transition);
+  }
+  .back-link:hover { color: var(--ink); box-shadow: var(--shadow-out); }
+
+  /* HERO */
+  .page-hero {
+    padding: 70px 0 50px;
+  }
+  .eyebrow {
+    display: inline-block;
+    font-size: 0.72rem;
+    font-weight: 600;
+    letter-spacing: 0.22em;
+    text-transform: uppercase;
+    color: var(--ink-muted);
+    margin-bottom: 14px;
+  }
+  .page-hero h1 {
+    font-family: 'Merriweather', Georgia, serif;
+    font-size: clamp(1.8rem, 3vw, 2.6rem);
+    line-height: 1.15;
+    color: var(--ink);
+    margin: 0 0 14px;
+  }
+  .page-hero .meta {
+    font-size: 0.88rem;
+    color: var(--ink-muted);
+  }
+
+  /* CONTENT CARD */
+  .tos-card {
+    background: var(--bg);
+    border-radius: var(--radius-lg);
+    box-shadow: var(--shadow-out);
+    padding: 56px 60px;
+    margin-bottom: 60px;
+  }
+
+  /* TYPOGRAPHY */
+  .tos-card h2 {
+    font-family: 'Merriweather', Georgia, serif;
+    font-size: 1.15rem;
+    font-weight: 700;
+    color: var(--ink);
+    margin: 40px 0 12px;
+    padding-top: 40px;
+    border-top: 1px solid var(--line);
+  }
+  .tos-card h2:first-of-type {
+    margin-top: 0;
+    padding-top: 0;
+    border-top: none;
+  }
+  .tos-card p {
+    color: var(--ink-soft);
+    margin: 0 0 14px;
+    font-size: 0.96rem;
+  }
+  .tos-card ul {
+    color: var(--ink-soft);
+    font-size: 0.96rem;
+    padding-left: 0;
+    margin: 0 0 14px;
+    list-style: none;
+  }
+  .tos-card ul li {
+    display: flex;
+    align-items: flex-start;
+    gap: 10px;
+    margin-bottom: 8px;
+  }
+  .tos-card ul li::before {
+    content: "";
+    flex-shrink: 0;
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: var(--ink-muted);
+    margin-top: 9px;
+  }
+  .tos-card a {
+    color: var(--ink);
+    text-decoration: underline;
+    text-underline-offset: 3px;
+  }
+  .tos-card a:hover { color: var(--ink-soft); }
+  strong { color: var(--ink); font-weight: 600; }
+
+  /* FOOTER */
+  footer {
+    padding: 40px 0 48px;
+    border-top: 1px solid var(--line);
+    position: relative;
+    z-index: 1;
+  }
+  .footer-grid {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 16px;
+  }
+  .footer-links {
+    display: flex;
+    gap: 24px;
+  }
+  .footer-links a {
+    color: var(--ink-muted);
+    text-decoration: none;
+    font-size: 0.88rem;
+    transition: var(--transition);
+  }
+  .footer-links a:hover { color: var(--ink); }
+  .footer-copy {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  @media (max-width: 680px) {
+    .tos-card { padding: 36px 28px; }
+    .page-hero { padding: 50px 0 36px; }
+    .footer-grid { flex-direction: column; text-align: center; }
+  }
+</style>
+</head>
+<body>
+
+<!-- NAV -->
+<div class="nav-wrap">
+  <nav class="nav">
+    <a href="FluidScriptr-Neumorphic.html" class="brand">
+      <img src="fluidscriptr_new_logo.png" alt="FluidScriptr" style="height: 26px; width: auto; display: block;" />
+    </a>
+    <a href="FluidScriptr-Neumorphic.html" class="back-link">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 12H5M12 5l-7 7 7 7"/></svg>
+      Back to home
+    </a>
+  </nav>
+</div>
+
+<!-- PAGE HERO -->
+<div class="page-hero">
+  <div class="container">
+    <span class="eyebrow">Legal</span>
+    <h1>Terms of Service</h1>
+    <p class="meta">FluidScriptr LLC &nbsp;·&nbsp; Effective date: June 26, 2026 &nbsp;·&nbsp; Delaware, USA</p>
+  </div>
+</div>
+
+<!-- TOS CONTENT -->
+<div class="container">
+  <div class="tos-card">
+
+    <h2>1. Agreement to Terms</h2>
+    <p>By accessing or using FluidScriptr (the "Service"), you agree to be bound by these Terms of Service ("Terms"). If you do not agree, do not use the Service. These Terms apply to all visitors, users, and others who access the Service.</p>
+    <p>FluidScriptr LLC ("we," "us," or "our") reserves the right to update these Terms at any time. We will notify you of material changes by updating the effective date above. Continued use of the Service after changes constitutes acceptance.</p>
+
+    <h2>2. Description of Service</h2>
+    <p>FluidScriptr is an AI-powered tool that converts manuscripts into screenplays and screenplays into novels using a Story Bible coherence system. The Service is currently in a pre-launch phase. Features, pricing, and availability are subject to change.</p>
+
+    <h2>3. Eligibility</h2>
+    <p>You must be at least 18 years old to use the Service. By using FluidScriptr, you represent that you meet this requirement and that you have the legal capacity to enter into a binding agreement.</p>
+
+    <h2>4. Your Content</h2>
+    <p>You retain all ownership rights to the manuscripts, screenplays, and other materials ("Your Content") you upload to or process through the Service.</p>
+    <ul>
+      <li>We do not claim ownership of Your Content.</li>
+      <li>We do not use Your Content to train AI models.</li>
+      <li>Your Content is processed in your session and is not retained on our servers after processing is complete.</li>
+      <li>Your API keys are stored only in your browser and are never transmitted to or stored by FluidScriptr LLC.</li>
+    </ul>
+    <p>You are solely responsible for ensuring you have the rights to upload and process any content you submit to the Service.</p>
+
+    <h2>5. Acceptable Use</h2>
+    <p>You agree not to use the Service to:</p>
+    <ul>
+      <li>Upload content that infringes on any third party's intellectual property rights</li>
+      <li>Violate any applicable laws or regulations</li>
+      <li>Attempt to reverse-engineer, scrape, or extract the underlying AI systems</li>
+      <li>Resell, sublicense, or redistribute access to the Service without written permission</li>
+      <li>Interfere with or disrupt the integrity or performance of the Service</li>
+    </ul>
+
+    <h2>6. Founding Membership & Payments</h2>
+    <p>Founding memberships are offered as a one-time, lifetime-access purchase during the pre-launch campaign. By purchasing a founding membership:</p>
+    <ul>
+      <li>You understand that FluidScriptr is pre-launch software and may be subject to delays, feature changes, or discontinuation</li>
+      <li>All purchases are final unless required otherwise by applicable law</li>
+      <li>Seat counts and tier features are subject to the terms communicated at time of purchase</li>
+      <li>We will make commercially reasonable efforts to deliver the Service described at the time of your purchase</li>
+    </ul>
+
+    <h2>7. Intellectual Property</h2>
+    <p>The Service, including its design, branding, Story Bible technology, and underlying software, is owned by FluidScriptr LLC and protected by applicable intellectual property laws. Nothing in these Terms grants you a license to use our trademarks, logos, or proprietary technology beyond what is necessary to use the Service.</p>
+
+    <h2>8. Disclaimer of Warranties</h2>
+    <p>The Service is provided <strong>"as is"</strong> and <strong>"as available"</strong> without warranties of any kind, either express or implied, including but not limited to implied warranties of merchantability, fitness for a particular purpose, or non-infringement.</p>
+    <p>We do not warrant that the Service will be uninterrupted, error-free, or that AI-generated outputs will meet your specific requirements or be suitable for professional submission without review.</p>
+
+    <h2>9. Limitation of Liability</h2>
+    <p>To the maximum extent permitted by law, FluidScriptr LLC and its officers, employees, and affiliates shall not be liable for any indirect, incidental, special, consequential, or punitive damages arising from your use of or inability to use the Service — including but not limited to loss of data, loss of profits, or loss of goodwill — even if we have been advised of the possibility of such damages.</p>
+    <p>Our total liability to you for any claim arising from these Terms or the Service shall not exceed the amount you paid to FluidScriptr LLC in the twelve (12) months preceding the claim.</p>
+
+    <h2>10. Indemnification</h2>
+    <p>You agree to indemnify and hold harmless FluidScriptr LLC and its affiliates from any claims, damages, losses, and expenses (including reasonable legal fees) arising out of your use of the Service, Your Content, or your violation of these Terms.</p>
+
+    <h2>11. Governing Law & Dispute Resolution</h2>
+    <p>These Terms are governed by the laws of the State of Delaware, USA, without regard to its conflict of law provisions. Any disputes arising from these Terms or the Service shall be resolved through binding arbitration in Delaware, except that either party may seek injunctive or other equitable relief in a court of competent jurisdiction.</p>
+
+    <h2>12. Termination</h2>
+    <p>We reserve the right to suspend or terminate your access to the Service at any time, with or without cause, with or without notice. Upon termination, your right to use the Service ceases immediately. Provisions that by their nature should survive termination (including ownership, disclaimers, and limitation of liability) will survive.</p>
+
+    <h2>13. Privacy</h2>
+    <p>Your use of the Service is also governed by our Privacy Policy, which is incorporated into these Terms by reference. We are committed to handling your data with care — see Section 4 for specifics on how your content and API keys are handled.</p>
+
+    <h2>14. Contact</h2>
+    <p>Questions about these Terms? Reach us at <a href="mailto:hello@fluidscriptr.app">hello@fluidscriptr.app</a>.</p>
+
+  </div>
+</div>
+
+<!-- FOOTER -->
+<footer>
+  <div class="container">
+    <div class="footer-grid">
+      <div class="footer-copy">
+        <img src="fluidscriptr_new_logo.png" alt="FluidScriptr" style="height: 18px; width: auto; display: inline-block;" />
+        <span style="color: var(--ink-muted); font-size: 0.85rem;">© 2026 FluidScriptr LLC · All rights reserved</span>
+      </div>
+      <div class="footer-links">
+        <a href="FluidScriptr-Neumorphic.html">Home</a>
+        <a href="mailto:hello@fluidscriptr.app">Contact</a>
+      </div>
+    </div>
+  </div>
+</footer>
+
+</body>
+</html>
