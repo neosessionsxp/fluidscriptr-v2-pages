@@ -1163,7 +1163,7 @@ function updateCreditsUI(c) {
   el.style.display = getAIMode() === 'credits' ? 'inline' : 'none';
   el.textContent = c.remaining_micro <= 0
     ? 'Included credits used up — add your API key for unlimited'
-    : `Included AI credits: ${100 - c.used_pct}% left this month`;
+    : `Included credits: ${100 - c.used_pct}% left this month`;
 }
 
 function parseBible(raw) {
