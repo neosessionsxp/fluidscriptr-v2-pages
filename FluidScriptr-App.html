@@ -148,19 +148,25 @@ input[type=range]::-moz-range-thumb { width: 20px; height: 20px; border-radius: 
                 <div class="nav-right">
                     <span class="nav-step">Step <strong id="step-badge-num">1</strong> of 6</span>
                     <button class="btn-cancel-nav" id="cancel-nav-btn" onclick="startOver()" style="display:none;">✕ Cancel</button>
-                    <button class="btn-key-toggle" id="key-toggle-btn" onclick="toggleKeyPanel()">🔑 API Key</button>
+                    <button class="btn-key-toggle" id="key-toggle-btn" onclick="toggleKeyPanel()">✨ AI Settings</button>
                 </div>
             </nav>
         </div>
         <!-- Key panel -->
         <div class="key-wrap">
             <div class="key-panel" id="key-panel">
-                <span class="key-lbl">Anthropic API key <span style="opacity:.6;font-weight:normal;">(optional — included AI credits are used when empty)</span></span>
-                <input type="password" class="key-inp" id="api-key" placeholder="sk-ant-..." autocomplete="off"/>
-                <button class="btn-ks" onclick="saveKey()">Save</button>
-                <button class="btn-ks ghost" onclick="clearKey()">Forget</button>
-                <span class="key-ok" id="key-saved">✓ Saved</span>
+                <span class="key-lbl">Generate with</span>
+                <span style="display:inline-flex;gap:6px;">
+                    <button class="btn-ks" id="mode-credits" onclick="setAIMode('credits')">✨ Included credits</button>
+                    <button class="btn-ks ghost" id="mode-own" onclick="setAIMode('own')">🔑 My own API key</button>
+                </span>
                 <span class="key-ok" id="credits-status" style="display:none;"></span>
+                <span id="own-key-row" style="display:none;">
+                    <input type="password" class="key-inp" id="api-key" placeholder="sk-ant-..." autocomplete="off"/>
+                    <button class="btn-ks" onclick="saveKey()">Save</button>
+                    <button class="btn-ks ghost" onclick="clearKey()">Forget</button>
+                    <span class="key-ok" id="key-saved">✓ Saved</span>
+                </span>
             </div>
         </div>
         <div class="page">
@@ -730,9 +736,37 @@ const FORMAT_TARGETS = {
 const LS_KEY = 'fsr_api_key';
 const LS_PARTIAL = 'fsr_partial_session';
 const AI_PROXY = 'https://fluidscriptr-ai.kerospad.workers.dev';
+const LS_MODE = 'fsr_ai_mode'; // 'credits' | 'own'
 function getLicense() { return (localStorage.getItem('fsr_license_key') || '').trim(); }
-// True when the user can generate: personal API key OR a license (included credits)
-function canGenerate() { return !!(getKey() || getLicense()); }
+function getAIMode() {
+  const m = localStorage.getItem(LS_MODE);
+  if (m === 'own' || m === 'credits') return m;
+  // First visit after update: existing key holders keep using their key
+  return localStorage.getItem(LS_KEY) ? 'own' : 'credits';
+}
+function setAIMode(m) {
+  localStorage.setItem(LS_MODE, m);
+  renderAIMode();
+  if (m === 'credits') refreshCredits();
+}
+function renderAIMode() {
+  const m = getAIMode();
+  document.getElementById('mode-credits').classList.toggle('ghost', m !== 'credits');
+  document.getElementById('mode-own').classList.toggle('ghost', m !== 'own');
+  document.getElementById('own-key-row').style.display = m === 'own' ? 'inline' : 'none';
+  document.getElementById('credits-status').style.display = m === 'credits' ? 'inline' : 'none';
+}
+async function refreshCredits() {
+  const lic = getLicense();
+  if (!lic) return;
+  try {
+    const res = await fetch(AI_PROXY, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ action: 'usage', license_key: lic }) });
+    const data = await res.json();
+    if (data.fsr_credits) updateCreditsUI(data.fsr_credits);
+  } catch(e) { /* offline — meter just stays hidden */ }
+}
+// True when the user can generate in the current mode
+function canGenerate() { return getAIMode() === 'own' ? !!getKey() : !!getLicense(); }
 
 // ── Partial session persistence ───────────────────────────
 function savePartialSession() {
@@ -777,6 +811,8 @@ function checkPartialSession() {
 (function() {
   const k = localStorage.getItem(LS_KEY);
   if (k) { document.getElementById('api-key').value = k; showKeySaved(); }
+  renderAIMode();
+  if (getAIMode() === 'credits') refreshCredits();
 })();
 // Check for a saved partial session from a previous page load
 document.addEventListener('DOMContentLoaded', checkPartialSession);
@@ -785,11 +821,13 @@ function saveKey() {
   if (!k) return;
   localStorage.setItem(LS_KEY, k);
   showKeySaved();
+  setAIMode('own');
 }
 function clearKey() {
   localStorage.removeItem(LS_KEY);
   document.getElementById('api-key').value = '';
   document.getElementById('key-saved').style.display = 'none';
+  setAIMode('credits');
 }
 function showKeySaved() { document.getElementById('key-saved').style.display = 'inline'; }
 function toggleKeyPanel() {
@@ -798,7 +836,11 @@ function toggleKeyPanel() {
   const open = p.classList.toggle('open');
   b.classList.toggle('open', open);
 }
-function getKey() { return document.getElementById('api-key').value.trim(); }
+function getKey() {
+  // In credits mode the saved key is ignored — routes through included credits
+  if (getAIMode() !== 'own') return '';
+  return document.getElementById('api-key').value.trim();
+}
 
 // ── Step navigation ───────────────────────────────────────
 function _navigateToStep(n) {
@@ -980,7 +1022,7 @@ async function extractFile(file) {
 // ── Bible from manuscript ─────────────────────────────────
 async function generateBible() {
   const key = getKey();
-  if (!canGenerate()) { alert('Please unlock with your license key or add an Anthropic API key.'); return; }
+  if (!canGenerate()) { alert(getAIMode() === 'own' ? 'Add your Anthropic API key in ✨ AI Settings — or switch to Included credits.' : 'Please unlock with your license key first.'); return; }
   if (!state.rawText) { alert('Please upload a manuscript first.'); return; }
 
   state.title = document.getElementById('book-title').value.trim() || 'Untitled';
@@ -1009,7 +1051,7 @@ async function generateBible() {
 // ── Bible from idea ───────────────────────────────────────
 async function generateBibleFromIdea() {
   const key = getKey();
-  if (!canGenerate()) { alert('Please unlock with your license key or add an Anthropic API key.'); return; }
+  if (!canGenerate()) { alert(getAIMode() === 'own' ? 'Add your Anthropic API key in ✨ AI Settings — or switch to Included credits.' : 'Please unlock with your license key first.'); return; }
 
   const q1 = document.getElementById('q1').value.trim();
   const q2 = document.getElementById('q2').value.trim();
@@ -1118,7 +1160,7 @@ async function callAPI(key, system, userMsg, maxTokens = 2000) {
 function updateCreditsUI(c) {
   const el = document.getElementById('credits-status');
   if (!el) return;
-  el.style.display = 'inline';
+  el.style.display = getAIMode() === 'credits' ? 'inline' : 'none';
   el.textContent = c.remaining_micro <= 0
     ? 'Included credits used up — add your API key for unlimited'
     : `Included AI credits: ${100 - c.used_pct}% left this month`;
@@ -1237,7 +1279,7 @@ function setProgress(pct, label, status, pages) {
 // ── Main conversion ───────────────────────────────────────
 async function startConversion() {
   const key = getKey();
-  if (!canGenerate()) { alert('Please unlock with your license key or add an Anthropic API key.'); return; }
+  if (!canGenerate()) { alert(getAIMode() === 'own' ? 'Add your Anthropic API key in ✨ AI Settings — or switch to Included credits.' : 'Please unlock with your license key first.'); return; }
 
   const btn = document.getElementById('convert-btn');
   btn.disabled = true;
