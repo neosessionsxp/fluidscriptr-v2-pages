@@ -1,0 +1,7 @@
+name = "fluidscriptr-ai"
+main = "ai-proxy-worker.js"
+compatibility_date = "2026-07-01"
+
+[[kv_namespaces]]
+binding = "USAGE"
+id = "0afb021284bd415097c73ca1408404dd"

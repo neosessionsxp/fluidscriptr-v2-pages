@@ -155,11 +155,12 @@ input[type=range]::-moz-range-thumb { width: 20px; height: 20px; border-radius: 
         <!-- Key panel -->
         <div class="key-wrap">
             <div class="key-panel" id="key-panel">
-                <span class="key-lbl">Anthropic API key</span>
+                <span class="key-lbl">Anthropic API key <span style="opacity:.6;font-weight:normal;">(optional — included AI credits are used when empty)</span></span>
                 <input type="password" class="key-inp" id="api-key" placeholder="sk-ant-..." autocomplete="off"/>
                 <button class="btn-ks" onclick="saveKey()">Save</button>
                 <button class="btn-ks ghost" onclick="clearKey()">Forget</button>
                 <span class="key-ok" id="key-saved">✓ Saved</span>
+                <span class="key-ok" id="credits-status" style="display:none;"></span>
             </div>
         </div>
         <div class="page">
@@ -728,6 +729,10 @@ const FORMAT_TARGETS = {
 // ── API Key ───────────────────────────────────────────────
 const LS_KEY = 'fsr_api_key';
 const LS_PARTIAL = 'fsr_partial_session';
+const AI_PROXY = 'https://fluidscriptr-ai.kerospad.workers.dev';
+function getLicense() { return (localStorage.getItem('fsr_license_key') || '').trim(); }
+// True when the user can generate: personal API key OR a license (included credits)
+function canGenerate() { return !!(getKey() || getLicense()); }
 
 // ── Partial session persistence ───────────────────────────
 function savePartialSession() {
@@ -975,7 +980,7 @@ async function extractFile(file) {
 // ── Bible from manuscript ─────────────────────────────────
 async function generateBible() {
   const key = getKey();
-  if (!key) { alert('Please enter your Anthropic API key first.'); return; }
+  if (!canGenerate()) { alert('Please unlock with your license key or add an Anthropic API key.'); return; }
   if (!state.rawText) { alert('Please upload a manuscript first.'); return; }
 
   state.title = document.getElementById('book-title').value.trim() || 'Untitled';
@@ -1004,7 +1009,7 @@ async function generateBible() {
 // ── Bible from idea ───────────────────────────────────────
 async function generateBibleFromIdea() {
   const key = getKey();
-  if (!key) { alert('Please enter your Anthropic API key first.'); return; }
+  if (!canGenerate()) { alert('Please unlock with your license key or add an Anthropic API key.'); return; }
 
   const q1 = document.getElementById('q1').value.trim();
   const q2 = document.getElementById('q2').value.trim();
@@ -1083,13 +1088,40 @@ Be specific and insightful. Reference actual names and plot points.`;
 }
 
 async function callAPI(key, system, userMsg, maxTokens = 2000) {
-  const res = await fetch('https://api.anthropic.com/v1/messages', {
+  // Personal key → straight to Anthropic (never touches our servers).
+  if (key) {
+    const res = await fetch('https://api.anthropic.com/v1/messages', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'x-api-key': key, 'anthropic-version': '2023-06-01', 'anthropic-beta': 'prompt-caching-2024-07-31', 'anthropic-dangerous-direct-browser-access': 'true' },
+      body: JSON.stringify({ model: 'claude-sonnet-4-6', max_tokens: maxTokens, system: [{ type: 'text', text: system, cache_control: { type: 'ephemeral' } }], messages: [{ role: 'user', content: userMsg }] })
+    });
+    const data = await res.json();
+    return data.content?.map(b => b.text || '').join('') || '';
+  }
+
+  // No key → included AI credits via the FluidScriptr proxy (license-metered).
+  const res = await fetch(AI_PROXY, {
     method: 'POST',
-    headers: { 'Content-Type': 'application/json', 'x-api-key': key, 'anthropic-version': '2023-06-01', 'anthropic-dangerous-direct-browser-access': 'true' },
-    body: JSON.stringify({ model: 'claude-sonnet-4-6', max_tokens: maxTokens, system, messages: [{ role: 'user', content: userMsg }] })
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ action: 'generate', license_key: getLicense(), system, userMsg, maxTokens })
   });
   const data = await res.json();
+  if (!res.ok || data.success === false) {
+    const err = new Error(data.error || 'Generation failed. Try again.');
+    err.code = data.code;
+    throw err;
+  }
+  if (data.fsr_credits) updateCreditsUI(data.fsr_credits);
   return data.content?.map(b => b.text || '').join('') || '';
+}
+
+function updateCreditsUI(c) {
+  const el = document.getElementById('credits-status');
+  if (!el) return;
+  el.style.display = 'inline';
+  el.textContent = c.remaining_micro <= 0
+    ? 'Included credits used up — add your API key for unlimited'
+    : `Included AI credits: ${100 - c.used_pct}% left this month`;
 }
 
 function parseBible(raw) {
@@ -1205,7 +1237,7 @@ function setProgress(pct, label, status, pages) {
 // ── Main conversion ───────────────────────────────────────
 async function startConversion() {
   const key = getKey();
-  if (!key) { alert('Please enter your Anthropic API key.'); return; }
+  if (!canGenerate()) { alert('Please unlock with your license key or add an Anthropic API key.'); return; }
 
   const btn = document.getElementById('convert-btn');
   btn.disabled = true;
@@ -1314,6 +1346,12 @@ FOUNTAIN FORMAT:
       parts.push(part);
       pagesWritten += Math.round(part.split('\n').filter(l => l.trim()).length / 55);
     } catch(err) {
+      if (err.code === 'credits_exhausted' || err.code === 'rate_limited') {
+        addLog(`⚠️ ${err.message}`);
+        alert(err.message);
+        state._cancelled = true;
+        break;
+      }
       addLog(`⚠️ Section ${i + 1} error`);
       parts.push(`\n\n[Section ${i + 1} could not be generated]\n\n`);
     }
@@ -1424,6 +1462,11 @@ FORMAT REQUIREMENTS (strictly follow):
       parts.push(part);
       wordsWritten += part.split(/\s+/).length;
     } catch(err) {
+      if (err.code === 'credits_exhausted' || err.code === 'rate_limited') {
+        addLog(`⚠️ ${err.message}`);
+        alert(err.message);
+        break;
+      }
       addLog(`⚠️ Chapter ${chapterNum} error`);
       parts.push(`\n\nCHAPTER ${chapterNum}\n\n[Chapter could not be generated — please retry]\n\n`);
     }
@@ -1443,16 +1486,11 @@ FORMAT REQUIREMENTS (strictly follow):
 
   setTimeout(() => {
     populateResultsBible();
-    // Show continue/cancel row if partial, hide the simple new-project btn
+    // Manuscript writing has no partial mode — always show the new-project btn
     const contRow = document.getElementById('partial-continue-row');
     const newBtn = document.getElementById('new-project-btn');
-    if (isPartial && !state._cancelled) {
-      if (contRow) contRow.style.display = 'flex';
-      if (newBtn) newBtn.style.display = 'none';
-    } else {
-      if (contRow) contRow.style.display = 'none';
-      if (newBtn) newBtn.style.display = 'inline-flex';
-    }
+    if (contRow) contRow.style.display = 'none';
+    if (newBtn) newBtn.style.display = 'inline-flex';
     goToStep(6);
   }, 1200);
 }
@@ -1494,6 +1532,13 @@ CRITICAL: Preserve the story, characters, and plot exactly. Only improve the wri
       parts.push(part);
       wordsWritten += part.split(/\s+/).length;
     } catch(err) {
+      if (err.code === 'credits_exhausted' || err.code === 'rate_limited') {
+        addLog(`⚠️ ${err.message}`);
+        alert(err.message);
+        // Keep the rest of the manuscript unenhanced rather than dropping it
+        for (let j = i; j < totalChunks; j++) parts.push(chunks[j]);
+        break;
+      }
       addLog(`⚠️ Section ${i + 1} error`);
       parts.push(chunks[i]);
     }

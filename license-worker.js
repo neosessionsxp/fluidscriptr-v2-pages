@@ -11,6 +11,8 @@ const PRODUCT_ID = 'llu00k2-UthLljfBYrB9MQ==';
 const ALLOWED_ORIGINS = [
   'https://fluidscriptr.app',
   'https://www.fluidscriptr.app',
+  'https://v2.fluidscriptr.app',
+  'https://fluidscriptr-v2-pages.pages.dev',
   'http://localhost',       // local testing
   'null',                   // file:// opens
 ];
