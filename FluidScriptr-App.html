@@ -743,7 +743,14 @@ const LS_MODE = 'fsr_ai_mode'; // 'credits' | 'own'
 function getLicense() { return (localStorage.getItem('fsr_license_key') || '').trim(); }
 function getAIMode() {
   const m = localStorage.getItem(LS_MODE);
-  if (m === 'own' || m === 'credits') return m;
+  if (m === 'credits') return m;
+  if (m === 'own') {
+    // Self-heal: 'own' mode with no actual saved key is a broken leftover state
+    // (e.g. stale mode from earlier testing, or the key was cleared separately) —
+    // fall back to included credits instead of getting stuck prompting for a key
+    // the user has no way to add except by hunting down AI Settings.
+    return localStorage.getItem(LS_KEY) ? 'own' : 'credits';
+  }
   // First visit after update: existing key holders keep using their key
   return localStorage.getItem(LS_KEY) ? 'own' : 'credits';
 }
