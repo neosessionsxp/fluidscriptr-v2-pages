@@ -1374,13 +1374,19 @@ FOUNTAIN FORMAT:
 
   const parts = [];
   let pagesWritten = 0;
+  let stoppedForCredits = false;
 
   // Respect partial conversion slider
   const partialPct = parseInt(document.getElementById('partial-range')?.value || 100);
   const startChunk = state._partialFrom || 0;
   const endChunk = startChunk + Math.ceil(totalChunks * (partialPct / 100));
   const chunksToRun = Math.min(endChunk, totalChunks);
-  const isPartial = chunksToRun < totalChunks;
+
+  // How far we actually got — distinct from chunksToRun (how far we *intended* to go),
+  // so an early stop (credits exhausted / rate limited / per-section error) doesn't get
+  // mislabeled "complete" and doesn't cause a later Continue to silently skip sections
+  // that were never generated.
+  let lastCompletedChunk = startChunk;
 
   for (let i = startChunk; i < chunksToRun; i++) {
     if (state._cancelled) break;
@@ -1400,14 +1406,16 @@ FOUNTAIN FORMAT:
       if (err.code === 'credits_exhausted' || err.code === 'rate_limited') {
         addLog(`⚠️ ${err.message}`);
         alert(err.message);
-        state._cancelled = true;
+        stoppedForCredits = true;
         break;
       }
       addLog(`⚠️ Section ${i + 1} error`);
       parts.push(`\n\n[Section ${i + 1} could not be generated]\n\n`);
     }
+    lastCompletedChunk = i + 1;
   }
-  state._chunksConverted = chunksToRun;
+  const isPartial = lastCompletedChunk < totalChunks;
+  state._chunksConverted = lastCompletedChunk;
   state._totalChunks = totalChunks;
 
   setProgress(96, 'Assembling…', 'Stitching sections…');
@@ -1422,12 +1430,22 @@ FOUNTAIN FORMAT:
     savePartialSession();
   } else {
     state._partialOutput = assembled;
-    state._partialFrom = chunksToRun;
+    state._partialFrom = lastCompletedChunk;
     savePartialSession();
   }
 
-  setProgress(100, isPartial ? `Sections 1–${chunksToRun} of ${totalChunks} complete.` : 'Complete!', isPartial ? 'Continue below to convert remaining sections.' : 'Your screenplay is ready.');
-  addLog('✓ Conversion complete!');
+  const statusLabel = stoppedForCredits
+    ? `Stopped early — ${lastCompletedChunk} of ${totalChunks} sections done.`
+    : isPartial
+    ? `Sections 1–${lastCompletedChunk} of ${totalChunks} complete.`
+    : 'Complete!';
+  const statusSub = stoppedForCredits
+    ? 'Included credits used up this month. Add your own API key (✨ AI Settings) and hit Continue to finish, or come back once credits reset.'
+    : isPartial
+    ? 'Continue below to convert remaining sections.'
+    : 'Your screenplay is ready.';
+  setProgress(100, statusLabel, statusSub);
+  addLog(stoppedForCredits ? '⚠️ Conversion stopped — included credits used up.' : '✓ Conversion complete!');
 
   const sceneCount = (state.output.match(/^(INT\.|EXT\.)/gm) || []).length;
   const runtime = Math.round(pagesWritten * 0.95);
@@ -1483,6 +1501,8 @@ FORMAT REQUIREMENTS (strictly follow):
 
   const parts = [];
   let wordsWritten = 0;
+  let chaptersWritten = 0;
+  let stoppedForCredits = false;
 
   // Build chapter outlines from bible structure
   const structureLines = state.bible.structure.split('\n').filter(l => l.trim());
@@ -1512,21 +1532,27 @@ FORMAT REQUIREMENTS (strictly follow):
       const part = await callAPI(key, systemPrompt, prompt, 2000);
       parts.push(part);
       wordsWritten += part.split(/\s+/).length;
+      chaptersWritten++;
     } catch(err) {
       if (err.code === 'credits_exhausted' || err.code === 'rate_limited') {
         addLog(`⚠️ ${err.message}`);
         alert(err.message);
+        stoppedForCredits = true;
         break;
       }
       addLog(`⚠️ Chapter ${chapterNum} error`);
       parts.push(`\n\nCHAPTER ${chapterNum}\n\n[Chapter could not be generated — please retry]\n\n`);
+      chaptersWritten++;
     }
   }
 
   setProgress(96, 'Assembling manuscript…', 'Formatting to submission standards…');
   state.output = parts.join('\n\n');
-  setProgress(100, 'Complete!', 'Your manuscript is ready.');
-  addLog('✓ Manuscript complete!');
+  setProgress(100, stoppedForCredits ? 'Stopped early' : 'Complete!',
+    stoppedForCredits
+      ? `Included credits used up — wrote ${chaptersWritten} of ${chapters} chapters. Add your own API key (✨ AI Settings) to finish, or come back once credits reset.`
+      : 'Your manuscript is ready.');
+  addLog(stoppedForCredits ? '⚠️ Manuscript stopped — included credits used up.' : '✓ Manuscript complete!');
   // Safety net: back up the finished manuscript so a refresh/crash before exporting isn't a total loss.
   savePartialSession();
 
@@ -1534,7 +1560,7 @@ FORMAT REQUIREMENTS (strictly follow):
   document.getElementById('manuscript-output-section').style.display = 'block';
   document.getElementById('screenplay-output-section').style.display = 'none';
   document.getElementById('out-stat1').textContent = `~${wordsWritten.toLocaleString()} words`;
-  document.getElementById('out-stat2').textContent = `${chapters} chapters`;
+  document.getElementById('out-stat2').textContent = stoppedForCredits ? `${chaptersWritten} of ${chapters} chapters` : `${chapters} chapters`;
   document.getElementById('out-stat3').textContent = `~${Math.round(wordsWritten / 250)} pages`;
 
   setTimeout(() => {
@@ -1574,6 +1600,8 @@ CRITICAL: Preserve the story, characters, and plot exactly. Only improve the wri
 
   const parts = [];
   let wordsWritten = 0;
+  let sectionsEnhanced = 0;
+  let stoppedForCredits = false;
 
   for (let i = 0; i < totalChunks; i++) {
     const pct = 5 + ((i / totalChunks) * 88);
@@ -1584,10 +1612,12 @@ CRITICAL: Preserve the story, characters, and plot exactly. Only improve the wri
       const part = await callAPI(key, systemPrompt, `Enhance this section:\n\n${chunks[i]}`, 2000);
       parts.push(part);
       wordsWritten += part.split(/\s+/).length;
+      sectionsEnhanced++;
     } catch(err) {
       if (err.code === 'credits_exhausted' || err.code === 'rate_limited') {
         addLog(`⚠️ ${err.message}`);
         alert(err.message);
+        stoppedForCredits = true;
         // Keep the rest of the manuscript unenhanced rather than dropping it
         for (let j = i; j < totalChunks; j++) parts.push(chunks[j]);
         break;
@@ -1599,8 +1629,11 @@ CRITICAL: Preserve the story, characters, and plot exactly. Only improve the wri
 
   setProgress(96, 'Assembling…', 'Finalizing enhanced manuscript…');
   state.output = parts.join('\n\n');
-  setProgress(100, 'Complete!', 'Your enhanced manuscript is ready.');
-  addLog('✓ Enhancement complete!');
+  setProgress(100, stoppedForCredits ? 'Stopped early' : 'Complete!',
+    stoppedForCredits
+      ? `Included credits used up — enhanced ${sectionsEnhanced} of ${totalChunks} sections; the rest is included unedited.`
+      : 'Your enhanced manuscript is ready.');
+  addLog(stoppedForCredits ? '⚠️ Enhancement stopped — included credits used up.' : '✓ Enhancement complete!');
   // Safety net: back up the finished manuscript so a refresh/crash before exporting isn't a total loss.
   savePartialSession();
 
@@ -1608,21 +1641,16 @@ CRITICAL: Preserve the story, characters, and plot exactly. Only improve the wri
   document.getElementById('manuscript-output-section').style.display = 'block';
   document.getElementById('screenplay-output-section').style.display = 'none';
   document.getElementById('out-stat1').textContent = `~${wordsWritten.toLocaleString()} words`;
-  document.getElementById('out-stat2').textContent = `Enhanced`;
+  document.getElementById('out-stat2').textContent = stoppedForCredits ? `${sectionsEnhanced} of ${totalChunks} enhanced` : 'Enhanced';
   document.getElementById('out-stat3').textContent = `~${Math.round(wordsWritten / 250)} pages`;
 
   setTimeout(() => {
     populateResultsBible();
-    // Show continue/cancel row if partial, hide the simple new-project btn
+    // Enhancement has no partial-continue mode — always show the new-project btn
     const contRow = document.getElementById('partial-continue-row');
     const newBtn = document.getElementById('new-project-btn');
-    if (isPartial && !state._cancelled) {
-      if (contRow) contRow.style.display = 'flex';
-      if (newBtn) newBtn.style.display = 'none';
-    } else {
-      if (contRow) contRow.style.display = 'none';
-      if (newBtn) newBtn.style.display = 'inline-flex';
-    }
+    if (contRow) contRow.style.display = 'none';
+    if (newBtn) newBtn.style.display = 'inline-flex';
     goToStep(6);
   }, 1200);
 }
