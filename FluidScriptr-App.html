@@ -117,6 +117,9 @@ input[type=range]::-moz-range-thumb { width: 20px; height: 20px; border-radius: 
 
           if (data.success) {
             localStorage.setItem(LS_KEY, key);
+            // Unlocking here means "use included credits" — don't leave a stale
+            // 'own key' mode (e.g. from earlier testing) blocking straight-to-work access.
+            localStorage.setItem('fsr_ai_mode', 'credits');
             gate.style.opacity = '0';
             gate.style.transition = 'opacity 0.3s ease';
             setTimeout(() => gate.remove(), 320);
@@ -1822,7 +1825,6 @@ function startOver() {
   document.getElementById('idea-panel').style.display = 'none';
   document.getElementById('path-manuscript').classList.remove('selected');
   document.getElementById('path-idea').classList.remove('selected');
-  document.getElementById('progress-section').style.display = 'none';
   document.getElementById('convert-btn').disabled = false;
   document.getElementById('convert-btn').innerHTML = '🎬 Begin Conversion';
   conversionLog = [];
