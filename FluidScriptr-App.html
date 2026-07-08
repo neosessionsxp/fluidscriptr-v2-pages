@@ -210,7 +210,7 @@ input[type=range]::-moz-range-thumb { width: 20px; height: 20px; border-radius: 
                 <div id="resume-banner">
                   <span class="rb-icon">⏸</span>
                   <div class="rb-text">
-                    <div class="rb-title">Partial conversion found: <span id="resume-banner-title"></span></div>
+                    <div class="rb-title"><span id="resume-banner-label">Partial conversion found:</span> <span id="resume-banner-title"></span></div>
                     <div class="rb-sub"><span id="resume-banner-progress"></span> — jump back to your results?</div>
                   </div>
                   <div class="rb-actions">
@@ -798,15 +798,21 @@ function checkPartialSession() {
     const raw = localStorage.getItem(LS_PARTIAL);
     if (!raw) return;
     const data = JSON.parse(raw);
-    if (!data._partialOutput || !data._partialFrom) return;
+    // Recover any saved output — whether it's a mid-conversion partial screenplay
+    // or a fully finished manuscript/screenplay the user never got around to exporting.
+    if (!data.output) return;
     // Restore state
     Object.assign(state, data);
     // Show resume banner
     const banner = document.getElementById('resume-banner');
     if (banner) {
-      document.getElementById('resume-banner-title').textContent = data.title || 'your manuscript';
-      document.getElementById('resume-banner-progress').textContent =
-        `Sections ${data._chunksConverted} of ${data._totalChunks} converted`;
+      const isPartial = !!(data._totalChunks && data._chunksConverted < data._totalChunks);
+      const label = document.getElementById('resume-banner-label');
+      if (label) label.textContent = isPartial ? 'Partial conversion found:' : 'Unexported output found:';
+      document.getElementById('resume-banner-title').textContent = data.title || 'your project';
+      document.getElementById('resume-banner-progress').textContent = isPartial
+        ? `Sections ${data._chunksConverted} of ${data._totalChunks} converted`
+        : 'Generation complete — not yet exported';
       banner.style.display = 'flex';
     }
   } catch(e) { clearPartialSession(); }
@@ -1409,11 +1415,11 @@ FOUNTAIN FORMAT:
   const assembled = (state._partialOutput ? state._partialOutput + '\n\n' : titlePage) + parts.join('\n\n');
   state.output = assembled;
 
-  // Preserve partial state for Continue, or clear if fully done
+  // Preserve partial state for Continue, or back up the finished screenplay if fully done
   if (!isPartial) {
     state._partialOutput = null;
     state._partialFrom = 0;
-    clearPartialSession();
+    savePartialSession();
   } else {
     state._partialOutput = assembled;
     state._partialFrom = chunksToRun;
@@ -1521,6 +1527,8 @@ FORMAT REQUIREMENTS (strictly follow):
   state.output = parts.join('\n\n');
   setProgress(100, 'Complete!', 'Your manuscript is ready.');
   addLog('✓ Manuscript complete!');
+  // Safety net: back up the finished manuscript so a refresh/crash before exporting isn't a total loss.
+  savePartialSession();
 
   document.getElementById('manuscript-out').textContent = state.output;
   document.getElementById('manuscript-output-section').style.display = 'block';
@@ -1593,6 +1601,8 @@ CRITICAL: Preserve the story, characters, and plot exactly. Only improve the wri
   state.output = parts.join('\n\n');
   setProgress(100, 'Complete!', 'Your enhanced manuscript is ready.');
   addLog('✓ Enhancement complete!');
+  // Safety net: back up the finished manuscript so a refresh/crash before exporting isn't a total loss.
+  savePartialSession();
 
   document.getElementById('manuscript-out').textContent = state.output;
   document.getElementById('manuscript-output-section').style.display = 'block';
@@ -1640,6 +1650,7 @@ function exportFountain() {
   const date = new Date().toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' });
   const content = `Title: ${state.title}\nAdapted by FluidScriptr\nDraft date: ${date}\n\n===\n\n${state.output}`;
   downloadFile(content, getSlug() + '.fountain', 'text/plain;charset=utf-8');
+  clearPartialSession();
 }
 
 function exportFDX() {
@@ -1656,6 +1667,7 @@ function exportFDX() {
   }
   const xml = `<?xml version="1.0" encoding="UTF-8"?>\n<FinalDraft DocumentType="Script" Template="No" Version="5">\n<Content>\n${fdx}</Content>\n</FinalDraft>`;
   downloadFile(xml, getSlug() + '.fdx', 'application/xml');
+  clearPartialSession();
 }
 
 function exportScreenplayPDF() {
@@ -1669,6 +1681,7 @@ function exportScreenplayPDF() {
   </style></head><body>${state.output.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')}</body></html>`);
   w.document.close();
   setTimeout(() => w.print(), 600);
+  clearPartialSession();
 }
 
 function exportManuscriptDOCX() {
@@ -1684,6 +1697,7 @@ ${state.output.replace(/\n\n/g, '\\par\\par ').replace(/\n/g, '\\par ')}
 }`;
   // Download as .rtf (universally opens in Word with correct formatting)
   downloadFile(rtf, getSlug() + '-manuscript.rtf', 'application/rtf');
+  clearPartialSession();
   // Also offer plain text fallback note
   alert('Your manuscript has been downloaded as an RTF file — open it in Microsoft Word or Google Docs. It will open with Times New Roman 12pt, double-spaced, 1-inch margins automatically.');
 }
@@ -1699,6 +1713,7 @@ function exportManuscriptPDF() {
   </style></head><body>${state.output.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')}</body></html>`);
   w.document.close();
   setTimeout(() => w.print(), 600);
+  clearPartialSession();
 }
 
 // ── Start over ────────────────────────────────────────────
@@ -1775,12 +1790,14 @@ function updatePartialLabel(val) {
 function resumePartialSession() {
   // state already restored by checkPartialSession(); just show results
   document.getElementById('resume-banner').style.display = 'none';
-  document.getElementById('screenplay-out').textContent = state.output || '';
-  document.getElementById('screenplay-output-section').style.display = state.output ? 'block' : 'none';
-  document.getElementById('manuscript-output-section').style.display = 'none';
+  const isManuscript = state.outputType === 'manuscript' || state.outputType === 'enhance';
+  document.getElementById('screenplay-out').textContent = !isManuscript ? (state.output || '') : '';
+  document.getElementById('screenplay-output-section').style.display = (!isManuscript && state.output) ? 'block' : 'none';
+  document.getElementById('manuscript-out').textContent = isManuscript ? (state.output || '') : '';
+  document.getElementById('manuscript-output-section').style.display = (isManuscript && state.output) ? 'block' : 'none';
   const contRow = document.getElementById('partial-continue-row');
   const newBtn = document.getElementById('new-project-btn');
-  if (state._partialFrom > 0) {
+  if (state._partialFrom > 0 && state._totalChunks && state._partialFrom < state._totalChunks) {
     if (contRow) contRow.style.display = 'flex';
     if (newBtn) newBtn.style.display = 'none';
   } else {
