@@ -1434,6 +1434,14 @@ FOUNTAIN FORMAT:
     savePartialSession();
   }
 
+  // User explicitly cancelled — they've already been navigated back to Step 1.
+  // Don't force them back to the results screen; the partial output above is
+  // still saved so they can pick it up later from the resume banner if they want.
+  if (state._cancelled) {
+    addLog('✕ Conversion cancelled.');
+    return;
+  }
+
   const statusLabel = stoppedForCredits
     ? `Stopped early — ${lastCompletedChunk} of ${totalChunks} sections done.`
     : isPartial
@@ -1508,6 +1516,7 @@ FORMAT REQUIREMENTS (strictly follow):
   const structureLines = state.bible.structure.split('\n').filter(l => l.trim());
 
   for (let i = 0; i < chapters; i++) {
+    if (state._cancelled) break;
     const pct = 5 + ((i / chapters) * 88);
     const chapterNum = i + 1;
     const isFirstThird = i < chapters / 3;
@@ -1544,6 +1553,15 @@ FORMAT REQUIREMENTS (strictly follow):
       parts.push(`\n\nCHAPTER ${chapterNum}\n\n[Chapter could not be generated — please retry]\n\n`);
       chaptersWritten++;
     }
+  }
+
+  // User explicitly cancelled — they've already been navigated back to Step 1.
+  // Save whatever was written so far (still costs money) but don't force them to the results screen.
+  if (state._cancelled) {
+    state.output = parts.join('\n\n');
+    savePartialSession();
+    addLog('✕ Manuscript generation cancelled.');
+    return;
   }
 
   setProgress(96, 'Assembling manuscript…', 'Formatting to submission standards…');
@@ -1604,6 +1622,7 @@ CRITICAL: Preserve the story, characters, and plot exactly. Only improve the wri
   let stoppedForCredits = false;
 
   for (let i = 0; i < totalChunks; i++) {
+    if (state._cancelled) break;
     const pct = 5 + ((i / totalChunks) * 88);
     setProgress(pct, `Section ${i + 1} of ${totalChunks}`, 'Enhancing prose…', `~${wordsWritten.toLocaleString()} words enhanced`);
     addLog(`Enhancing section ${i + 1}/${totalChunks}…`);
@@ -1625,6 +1644,15 @@ CRITICAL: Preserve the story, characters, and plot exactly. Only improve the wri
       addLog(`⚠️ Section ${i + 1} error`);
       parts.push(chunks[i]);
     }
+  }
+
+  // User explicitly cancelled — they've already been navigated back to Step 1.
+  // Save whatever was enhanced so far (still costs money) but don't force them to the results screen.
+  if (state._cancelled) {
+    state.output = parts.join('\n\n');
+    savePartialSession();
+    addLog('✕ Enhancement cancelled.');
+    return;
   }
 
   setProgress(96, 'Assembling…', 'Finalizing enhanced manuscript…');
@@ -1749,6 +1777,10 @@ function cancelConversion() {
   if (!confirm("Cancel conversion? This will count as one usage.")) return;
   state._cancelled = true;
   document.getElementById('cancel-nav-btn').style.display = 'none';
+  // Restore the Begin Conversion button so the user isn't stuck if they come back to Step 5 —
+  // it was left disabled/spinning by startConversion() and nothing else was resetting it.
+  const btn = document.getElementById('convert-btn');
+  if (btn) { btn.disabled = false; btn.innerHTML = '🎬 Begin Conversion'; }
   goToStep(1);
 }
 
