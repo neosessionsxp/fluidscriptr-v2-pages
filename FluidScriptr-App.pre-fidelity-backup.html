@@ -74,8 +74,8 @@ input[type=range]::-moz-range-thumb { width: 20px; height: 20px; border-radius: 
           box-shadow: -3px -3px 7px rgba(255,255,255,0.45), 5px 7px 18px rgba(160,15,15,0.45);
         ">Unlock</button>
 
-        <div style="font-size: 12px; color: #9CA3AF; margin-top: 20px; line-height: 1.7;">
-          If you do not have a key, please purchase <a href="https://kerospad.gumroad.com/l/fluidscriptr" target="_blank" style="color: #E8333A; text-decoration: none; font-weight: 600;">HERE</a>, or for more info please visit <a href="https://tinhousepress.com/fluidscriptr" target="_blank" style="color: #E8333A; text-decoration: none; font-weight: 600;">FluidScriptr</a>.
+        <div style="font-size: 12px; color: #9CA3AF; margin-top: 20px;">
+          Don't have a key? <a href="https://kerospad.gumroad.com/l/fluidscriptr" target="_blank" style="color: #E8333A; text-decoration: none;">Get founding member access →</a>
         </div>
       </div>
     </div>
@@ -679,28 +679,6 @@ input[type=range]::-moz-range-thumb { width: 20px; height: 20px; border-radius: 
                                     </div>
                                 </div>
                             </div>
-                            <div class="fidelity-section" style="margin-top:1.5rem;">
-                                <button class="btn-secondary" id="fidelity-btn" type="button" onclick="runFidelityCheck()" style="width:100%;justify-content:center;">
-                                    🔍 Check Fidelity to Source
-                                </button>
-                                <div id="fidelity-results" style="display:none;margin-top:1rem;"></div>
-                            </div>
-                            <style>
-                            .fidelity-overall { font-size:14px; color:var(--navy); font-weight:600; margin-bottom:14px; padding:12px 16px; background:var(--bg2); border-radius:var(--r-md); border:1px solid var(--border); }
-                            .fidelity-scores { margin-bottom:12px; }
-                            .fidelity-score-row { display:flex; align-items:center; gap:10px; padding:6px 0; font-size:13px; }
-                            .fidelity-score-label { flex:0 0 160px; color:var(--grey); }
-                            .fidelity-score-bar { flex:1; height:8px; background:var(--bg2); border-radius:4px; overflow:hidden; box-shadow:var(--sh-inset-sm); }
-                            .fidelity-score-bar span { display:block; height:100%; background:var(--red); border-radius:4px; }
-                            .fidelity-score-value { flex:0 0 40px; text-align:right; font-weight:700; color:var(--navy); }
-                            .fidelity-omission-item { padding:10px 0; border-bottom:1px solid var(--border); font-size:13px; color:var(--navy); }
-                            .fidelity-omission-item:last-child { border-bottom:none; }
-                            .fidelity-omission-reason { color:var(--grey); margin-top:3px; line-height:1.5; }
-                            .fidelity-tag { font-size:10px; font-weight:700; text-transform:uppercase; letter-spacing:0.04em; padding:2px 8px; border-radius:var(--r-full); margin-left:6px; }
-                            .fidelity-tag-load_bearing { background:rgba(232,51,58,0.12); color:var(--red); }
-                            .fidelity-tag-moderate { background:rgba(217,119,6,0.12); color:#D97706; }
-                            .fidelity-tag-cosmetic { background:rgba(107,114,128,0.12); color:var(--grey); }
-                            </style>
                         </div>
                         <div id="manuscript-output-section" style="display:none;">
                             <div class="results-col-header">📖 Manuscript</div>
@@ -1311,41 +1289,9 @@ function updateCreditsUI(c) {
   const el = document.getElementById('credits-status');
   if (!el) return;
   el.style.display = getAIMode() === 'credits' ? 'inline' : 'none';
-  if (c.unlimited) {
-    const n = c.founder_generations_remaining;
-    el.textContent = typeof n === 'number'
-      ? `Founder key — ${n} generation${n === 1 ? '' : 's'} left`
-      : 'Founder key — unlimited';
-    return;
-  }
   el.textContent = c.remaining_micro <= 0
     ? 'Included credits used up — add your API key for unlimited'
     : `Included credits: ${100 - c.used_pct}% left this month`;
-}
-
-// Call once at the very start of a full project run (screenplay/novel/
-// enhancement/adaptation). No-op for normal and master keys; enforces the
-// FOUNDER_KEY_LIMITED 3-generation cap server-side. Only relevant in
-// included-credits mode — BYOK never touches the proxy.
-async function checkFounderStart() {
-  if (getAIMode() !== 'credits') return { ok: true };
-  try {
-    const res = await fetch(AI_PROXY, {
-      method: 'POST', headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ action: 'start_project', license_key: getLicense() })
-    });
-    const data = await res.json();
-    if (data.success === false && data.code === 'founder_limit_reached') {
-      return { ok: false, message: data.error };
-    }
-    if (data.fsr_credits) updateCreditsUI(data.fsr_credits);
-    else if (typeof data.founder_generations_remaining === 'number') {
-      updateCreditsUI({ unlimited: true, founder_generations_remaining: data.founder_generations_remaining });
-    }
-    return { ok: true };
-  } catch {
-    return { ok: true }; // fail open — don't block generation on a network hiccup
-  }
 }
 
 function parseBible(raw) {
@@ -1462,8 +1408,6 @@ function setProgress(pct, label, status, pages) {
 async function startConversion() {
   const key = getKey();
   if (!canGenerate()) { alert(getAIMode() === 'own' ? 'Add your Anthropic API key in ✨ AI Settings — or switch to Included credits.' : 'Please unlock with your license key first.'); return; }
-  const gate = await checkFounderStart();
-  if (!gate.ok) { alert(gate.message); return; }
 
   const btn = document.getElementById('convert-btn');
   btn.disabled = true;
@@ -1884,21 +1828,16 @@ function exportFountain() {
   clearPartialSession();
 }
 
-function escapeXML(s) {
-  return s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;').replace(/'/g, '&apos;');
-}
-
 function exportFDX() {
   const lines = state.output.split('\n');
   let fdx = '';
   for (const line of lines) {
-    const raw = line.trim();
-    if (!raw) { fdx += '<Paragraph Type="Action"><Text></Text></Paragraph>\n'; continue; }
-    const t = escapeXML(raw);
-    if (/^(INT\.|EXT\.)/.test(raw)) fdx += `<Paragraph Type="Scene Heading"><Text>${t}</Text></Paragraph>\n`;
-    else if (raw === raw.toUpperCase() && raw.length < 40 && !raw.endsWith('.')) fdx += `<Paragraph Type="Character"><Text>${t}</Text></Paragraph>\n`;
-    else if (raw.startsWith('(') && raw.endsWith(')')) fdx += `<Paragraph Type="Parenthetical"><Text>${t}</Text></Paragraph>\n`;
-    else if (/^(FADE|CUT|SMASH|DISSOLVE)/.test(raw)) fdx += `<Paragraph Type="Transition"><Text>${t}</Text></Paragraph>\n`;
+    const t = line.trim();
+    if (!t) { fdx += '<Paragraph Type="Action"><Text></Text></Paragraph>\n'; continue; }
+    if (/^(INT\.|EXT\.)/.test(t)) fdx += `<Paragraph Type="Scene Heading"><Text>${t}</Text></Paragraph>\n`;
+    else if (t === t.toUpperCase() && t.length < 40 && !t.endsWith('.')) fdx += `<Paragraph Type="Character"><Text>${t}</Text></Paragraph>\n`;
+    else if (t.startsWith('(') && t.endsWith(')')) fdx += `<Paragraph Type="Parenthetical"><Text>${t}</Text></Paragraph>\n`;
+    else if (/^(FADE|CUT|SMASH|DISSOLVE)/.test(t)) fdx += `<Paragraph Type="Transition"><Text>${t}</Text></Paragraph>\n`;
     else fdx += `<Paragraph Type="Action"><Text>${t}</Text></Paragraph>\n`;
   }
   const xml = `<?xml version="1.0" encoding="UTF-8"?>\n<FinalDraft DocumentType="Script" Template="No" Version="5">\n<Content>\n${fdx}</Content>\n</FinalDraft>`;
@@ -2019,8 +1958,6 @@ function setApProgress(label) {
 
 async function generateAdaptationPackage() {
   if (!canGenerate()) { alert(getAIMode() === 'own' ? 'Add your Anthropic API key in ✨ AI Settings — or switch to Included credits.' : 'Please unlock with your license key first.'); return; }
-  const gate = await checkFounderStart();
-  if (!gate.ok) { alert(gate.message); return; }
   const key = getKey();
   const btn = document.getElementById('ap-generate-btn');
   btn.disabled = true;
@@ -2365,355 +2302,6 @@ function startOver() {
   document.getElementById('convert-btn').innerHTML = '🎬 Begin Conversion';
   conversionLog = [];
   goToStep(1);
-}
-
-// ══ FIDELITY ANALYSIS ══════════════════════════════════════════════════
-// Compares state.rawText (submitted source) against state.output (the
-// generated screenplay) across five dimensions. Reuses this app's own
-// callAPI()/canGenerate()/getAIMode()/getKey() so it works correctly in
-// BOTH included-credits mode and BYOK mode — no new auth path, no backend.
-
-const FIDELITY_FORMAT_GUIDANCE = {
-  "Feature Film": "the entire submitted source is compressed into a 90-110 page film. Compression is light — high scene retention across the whole source is expected.",
-  "Limited Series": "the entire submitted source is compressed across 2-8 episodes. Compression is light to moderate depending on episode count — reasonably high scene retention is expected.",
-  "TV Pilot": "the entire submitted source is compressed into ~50-60 pages. This compresses harder than a feature but is still meant to establish the world and hook viewers using material from across the whole submitted source, not just the opening.",
-  "Short Film": "the entire submitted source is compressed very heavily into just 10-30 pages, regardless of how long the source is. This is NOT selective chapter-skipping — every part of the submitted source is meant to be represented, just extremely compressed. Expect substantial trimming and merging across the board; judge fidelity by whether the essential throughline survived this heavy compression, not by how much detail was cut (a lot will be, by design).",
-};
-
-const FIDELITY_APPROACH_GUIDANCE = {
-  "Compress": "the full story is meant to be PRESERVED, just tightened to fit. Omissions should be rare and mostly cosmetic — anything load-bearing missing is a real gap against the stated goal.",
-  "Select Best": "the adaptation was explicitly told to select the most cinematic scenes, cutting the rest. Significant omissions here are curatorial choices, not failures — reserve \"load_bearing\" only for cuts that would break the core throughline (protagonist's arc, central relationship, ending) even under an intentionally selective edit.",
-  "Faithful": "the explicit instruction was to stay close to the source within format constraints. Omissions should be minimal, and load-bearing cuts represent a meaningful deviation from the stated goal.",
-};
-
-const FIDELITY_TONE_GUIDANCE = {
-  "Faithful to source": "the manuscript's original tone should carry through largely unchanged. A tonal shift here is worth noting as a real fidelity concern.",
-  "Cinematic / visual-first": "internal monologue, reflection, and interiority in the manuscript are EXPECTED to be translated into visual staging/action rather than preserved as text or dialogue. Do not treat that translation itself as an omission — only flag it if the underlying meaning or story beat is actually lost, not just its original textual form.",
-  "Compressed / tight pacing": "scenes are meant to move quickly with little lingering. Some trimming of lower-stakes detail and beats is expected as a tonal choice, not a lapse.",
-  "Expanded with subtext": "the screenplay is expected to add material beyond the source — new beats, implied meaning, or subtext. Treat reasonable \"expanded\" relationships and some invented content as intentional deepening, not unwarranted fabrication, unless it contradicts the source.",
-};
-
-const FIDELITY_DIALOGUE_STYLE_GUIDANCE = {
-  "Naturalistic": "dialogue should sound like natural speech. Rewriting manuscript lines/narration into naturalistic speech is expected; treat that as \"rewritten\" or \"lightly_edited\" rather than penalizing it as a deviation.",
-  "Stylized / Literary": "dialogue is meant to be heightened or literary rather than plain speech. Invented or substantially rewritten lines that serve this heightened voice are appropriate, not a fidelity problem.",
-  "Minimal — let visuals carry": "dialogue is MEANT to shrink — many manuscript conversations are expected to be replaced by visual action rather than spoken lines. A high manuscript_only_lines_count under this style often reflects the intended design (dialogue deliberately cut in favor of visuals), not lost content. Do not treat this reduction alone as a fidelity failure.",
-  "Heavy subtext": "lines are meant to be understated or oblique on the surface, carrying meaning indirectly. Expect \"rewritten\" dialogue that says less literally than the manuscript source while implying the same thing — this is the intended effect, not information loss.",
-};
-
-const FIDELITY_FORMAT_MAP = { feature: "Feature Film", limited: "Limited Series", pilot: "TV Pilot", short: "Short Film" };
-const FIDELITY_APPROACH_MAP = { compress: "Compress", selective: "Select Best", faithful: "Faithful" };
-const FIDELITY_TONE_MAP = {
-  "faithful to source": "Faithful to source",
-  "cinematic visual-first": "Cinematic / visual-first",
-  "compressed tight pacing": "Compressed / tight pacing",
-  "expanded with subtext": "Expanded with subtext",
-};
-const FIDELITY_DIALOGUE_MAP = {
-  "naturalistic": "Naturalistic",
-  "stylized literary": "Stylized / Literary",
-  "minimal visual": "Minimal — let visuals carry",
-  "heavy subtext": "Heavy subtext",
-};
-
-function buildFidelityConversionContext(cs) {
-  const lines = ["CONVERSION CONTEXT — this screenplay was generated with the following settings. Use them to calibrate your classifications; material cut or changed in service of the chosen settings is often appropriate, not a flaw."];
-  if (cs.targetFormat) lines.push(`- Target Format: ${cs.targetFormat} — ${FIDELITY_FORMAT_GUIDANCE[cs.targetFormat] || "no specific guidance available."}`);
-  if (cs.adaptationApproach) lines.push(`- Adaptation Approach: ${cs.adaptationApproach} — ${FIDELITY_APPROACH_GUIDANCE[cs.adaptationApproach] || "no specific guidance available."}`);
-  if (cs.tone) lines.push(`- Tone: ${cs.tone} — ${FIDELITY_TONE_GUIDANCE[cs.tone] || "no specific guidance available."}`);
-  if (cs.dialogueStyle) lines.push(`- Dialogue Style: ${cs.dialogueStyle} — ${FIDELITY_DIALOGUE_STYLE_GUIDANCE[cs.dialogueStyle] || "no specific guidance available."}`);
-  if (cs.sourceWordCount && cs.targetPages) {
-    const wordsPerPage = Math.round(cs.sourceWordCount / cs.targetPages);
-    lines.push(`- Compression: ~${cs.sourceWordCount.toLocaleString()} source words compressed into a ~${cs.targetPages}-page target (~${wordsPerPage} source words per finished page). At higher ratios, more trimming and merging is structurally necessary and should not by itself be treated as a fidelity failure — judge by whether the essential throughline survived, not by volume of cuts.`);
-  }
-  if (cs.partialFraction != null && cs.partialFraction < 0.98) {
-    const pct = Math.round(cs.partialFraction * 100);
-    lines.push(`- PARTIAL CONVERSION: only approximately the FIRST ${pct}% of the manuscript (by content chunk) was actually converted in this run — the remaining ~${100 - pct}% was never attempted. Only that first ~${pct}% is in scope for this analysis: mark manuscript structural units from the un-converted remainder as "out_of_scope" (not "omitted"), and do not list content-level omissions for anything outside that first portion, since it was never a creative choice — it simply hasn't been generated yet.`);
-  }
-  return lines.join("\n") + "\n\n";
-}
-
-function buildFidelityStructuralPrompt(manuscriptText, screenplayText, cs) {
-  const system = `You are a structural analyst comparing a book manuscript to its screenplay adaptation.
-
-${buildFidelityConversionContext(cs)}GROUNDING RULE — the MANUSCRIPT text below is the ENTIRE source that was actually used to generate this screenplay. Do not assume, infer, or reference any manuscript content beyond what is provided here — even if you recognize the book or expect it to continue. If the provided text ends mid-story, treat it as the complete manuscript for this analysis; do NOT invent a summary unit for "the rest of the book" or any chapter/section you were not actually given.
-
-STEP 0 — SCOPE CHECK. By default, most conversions use the whole submitted source, and EVERY manuscript unit should get a real relationship (adapted/merged/split/expanded/omitted), not "out_of_scope" — do not assume format choice alone (e.g. Short Film) means chapters were skipped; the real pipeline compresses the entire submitted manuscript unless told otherwise below.
-
-EXCEPTION — if the CONVERSION CONTEXT above states this was a PARTIAL CONVERSION with a specific percentage, that percentage is authoritative, VERIFIED information about what was actually generated — it is not a textual inference and outranks the default rule above. In that case, mark manuscript units beyond the stated boundary as "out_of_scope" even without additional evidence in the screenplay text itself, since that remainder was never attempted, not creatively excluded. Only fall back to inferring scope from the screenplay text itself when no PARTIAL CONVERSION note is present above.
-
-Then identify:
-1. The manuscript's major structural units (chapters or scenes), grouped into Act 1 / Act 2 / Act 3 based on story position.
-2. The screenplay's major scenes, similarly grouped into Act 1 / Act 2 / Act 3.
-3. A mapping from manuscript units to screenplay scenes. Each manuscript unit gets exactly one relationship:
-   - "adapted": clean 1:1 correspondence
-   - "merged": this unit was combined with others into one screenplay scene
-   - "split": this unit became multiple screenplay scenes
-   - "expanded": the screenplay adds significant new material to this unit
-   - "omitted": WITHIN the in-scope material, but no corresponding screenplay content exists
-   - "out_of_scope": outside the in-scope material — see SCOPE CHECK above
-4. A list of manuscript elements that do NOT appear in the screenplay at all: subplots, character beats, thematic threads, minor characters, world/setting details. For each, classify narrative importance IN LIGHT OF THE CONVERSION CONTEXT ABOVE:
-   - "load_bearing": removing it changes the story's meaning or a character's motivation, even accounting for the chosen format and approach
-   - "moderate": noticeable but not structurally critical
-   - "cosmetic": detail-level, low impact if cut
-   Give a one-sentence reason for each classification.
-
-IMPORTANT for full-length manuscripts — keep the response compact:
-   A long manuscript will naturally have far more omissions than can be usefully listed. In "omissions", list at most the 20 MOST SIGNIFICANT ones (prioritize load_bearing and moderate; include only a few cosmetic examples if there's room) — do NOT try to catalog every omission exhaustively. Only draw these from WITHIN the in-scope material (per SCOPE CHECK above).
-   Separately, in "omission_counts", give your best estimate of the TOTAL count in each classification across the WHOLE in-scope portion (not just the sampled list above) — this is what the fidelity score is actually calculated from, so it must reflect the full in-scope material even though the list itself is a sample.
-
-Keep every "summary" field to one short sentence, under 15 words. This keeps the response a manageable size for longer manuscripts.
-
-Your entire response must be a single JSON object and nothing else. Do not include a preamble, an explanation, an apology, or any text before or after the JSON. Do not wrap it in markdown code fences. The first character of your response must be "{" and the last character must be "}". Match this exact shape:
-{
-  "manuscript_structure": [{"id": "M1", "act": 1, "label": "string", "summary": "string"}],
-  "screenplay_structure": [{"id": "S1", "act": 1, "label": "string", "summary": "string"}],
-  "mapping": [{"manuscript_id": "M1", "screenplay_ids": ["S1"], "relationship": "adapted|merged|split|expanded|omitted|out_of_scope"}],
-  "omissions": [{"element": "string", "type": "subplot|character_beat|theme|minor_character|setting_detail", "description": "string", "classification": "load_bearing|moderate|cosmetic", "reason": "string"}],
-  "omission_counts": {"load_bearing": 0, "moderate": 0, "cosmetic": 0}
-}`;
-  const user = `MANUSCRIPT:\n${manuscriptText}\n\n---\n\nSCREENPLAY:\n${screenplayText}`;
-  return { system, user };
-}
-
-function buildFidelityDialoguePrompt(manuscriptText, screenplayText, cs) {
-  const system = `You are comparing dialogue between a book manuscript and its screenplay adaptation.
-
-${buildFidelityConversionContext(cs)}Identify dialogue exchanges — where a screenplay line clearly derives from a manuscript line (spoken dialogue, or narration converted into spoken dialogue) — and classify each:
-- "verbatim": word-for-word or nearly identical to the manuscript source
-- "lightly_edited": same meaning and most wording, minor changes for format or brevity
-- "rewritten": same story beat or intent, substantially reworded for the screen
-- "invented": no clear manuscript source; new dialogue created for the adaptation
-
-IMPORTANT — keep the response compact:
-1. Quote only the FIRST 8-10 WORDS of each manuscript_line and screenplay_line — just enough to identify which exchange it is, not the full line.
-2. Extract a REPRESENTATIVE SAMPLE spread across the whole excerpt (aim for roughly 20-30 exchanges) rather than exhaustively listing every single line.
-3. Still give your best full-excerpt ESTIMATE for the count fields below — these should reflect the whole excerpt, not just the sampled pairs.
-
-Count fields (full-excerpt estimates, not sample-only):
-- estimated_total_matched_exchanges: your best estimate of the TOTAL number of dialogue exchanges across the whole excerpt that have a manuscript source
-- screenplay_only_lines_count: invented dialogue with no manuscript equivalent at all
-- manuscript_only_lines_count: spoken dialogue or narration in the book that did not make it into the screenplay in any form
-
-Your entire response must be a single JSON object and nothing else. Do not include a preamble, an explanation, an apology, or any text before or after the JSON. Do not wrap it in markdown code fences. The first character of your response must be "{" and the last character must be "}". Match this exact shape:
-{
-  "dialogue_pairs": [{"manuscript_line": "string (8-10 words max)", "screenplay_line": "string (8-10 words max)", "category": "verbatim|lightly_edited|rewritten|invented"}],
-  "estimated_total_matched_exchanges": 0,
-  "screenplay_only_lines_count": 0,
-  "manuscript_only_lines_count": 0
-}`;
-  const user = `MANUSCRIPT:\n${manuscriptText}\n\n---\n\nSCREENPLAY:\n${screenplayText}`;
-  return { system, user };
-}
-
-function fidelityClamp(n, min = 1, max = 10) { return Math.max(min, Math.min(max, Math.round(n))); }
-
-function fidelityInScopeMapping(mapping) {
-  return mapping.filter((m) => m.relationship !== "out_of_scope");
-}
-function fidelityInScopeManuscript(manuscriptStructure, mapping) {
-  const outIds = new Set(mapping.filter((m) => m.relationship === "out_of_scope").map((m) => m.manuscript_id));
-  return manuscriptStructure.filter((u) => !outIds.has(u.id));
-}
-
-function scoreStructuralFidelity(mapping) {
-  const scoped = fidelityInScopeMapping(mapping);
-  if (!scoped.length) return 1;
-  const penalties = { adapted: 0, expanded: 0.25, merged: 0.75, split: 1, omitted: 0 };
-  let score = 10;
-  for (const m of scoped) score -= penalties[m.relationship] ?? 0.5;
-  return fidelityClamp(score);
-}
-
-function scoreSceneRetention(manuscriptStructure, mapping) {
-  const scopedUnits = fidelityInScopeManuscript(manuscriptStructure, mapping);
-  if (!scopedUnits.length) return 1;
-  const retained = scopedUnits.filter((unit) => {
-    const m = mapping.find((x) => x.manuscript_id === unit.id);
-    return m && m.relationship !== "omitted";
-  }).length;
-  return fidelityClamp((retained / scopedUnits.length) * 10);
-}
-
-function scoreOmissionImpact(omissions, omissionCounts) {
-  const weights = { load_bearing: 3, moderate: 1, cosmetic: 0.25 };
-  let totalWeight = 0, totalCount = 0;
-  // Prefer the full-manuscript aggregate counts (accurate for long manuscripts
-  // where the omissions array itself is only a representative sample).
-  if (omissionCounts && ((omissionCounts.load_bearing || 0) + (omissionCounts.moderate || 0) + (omissionCounts.cosmetic || 0) > 0)) {
-    totalCount = (omissionCounts.load_bearing || 0) + (omissionCounts.moderate || 0) + (omissionCounts.cosmetic || 0);
-    totalWeight = (omissionCounts.load_bearing || 0) * 3 + (omissionCounts.moderate || 0) * 1 + (omissionCounts.cosmetic || 0) * 0.25;
-  } else if (omissions && omissions.length) {
-    totalCount = omissions.length;
-    totalWeight = omissions.reduce((sum, o) => sum + (weights[o.classification] ?? 0.5), 0);
-  }
-  if (!totalCount) return 10;
-  const avgWeight = totalWeight / totalCount;
-  return fidelityClamp(10 - (avgWeight / 3) * 9);
-}
-
-function scoreDialogueTransformation(dialoguePairs, screenplayOnlyLinesCount, estimatedTotalMatchedExchanges) {
-  const sampleSize = dialoguePairs.length;
-  const totalMatched = estimatedTotalMatchedExchanges != null && estimatedTotalMatchedExchanges > 0 ? estimatedTotalMatchedExchanges : sampleSize;
-  const totalDialogueUnits = totalMatched + (screenplayOnlyLinesCount || 0);
-  if (!totalDialogueUnits) return 5;
-  const counts = { verbatim: 0, lightly_edited: 0, rewritten: 0, invented: 0 };
-  for (const p of dialoguePairs) counts[p.category] = (counts[p.category] || 0) + 1;
-  const sampleRate = sampleSize ? (counts.rewritten + counts.invented) / sampleSize : 0;
-  const transformedTotal = sampleRate * totalMatched + (screenplayOnlyLinesCount || 0);
-  return fidelityClamp((transformedTotal / totalDialogueUnits) * 10);
-}
-
-function scorePacingShift(manuscriptStructure, screenplayStructure, mapping) {
-  const scopedManuscript = mapping.length ? fidelityInScopeManuscript(manuscriptStructure, mapping) : manuscriptStructure;
-  const actShare = (arr) => {
-    const counts = { 1: 0, 2: 0, 3: 0 };
-    for (const u of arr) counts[u.act] = (counts[u.act] || 0) + 1;
-    const total = arr.length || 1;
-    return { 1: counts[1] / total, 2: counts[2] / total, 3: counts[3] / total };
-  };
-  const mShare = actShare(scopedManuscript);
-  const sShare = actShare(screenplayStructure);
-  const divergence = [1, 2, 3].reduce((sum, act) => sum + Math.abs(mShare[act] - sShare[act]), 0);
-  return fidelityClamp(10 - (divergence / 2) * 9);
-}
-
-function computeFidelityScores(structuralResult, dialogueResult) {
-  const { manuscript_structure, screenplay_structure, mapping, omissions, omission_counts } = structuralResult;
-  const { dialogue_pairs, screenplay_only_lines_count, estimated_total_matched_exchanges } = dialogueResult;
-  return {
-    structuralFidelity: scoreStructuralFidelity(mapping),
-    sceneRetention: scoreSceneRetention(manuscript_structure, mapping),
-    omissionImpact: scoreOmissionImpact(omissions, omission_counts),
-    dialogueTransformation: scoreDialogueTransformation(dialogue_pairs, screenplay_only_lines_count, estimated_total_matched_exchanges),
-    pacingShift: scorePacingShift(manuscript_structure, screenplay_structure, mapping),
-  };
-}
-
-function fidelityExtractJSON(text) {
-  const start = text.indexOf("{");
-  const end = text.lastIndexOf("}");
-  if (start === -1 || end === -1 || end < start) throw new Error("Response was cut off or empty — try again.");
-  return JSON.parse(text.slice(start, end + 1));
-}
-
-function getFidelityTargetPages() {
-  if (state.format === 'feature') return 95;
-  if (state.format === 'limited') return (state.episodes || 4) * 50;
-  if (state.format === 'pilot') return 55;
-  return 20; // short
-}
-
-function buildFidelityConversionSettings() {
-  const sourceWordCount = state.rawText ? state.rawText.split(/\s+/).filter(Boolean).length : 0;
-  // If this was a partial conversion, only that first slice of the manuscript
-  // was actually attempted — the rest is out of scope for this run, not omitted.
-  const partialFraction = (state._totalChunks && state._totalChunks > 0)
-    ? Math.min(1, (state._chunksConverted || 0) / state._totalChunks)
-    : 1;
-  return {
-    targetFormat: FIDELITY_FORMAT_MAP[state.format] || null,
-    adaptationApproach: FIDELITY_APPROACH_MAP[state.approach] || null,
-    tone: FIDELITY_TONE_MAP[state.tone] || null,
-    dialogueStyle: FIDELITY_DIALOGUE_MAP[state.dialogue] || null,
-    sourceWordCount,
-    targetPages: getFidelityTargetPages(),
-    partialFraction,
-  };
-}
-
-async function runFidelityCheck() {
-  // Matches generateBible()/startConversion()'s exact pre-flight pattern —
-  // works correctly in both included-credits mode and BYOK mode.
-  const key = getKey();
-  if (!canGenerate()) { alert(getAIMode() === 'own' ? 'Add your Anthropic API key in ✨ AI Settings — or switch to Included credits.' : 'Please unlock with your license key first.'); return; }
-  if (!state.rawText || !state.output) { alert('Need both a source manuscript and a generated screenplay to compare.'); return; }
-
-  const cs = buildFidelityConversionSettings();
-
-  // Completeness gate: don't run (or trust) full fidelity scoring on a
-  // meaningfully partial conversion — the "how much got cut" analysis only
-  // means something once there's a finished draft to judge. This is a hard
-  // code-level check (uses the app's own known chunk-completion numbers),
-  // not something left to the model to infer, since that proved unreliable.
-  if (cs.partialFraction != null && cs.partialFraction < 0.95) {
-    const pct = Math.round(cs.partialFraction * 100);
-    renderFidelityPartialNotice(pct);
-    return;
-  }
-
-  const btn = document.getElementById('fidelity-btn');
-  const resultsEl = document.getElementById('fidelity-results');
-  btn.disabled = true;
-  btn.innerHTML = '<span class="spinner spinner-dark"></span> Analyzing fidelity…';
-  resultsEl.style.display = 'none';
-
-  try {
-    const sp = buildFidelityStructuralPrompt(state.rawText, state.output, cs);
-    const structuralRaw = await callAPI(key, sp.system, sp.user, 8000);
-    const structuralResult = fidelityExtractJSON(structuralRaw);
-
-    const dp = buildFidelityDialoguePrompt(state.rawText, state.output, cs);
-    const dialogueRaw = await callAPI(key, dp.system, dp.user, 8000);
-    const dialogueResult = fidelityExtractJSON(dialogueRaw);
-
-    const scores = computeFidelityScores(structuralResult, dialogueResult);
-    const overall = Math.round((scores.structuralFidelity + scores.sceneRetention + scores.omissionImpact + scores.dialogueTransformation + scores.pacingShift) / 5);
-    renderFidelityResults(scores, overall, structuralResult, dialogueResult);
-  } catch (err) {
-    alert('Fidelity check failed: ' + (err.message || 'please try again.'));
-  }
-
-  btn.disabled = false;
-  btn.innerHTML = '🔍 Check Fidelity to Source';
-}
-
-function renderFidelityPartialNotice(pct) {
-  const resultsEl = document.getElementById('fidelity-results');
-  resultsEl.innerHTML = `
-    <div class="fidelity-overall">This was a ~${pct}% partial conversion — fidelity analysis works best on a complete draft.</div>
-    <div style="font-size:13px;color:var(--grey);line-height:1.6;">Finish converting the rest of your manuscript (▶ Continue Conversion), then run this check again for a meaningful fidelity score.</div>
-  `;
-  resultsEl.style.display = 'block';
-}
-
-function renderFidelityResults(scores, overall, structuralResult, dialogueResult) {
-  const labels = {
-    structuralFidelity: 'Structural Fidelity',
-    sceneRetention: 'Scene Retention',
-    omissionImpact: 'Omission Impact',
-    dialogueTransformation: 'Dialogue Transformation',
-    pacingShift: 'Pacing Shift',
-  };
-  const verdict = overall >= 8
-    ? 'High-fidelity adaptation — closely tracks the source material.'
-    : overall >= 5
-    ? 'Moderate transformation — meaningful creative changes were made.'
-    : 'Significant transformation — the screenplay departs substantially from the source.';
-
-  const scoreRows = Object.keys(labels).map(key => `
-    <div class="fidelity-score-row">
-      <span class="fidelity-score-label">${labels[key]}</span>
-      <span class="fidelity-score-bar"><span style="width:${scores[key] * 10}%"></span></span>
-      <span class="fidelity-score-value">${scores[key]}/10</span>
-    </div>`).join('');
-
-  const omissionsList = (structuralResult.omissions || []).map(o => `
-    <div class="fidelity-omission-item">
-      <strong>${o.element}</strong> <span class="fidelity-tag fidelity-tag-${o.classification}">${o.classification.replace('_', ' ')}</span>
-      <div class="fidelity-omission-reason">${o.reason}</div>
-    </div>`).join('');
-
-  const resultsEl = document.getElementById('fidelity-results');
-  resultsEl.innerHTML = `
-    <div class="fidelity-overall">Overall: <strong>${overall}/10</strong> — ${verdict}</div>
-    <div class="fidelity-scores">${scoreRows}</div>
-    <button class="btn-glossary-toggle" type="button" onclick="document.getElementById('fidelity-detail').style.display = document.getElementById('fidelity-detail').style.display === 'none' ? 'block' : 'none';">📖 Show full breakdown</button>
-    <div id="fidelity-detail" style="display:none;margin-top:12px;">
-      <div class="results-col-header" style="font-size:14px;">What got cut or changed</div>
-      ${omissionsList || '<div style="font-size:13px;color:var(--grey);">No notable omissions found.</div>'}
-    </div>
-  `;
-  resultsEl.style.display = 'block';
 }
 </script>
     </body>

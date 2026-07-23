@@ -14,13 +14,35 @@
  *        binding = "USAGE"
  *        id = "<namespace-id>"
  *   2. wrangler secret put ANTHROPIC_API_KEY
- *   3. wrangler deploy
+ *   3. (optional) wrangler secret put MASTER_LICENSE_KEY
+ *      → same value/name as the MASTER_LICENSE_KEY secret on the
+ *        license-worker (founder-access bypass there). Store it in
+ *        ALL CAPS — this worker compares against the license key
+ *        after it's uppercased. Entering it as your license key
+ *        bypasses Gumroad validation, the monthly budget cap, and
+ *        the rate limit. Usage still records to KV under that key.
+ *   4. (optional) wrangler secret put FOUNDER_KEY_LIMITED
+ *      → same value/name as the FOUNDER_KEY_LIMITED secret on the
+ *        license-worker (gift/beta founder bypass there). Also bypasses
+ *        Gumroad validation, the monthly budget cap, and the rate limit
+ *        like the master key — but is capped to
+ *        FOUNDER_LIMITED_GENERATIONS total full project runs, tracked in
+ *        KV under `founder3:<key>`. The app signals the start of each
+ *        full project run with { action: "start_project" }; once the cap
+ *        is hit, start_project returns success:false and the app blocks
+ *        further generation for that key.
+ *   5. wrangler deploy
  *
  * Endpoints (all POST):
  *   { action: "generate", license_key, system, userMsg, maxTokens }
  *     → Anthropic /v1/messages response + fsr_credits {used, budget, remaining} (micro-dollars)
  *   { action: "usage", license_key }
  *     → { success, fsr_credits }
+ *   { action: "start_project", license_key }
+ *     → { success, founder_generations_remaining? } — call once per full
+ *       project run (screenplay/novel/enhancement/adaptation). No-op
+ *       (always success) for normal and master keys; enforces the 3-use
+ *       cap for FOUNDER_KEY_LIMITED.
  */
 
 const PRODUCT_ID = 'llu00k2-UthLljfBYrB9MQ==';
@@ -40,6 +62,7 @@ const MAX_INPUT_CHARS = 500000;             // ~125k tokens; covers the 60k-word
 const MONTHLY_BUDGET_MICRO = 5_000_000;     // $5.00/month per license ≈ 2 full projects
 const REQS_PER_MINUTE = 20;                 // per-license rate limit
 const LICENSE_CACHE_TTL = 86400;            // re-verify with Gumroad once per day
+const FOUNDER_LIMITED_GENERATIONS = 3;      // full project runs allowed on FOUNDER_KEY_LIMITED
 
 // Sonnet 4.6 pricing in micro-dollars per token
 const PRICE = {
@@ -71,8 +94,19 @@ export default {
       return json({ success: false, error: 'Missing or invalid license key', code: 'bad_license' }, 400, corsHeaders);
     }
 
+    // ── Master key: bypasses Gumroad check, budget cap, rate limit ──
+    // Same secret as license-worker.js's MASTER_LICENSE_KEY founder bypass.
+    const isMaster = !!env.MASTER_LICENSE_KEY && license === env.MASTER_LICENSE_KEY.trim().toUpperCase();
+
+    // ── Limited founder key: same bypasses as master, but capped to
+    // FOUNDER_LIMITED_GENERATIONS full project runs (see start_project below).
+    // Same secret as license-worker.js's FOUNDER_KEY_LIMITED founder bypass.
+    const isLimitedFounder = !isMaster && !!env.FOUNDER_KEY_LIMITED &&
+      license === env.FOUNDER_KEY_LIMITED.trim().toUpperCase();
+    const isFounder = isMaster || isLimitedFounder;
+
     // ── Validate license (KV-cached, daily re-verify) ────────
-    const licStatus = await checkLicense(license, env);
+    const licStatus = isFounder ? { valid: true } : await checkLicense(license, env);
     if (!licStatus.valid) {
       return json({ success: false, error: licStatus.error, code: 'bad_license' }, 403, corsHeaders);
     }
@@ -82,8 +116,32 @@ export default {
 
     // ── Usage query ──────────────────────────────────────────
     if (body.action === 'usage') {
+      if (isLimitedFounder) {
+        const remaining = await getFounderRemaining(env, license);
+        return json({ success: true, fsr_credits: { unlimited: true, founder_generations_remaining: remaining } }, 200, corsHeaders);
+      }
       const u = await getUsage(env, usageKey);
       return json({ success: true, fsr_credits: creditInfo(u) }, 200, corsHeaders);
+    }
+
+    // ── Start of a full project run (screenplay/novel/enhancement/
+    // adaptation) — only meaningful for FOUNDER_KEY_LIMITED, which is
+    // capped to a fixed number of full runs. No-op success for every
+    // other key; the app calls this once per run regardless of key type.
+    if (body.action === 'start_project') {
+      if (!isLimitedFounder) return json({ success: true }, 200, corsHeaders);
+
+      const founderKey = `founder3:${license}`;
+      const used = parseInt(await env.USAGE.get(founderKey)) || 0;
+      if (used >= FOUNDER_LIMITED_GENERATIONS) {
+        return json({
+          success: false,
+          code: 'founder_limit_reached',
+          error: `This founder key's ${FOUNDER_LIMITED_GENERATIONS} free generations have all been used.`,
+        }, 402, corsHeaders);
+      }
+      await env.USAGE.put(founderKey, String(used + 1), { expirationTtl: 31536000 }); // 1 year
+      return json({ success: true, founder_generations_remaining: FOUNDER_LIMITED_GENERATIONS - (used + 1) }, 200, corsHeaders);
     }
 
     // ── Generate ─────────────────────────────────────────────
@@ -97,17 +155,19 @@ export default {
     }
     const maxTokens = Math.min(Math.max(parseInt(body.maxTokens) || 2000, 1), MAX_OUTPUT_TOKENS);
 
-    // Rate limit (soft, per minute)
-    const rlKey = `rl:${license}:${Math.floor(Date.now() / 60000)}`;
-    const rlCount = parseInt(await env.USAGE.get(rlKey)) || 0;
-    if (rlCount >= REQS_PER_MINUTE) {
-      return json({ success: false, error: 'Too many requests — slow down a moment.', code: 'rate_limited' }, 429, corsHeaders);
+    // Rate limit (soft, per minute) — skipped for master/founder keys
+    if (!isFounder) {
+      const rlKey = `rl:${license}:${Math.floor(Date.now() / 60000)}`;
+      const rlCount = parseInt(await env.USAGE.get(rlKey)) || 0;
+      if (rlCount >= REQS_PER_MINUTE) {
+        return json({ success: false, error: 'Too many requests — slow down a moment.', code: 'rate_limited' }, 429, corsHeaders);
+      }
+      await env.USAGE.put(rlKey, String(rlCount + 1), { expirationTtl: 120 });
     }
-    await env.USAGE.put(rlKey, String(rlCount + 1), { expirationTtl: 120 });
 
-    // Budget check (soft cap — checked before, recorded after)
+    // Budget check (soft cap — checked before, recorded after) — skipped for master/founder keys
     const usage = await getUsage(env, usageKey);
-    if (usage.cost >= MONTHLY_BUDGET_MICRO) {
+    if (!isFounder && usage.cost >= MONTHLY_BUDGET_MICRO) {
       return json({
         success: false,
         code: 'credits_exhausted',
@@ -160,7 +220,11 @@ export default {
     // 62-day TTL: keeps KV clean, key naturally expires after the month ends
     await env.USAGE.put(usageKey, JSON.stringify(updated), { expirationTtl: 5356800 });
 
-    return json({ ...data, success: true, fsr_credits: creditInfo(updated) }, 200, corsHeaders);
+    const fsr_credits = isLimitedFounder
+      ? { unlimited: true, founder_generations_remaining: await getFounderRemaining(env, license) }
+      : creditInfo(updated);
+
+    return json({ ...data, success: true, fsr_credits }, 200, corsHeaders);
   },
 };
 
@@ -201,6 +265,11 @@ async function getUsage(env, key) {
     }
   } catch { /* fall through */ }
   return { in: 0, out: 0, cost: 0 };
+}
+
+async function getFounderRemaining(env, license) {
+  const used = parseInt(await env.USAGE.get(`founder3:${license}`)) || 0;
+  return Math.max(0, FOUNDER_LIMITED_GENERATIONS - used);
 }
 
 function creditInfo(u) {
