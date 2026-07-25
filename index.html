@@ -31,6 +31,25 @@ input[type=range]::-moz-range-thumb { width: 20px; height: 20px; border-radius: 
  .bible-result-section { padding: 10px 0; border-bottom: 1px solid var(--border); }
  .bible-result-text { font-size: 13px; color: var(--text); line-height: 1.65; white-space: pre-wrap; margin-top: 6px; }
  .export-section { border-top: 1px solid var(--border); padding-top: 1.25rem; margin-top: 0.5rem; }
+ /* ── Industry-standard screenplay element layout ──
+    Courier is monospaced: 10 characters = 1 inch at 12pt, so all indents are
+    expressed in `ch` units and stay correct at any preview font size.
+    Measured from the text block's left edge (the 1.5in page margin):
+      scene heading / action  0ch   width 60ch   (1.5in → 7.5in)
+      dialogue               10ch   width 35ch   (2.5in → 6.0in)
+      parenthetical          16ch   width 22ch   (3.1in)
+      character              22ch                (3.7in)
+      transition             right-aligned       (ends at 7.5in) */
+ .sp-page { white-space: normal; }
+ .sp-page > div { white-space: pre-wrap; max-width: 60ch; }
+ .sp-scene { text-transform: uppercase; font-weight: 700; margin: 1.6em 0 0.9em; }
+ .sp-page > .sp-scene:first-child { margin-top: 0; }
+ .sp-action { margin: 0 0 0.9em; }
+ .sp-character { margin: 0 0 0 22ch; text-transform: uppercase; }
+ .sp-paren { margin: 0 0 0 16ch; max-width: 22ch; }
+ .sp-dialogue { margin: 0 0 0.9em 10ch; max-width: 35ch; }
+ .sp-transition { text-transform: uppercase; text-align: right; max-width: 60ch; margin: 0 0 0.9em; }
+ .sp-page .sp-blank { height: 0.9em; }
  @media (max-width: 768px) { .results-cols { grid-template-columns: 1fr; } } /* ── Divider ── */.divider { border: none; border-top: 1px solid var(--border); margin: 2rem 0; } /* ── Responsive ── */@media (max-width:640px){ .grid-2, .format-grid, .approach-grid, .path-grid, .output-grid, .export-grid {  grid-template-columns: 1fr; }  .steps-nav .step-label {  display: none; }  .screenplay-out, .manuscript-out {  padding: 1.5rem; }  .nav-wrap {  padding: 8px 8px 0; } } /* ── Resume banner ── */#resume-banner { display:none; align-items:center; gap:14px; background:var(--navy); color:white; border-radius:var(--r-lg); padding:1rem 1.5rem; margin-bottom:1.5rem; box-shadow:var(--sh-md); flex-wrap:wrap; } #resume-banner .rb-icon { font-size:1.5rem; flex-shrink:0; } #resume-banner .rb-text { flex:1; min-width:160px; } #resume-banner .rb-title { font-size:14px; font-weight:700; margin-bottom:2px; } #resume-banner .rb-sub { font-size:12px; opacity:0.7; } #resume-banner .rb-actions { display:flex; gap:8px; flex-shrink:0; } #resume-banner .rb-btn { background:var(--red); color:white; border:none; border-radius:var(--r-full); padding:8px 18px; font-size:12px; font-weight:700; letter-spacing:0.05em; text-transform:uppercase; cursor:pointer; font-family:'Inter',sans-serif; } #resume-banner .rb-dismiss { background:transparent; color:rgba(255,255,255,0.6); border:1px solid rgba(255,255,255,0.2); border-radius:var(--r-full); padding:8px 14px; font-size:12px; font-weight:600; cursor:pointer; font-family:'Inter',sans-serif; letter-spacing:0.04em; text-transform:uppercase; }</style>
         <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Open+Sans&display=swap">
         
@@ -1655,7 +1674,8 @@ FOUNTAIN FORMAT:
   const sceneCount = (state.output.match(/^(INT\.|EXT\.)/gm) || []).length;
   const runtime = Math.round(pagesWritten * 0.95);
 
-  document.getElementById('screenplay-out').textContent = state.output;
+  document.getElementById('screenplay-out').innerHTML = renderScreenplayHTML(state.output);
+  document.getElementById('screenplay-out').classList.add('sp-page');
   document.getElementById('screenplay-output-section').style.display = 'block';
   document.getElementById('manuscript-output-section').style.display = 'none';
   document.getElementById('out-stat1').textContent = `~${pagesWritten} pages`;
@@ -1928,15 +1948,83 @@ function exportFDX() {
   clearPartialSession();
 }
 
+// ── Screenplay layout ─────────────────────────────────────
+// The model returns flat text. Classify each line into a standard screenplay
+// element so the preview and the PDF can indent it the way Final Draft would,
+// instead of dumping everything flush left.
+const SP_SCENE_RE  = /^(INT\.?|EXT\.?|EST\.?|INT\.?\/EXT\.?|I\/E\.?)[\s.]/i;
+const SP_TRANS_RE  = /^(FADE IN|FADE OUT|FADE TO|CUT TO|SMASH CUT|HARD CUT|MATCH CUT|JUMP CUT|DISSOLVE TO|WIPE TO|IRIS OUT|THE END)\b/i;
+
+function isCharacterCue(raw, next) {
+  // A cue is short, uppercase, and immediately followed by dialogue or a
+  // parenthetical. Allows the standard suffixes: (V.O.) (O.S.) (CONT'D).
+  if (!raw || raw.length > 40) return false;
+  if (!next) return false;                       // nothing follows → not a cue
+  if (SP_SCENE_RE.test(raw) || SP_TRANS_RE.test(raw)) return false;
+  const core = raw.replace(/\s*\((V\.?O\.?|O\.?S\.?|O\.?C\.?|CONT'?D|CONTINUED)\)\s*$/i, '').trim();
+  if (!core || /[.?!,;:]$/.test(core)) return false;
+  if (core !== core.toUpperCase()) return false; // must be all caps
+  return /[A-Z]/.test(core);
+}
+
+function parseScreenplay(text) {
+  const lines = String(text || '').split('\n');
+  const out = [];
+  let inDialogue = false;
+
+  for (let i = 0; i < lines.length; i++) {
+    const raw = lines[i].trim();
+    if (!raw) { inDialogue = false; continue; }
+
+    // Next non-blank line — needed to tell a character cue from shouted action.
+    let next = '';
+    for (let j = i + 1; j < lines.length; j++) {
+      if (lines[j].trim()) { next = lines[j].trim(); break; }
+    }
+
+    if (SP_SCENE_RE.test(raw))            { out.push({ t: 'sp-scene', s: raw });      inDialogue = false; }
+    else if (SP_TRANS_RE.test(raw) || /^[A-Z0-9\s]+TO:$/.test(raw))
+                                          { out.push({ t: 'sp-transition', s: raw }); inDialogue = false; }
+    else if (raw.startsWith('(') && raw.endsWith(')') && inDialogue)
+                                          { out.push({ t: 'sp-paren', s: raw }); }
+    else if (isCharacterCue(raw, next))   { out.push({ t: 'sp-character', s: raw });  inDialogue = true; }
+    else if (inDialogue)                  { out.push({ t: 'sp-dialogue', s: raw }); }
+    else                                  { out.push({ t: 'sp-action', s: raw }); }
+  }
+  return out;
+}
+
+function escHTML(s) {
+  return String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+}
+
+function renderScreenplayHTML(text) {
+  return parseScreenplay(text)
+    .map(el => `<div class="${el.t}">${escHTML(el.s)}</div>`)
+    .join('');
+}
+
 function exportScreenplayPDF() {
   const w = window.open('', '_blank');
   w.document.write(`<!DOCTYPE html><html><head><title>${state.title}</title>
   <style>
-    body{font-family:'Courier New',monospace;font-size:12pt;
-      margin-top:1in;margin-bottom:1in;margin-left:1.5in;margin-right:1in;
-      line-height:1;color:#000;background:#fff;white-space:pre-wrap;}
-    @media print{body{margin-top:1in;margin-bottom:1in;margin-left:1.5in;margin-right:1in;}}
-  </style></head><body>${state.output.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')}</body></html>`);
+    @page{size:letter;margin:1in 1in 1in 1.5in;}
+    body{font-family:'Courier New',Courier,monospace;font-size:12pt;
+      margin:1in 1in 1in 1.5in;
+      line-height:1;color:#000;background:#fff;}
+    /* 10 characters per inch in 12pt Courier — see the .sp-* rules in the app */
+    div{white-space:pre-wrap;max-width:60ch;}
+    .sp-scene{text-transform:uppercase;font-weight:bold;margin:2em 0 1em;
+      page-break-after:avoid;break-after:avoid;}
+    .sp-action{margin:0 0 1em;}
+    .sp-character{margin:0 0 0 22ch;text-transform:uppercase;
+      page-break-after:avoid;break-after:avoid;}
+    .sp-paren{margin:0 0 0 16ch;max-width:22ch;
+      page-break-after:avoid;break-after:avoid;}
+    .sp-dialogue{margin:0 0 1em 10ch;max-width:35ch;}
+    .sp-transition{text-transform:uppercase;text-align:right;max-width:60ch;margin:0 0 1em;}
+    @media print{body{margin:1in 1in 1in 1.5in;}}
+  </style></head><body>${renderScreenplayHTML(state.output)}</body></html>`);
   w.document.close();
   setTimeout(() => w.print(), 600);
   clearPartialSession();
@@ -2326,7 +2414,9 @@ function resumePartialSession() {
   // state already restored by checkPartialSession(); just show results
   document.getElementById('resume-banner').style.display = 'none';
   const isManuscript = state.outputType === 'manuscript' || state.outputType === 'enhance';
-  document.getElementById('screenplay-out').textContent = !isManuscript ? (state.output || '') : '';
+  const spOut = document.getElementById('screenplay-out');
+  spOut.innerHTML = (!isManuscript && state.output) ? renderScreenplayHTML(state.output) : '';
+  spOut.classList.add('sp-page');
   document.getElementById('screenplay-output-section').style.display = (!isManuscript && state.output) ? 'block' : 'none';
   document.getElementById('manuscript-out').textContent = isManuscript ? (state.output || '') : '';
   document.getElementById('manuscript-output-section').style.display = (isManuscript && state.output) ? 'block' : 'none';
