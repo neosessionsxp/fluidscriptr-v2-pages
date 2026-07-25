@@ -1147,7 +1147,29 @@ async function extractFile(file) {
       state.pageCount = Math.round(wc / 250);
     }
 
-    state.rawText = text.trim();
+    const extracted = text.trim();
+    const extractedWords = extracted ? extracted.split(/\s+/).filter(Boolean).length : 0;
+
+    // Guard: scanned / image-only PDFs have no text layer, so extraction comes
+    // back empty (or nearly empty). Fail here with a real explanation instead of
+    // letting the user through to a confusing "upload a manuscript first" alert.
+    if (extractedWords < 50) {
+      state.rawText = '';
+      state.pageCount = 0;
+      document.getElementById('file-info').classList.remove('on');
+      document.getElementById('bible-btn').disabled = true;
+      document.getElementById('file-input').value = '';
+      prog.classList.remove('on');
+      zone.style.opacity = '1';
+      alert(
+        isPDF
+          ? "We couldn't read any text from this PDF.\n\nIt looks like a scanned document — the pages are images, not selectable text, so there's nothing for FluidScriptr to work from.\n\nTry one of these:\n• Export the original from Word or Google Docs as a DOCX and upload that\n• Run the PDF through OCR (Adobe Acrobat: Scan & OCR → Recognize Text; or a free tool like ocrmypdf) and re-upload\n• Open the PDF and try selecting text with your cursor — if you can't, it needs OCR"
+          : "We couldn't read any text from this document. It may be empty, corrupted, or an unsupported format. Try re-saving it as a .docx and uploading again."
+      );
+      return;
+    }
+
+    state.rawText = extracted;
 
     const autoTitle = file.name.replace(/\.[^.]+$/, '').replace(/[-_]/g, ' ').replace(/\b\w/g, c => c.toUpperCase());
     const titleEl = document.getElementById('book-title');
