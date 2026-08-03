@@ -10,7 +10,7 @@
         <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Open+Sans:wght@600;700;800&display=swap" rel="stylesheet"/>
         <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
         <script src="https://cdnjs.cloudflare.com/ajax/libs/mammoth/1.6.0/mammoth.browser.min.js"></script>
-        <style>@keyframes spin { to {  transform: rotate(360deg); } } @keyframes fadeUp { from {  opacity: 0;  transform: translateY(10px); }  to {  opacity: 1;  transform: translateY(0); } } @keyframes pulse { 0%, 100% {  opacity: 1;  transform: scale(1);  box-shadow: 0 0 6px var(--blue); }  50% {  opacity: 0.6;  transform: scale(1.5);  box-shadow: 0 0 14px var(--blue); } } @keyframes floatPill { 0%, 100% {  transform: translateX(-50%) translateY(0px); }  50% {  transform: translateX(-50%) translateY(-6px); } } @keyframes floatPillV { 0%, 100% {  transform: translateY(-50%) translateX(0px); }  50% {  transform: translateY(-50%) translateX(5px); } } @keyframes floatPillB { 0%, 100% {  transform: translateX(-50%) translateY(0px); }  50% {  transform: translateX(-50%) translateY(6px); } } @keyframes centerPulse { 0%, 100% {  box-shadow: 0 0 20px var(--blue), 0 0 50px var(--blue-glow); }  50% {  box-shadow: 0 0 30px var(--blue), 0 0 70px rgba(232,64,64,0.25), 0 0 100px rgba(232,64,64,0.1); } } @keyframes popIn { 0% {  opacity: 0;  transform: scale(0.95); }  100% {  opacity: 1;  transform: scale(1); } } @keyframes float { 0%, 100% {  transform: translateY(0px); }  50% {  transform: translateY(-8px); } } @keyframes ringPulse { 0%, 100% {  box-shadow: -14px -14px 34px var(--nm-l2), 14px 14px 34px var(--nm-d2), inset 2px 2px 4px var(--nm-l), inset -2px -2px 4px var(--nm-d); }  50% {  box-shadow: -16px -16px 40px var(--nm-l2), 16px 16px 40px var(--nm-d2), inset 2px 2px 4px var(--nm-l), inset -2px -2px 4px var(--nm-d); } } *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; } :root { --bg: #E8ECF1; --bg2: #F0F2F5; --card: #FFFFFF; --nm-l: #FFFFFF; --nm-d: #C4CAD4; --nm-l2: #FFFFFF; --nm-d2: #B4BAC4; --navy: #1A1A2E; --navy2: #2D2D44; --blue: #E84040; --blue-lt: #F05555; --blue-glow: rgba(232,64,64,0.2); --blue-rim: rgba(232,64,64,0.4); --red: #E8333A; --redDk: #C42830; --redLt: #FF5560; --grey: #6B7280; --greyLt: #9CA3AF; --text: #2D3A4A; --text2: #5A6A7E; --text3: #9AA6B4; --border: rgba(0,0,0,0.07); --border2: rgba(0,0,0,0.12); --sh-sm: 0 2px 8px rgba(0,0,0,0.06),0 1px 3px rgba(0,0,0,0.04); --sh-md: 0 4px 20px rgba(0,0,0,0.08),0 2px 8px rgba(0,0,0,0.05); --sh-lg: 0 8px 40px rgba(0,0,0,0.10),0 4px 16px rgba(0,0,0,0.06); --sh-raise: -6px -6px 14px var(--nm-l),6px 6px 14px var(--nm-d); --sh-raise-sm: -3px -3px 8px var(--nm-l),3px 3px 8px var(--nm-d); --sh-inset: inset -4px -4px 10px var(--nm-d),inset 4px 4px 10px var(--nm-l); --sh-inset-sm: inset -3px -3px 7px var(--nm-d),inset 3px 3px 7px var(--nm-l); --sh-card: -10px -10px 24px var(--nm-l),10px 10px 24px var(--nm-d); --sh-red: 0 6px 20px rgba(232,51,58,0.35); --sh-in: inset -4px -4px 10px var(--nm-d),inset 4px 4px 10px var(--nm-l); --r-sm: 8px; --r-md: 14px; --r-lg: 20px; --r-xl: 28px; --r-full: 999px; --transition-smooth: all 0.2s cubic-bezier(0.32, 0.08, 0.24, 1); } html, body { height: 100%; overflow: hidden; } #app-shell { display: flex; flex-direction: column; height: 100vh; overflow: hidden; } html { scroll-behavior: smooth; } body { font-family: 'Inter',system-ui,sans-serif; background: var(--bg); color: var(--navy); display: flex; flex-direction: column; } /* ── Navbar ── */.nav-wrap { padding: 16px 16px 0; flex-shrink: 0; z-index: 100; } .navbar { display: flex; align-items: center; justify-content: space-between; background: var(--bg); border-radius: var(--r-full); padding: 10px 14px 10px 18px; box-shadow: -6px -6px 14px var(--nm-l),6px 6px 14px var(--nm-d),inset 1px 1px 2px rgba(255,255,255,0.4); border: 1px solid transparent; } .nav-logo { display: flex; align-items: center; gap: 10px; text-decoration: none; } .nav-full-logo { height: 28px; width: auto; object-fit: contain; display: block; flex-shrink: 0; } .nav-right { display: flex; align-items: center; gap: 10px; } .nav-step { font-size: 12px; color: var(--grey); } .nav-step strong { color: var(--red); } .btn-key-toggle { background: var(--navy); color: white; border: none; border-radius: var(--r-full); padding: 8px 18px; font-size: 13px; font-weight: 600; cursor: pointer; font-family: 'Inter',sans-serif; transition: background 0.15s; display: flex; align-items: center; gap: 6px; } .btn-key-toggle:hover { background: var(--navy2); } .btn-key-toggle.open { background: var(--red); } /* ── Key panel ── */.key-wrap { padding: 0 16px; flex-shrink: 0; } .key-panel { display: none; background: var(--bg); border-radius: var(--r-lg); padding: 1.25rem 1.5rem; box-shadow: var(--sh-inset); border: none; gap: 10px; align-items: center; flex-wrap: wrap; margin-top: 10px; } .key-panel.open { display: flex; } .key-lbl { font-size: 12px; color: var(--grey); white-space: nowrap; font-weight: 500; } .key-inp { flex: 1; min-width: 180px; background: #F4F6F9; border: none; border-radius: var(--r-full); padding: 9px 16px; font-size: 13px; color: var(--navy); font-family: 'Inter',sans-serif; outline: none; transition: box-shadow 0.2s; box-shadow: inset -3px -3px 7px var(--nm-l),inset 3px 3px 7px var(--nm-d); } .key-inp:focus { box-shadow: inset -3px -3px 7px var(--nm-l),inset 3px 3px 7px var(--nm-d),0 0 0 2px var(--blue-rim); } .key-inp::placeholder { color: var(--greyLt); } .btn-ks { background: var(--blue); color: white; border: none; border-radius: var(--r-full); padding: 8px 16px; font-size: 12px; font-weight: 600; cursor: pointer; font-family: 'Inter',sans-serif; transition: background 0.15s,box-shadow 0.15s; box-shadow: -3px -3px 7px rgba(255,255,255,0.45),5px 7px 18px rgba(160,15,15,0.45); } .btn-ks:hover { background: var(--blue-lt); box-shadow: -3px -3px 7px rgba(255,255,255,0.45),7px 9px 22px rgba(160,15,15,0.55); } .btn-ks.ghost { background: var(--bg); color: var(--text2); border: none; box-shadow: var(--sh-inset-sm); } .btn-ks.ghost:hover { color: var(--blue); box-shadow: var(--sh-inset-sm); } .key-ok { font-size: 11px; color: var(--red); display: none; font-weight: 700; } /* ── Page ── */.page { max-width: 1200px; margin: 0 auto; padding: 2rem 3rem 3rem; flex: 1; overflow-y: auto; overflow-x: hidden; height: 0; /* flex child stretches to fill */ } /* ── Step indicator — uses your exact circle images via CSS ── */.steps-nav { display: flex; align-items: center; background: var(--bg); border-radius: var(--r-lg); padding: 1.25rem 1.5rem; margin-bottom: 2rem; box-shadow: -8px -8px 18px var(--nm-l),8px 8px 18px var(--nm-d),inset 1px 1px 2px rgba(255,255,255,0.5); border: none; animation: popIn 0.3s ease-out; } .step-item { display: flex; align-items: center; gap: 8px; flex: 1; } .step-num { width: 48px; height: 48px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 18px; font-weight: 700; font-family: 'Open Sans','Inter',sans-serif; flex-shrink: 0; transition: var(--transition-smooth);  /* Default: outline style (completed) */ background: var(--bg); color: var(--blue); border: 3px solid var(--blue); box-shadow: var(--sh-raise-sm); } .step-num.upcoming { /* Not yet reached */ background: var(--bg); color: var(--text3); border: 2px solid rgba(0,0,0,0.1); box-shadow: var(--sh-inset-sm); font-size: 16px; } .step-num.active { /* Current step — filled blue with glow */ background: var(--blue); color: white; border: 3px solid var(--blue); box-shadow: 0 6px 18px rgba(232,64,64,0.45),0 0 20px var(--blue-glow); font-size: 18px; } .step-label { font-size: 12px; color: var(--greyLt); white-space: nowrap; font-weight: 500; letter-spacing: 0.02em; } .step-label.active { color: var(--navy); font-weight: 600; } .step-label.done { color: var(--red); font-weight: 600; } .step-connector { flex: 1; height: 2px; background: var(--border2); margin: 0 8px; min-width: 8px; border-radius: 1px; transition: background 0.3s ease; } .step-connector.done { background: var(--red); } /* ── Panels ── */.panel { display: none; } .panel.active { display: block; animation: fadeUp 0.25s ease; } /* ── Typography ── */.eyebrow { font-size: 11px; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; color: var(--red); margin-bottom: 8px; text-align: center; } .panel-title { font-family: 'Open Sans','Inter',sans-serif; font-size: clamp(2rem,4vw,2.8rem); font-weight: 700; line-height: 1.05; margin-bottom: 1rem; color: var(--navy); letter-spacing: -0.03em; text-align: center; } .panel-title em { color: var(--red); } .panel-sub { font-size: 15px; color: var(--grey); margin-bottom: 2rem; line-height: 1.75; max-width: 660px; text-align: center; margin-left: auto; margin-right: auto; } /* ── Cards ── */.card { background: var(--bg); border-radius: var(--r-xl); padding: 2rem; margin-bottom: 1.5rem; box-shadow: -10px -10px 24px var(--nm-l),10px 10px 24px var(--nm-d),inset 1px 1px 2px rgba(255,255,255,0.5),inset -1px -1px 2px rgba(0,0,0,0.05); border: none; animation: popIn 0.4s ease-out; } /* ── Path chooser (Step 1) ── */.path-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem; margin-bottom: 2rem; } .path-card { background: var(--bg); border: none; border-radius: var(--r-xl); padding: 2.5rem 2rem; cursor: pointer; transition: var(--transition-smooth); text-align: center; box-shadow: -12px -12px 28px var(--nm-l2),12px 12px 28px var(--nm-d2),inset 1px 1px 2px rgba(255,255,255,0.5); animation: popIn 0.4s ease-out; } .path-card:hover { transform: translateY(-6px); box-shadow: -16px -16px 40px var(--nm-l2),16px 16px 40px var(--nm-d2),inset 1px 1px 3px rgba(255,255,255,0.6); } .path-card.selected { box-shadow: -16px -16px 40px var(--nm-l2),16px 16px 40px var(--nm-d2),inset -2px -2px 6px rgba(232,64,64,0.15),inset 1px 1px 2px rgba(255,255,255,0.5); background: rgba(232,64,64,0.04); } .path-icon { font-size: 3rem; margin-bottom: 1.25rem; display: block; } .path-card h3 { font-family: 'Open Sans','Inter',sans-serif; font-size: 0.85rem; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; margin-bottom: 0.75rem; color: var(--navy); } .path-card p { font-size: 14px; color: var(--grey); line-height: 1.6; margin-bottom: 1rem; } .path-card .path-tag { display: inline-flex; font-size: 10px; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; color: var(--red); border: 1.5px solid var(--red); border-radius: var(--r-full); padding: 4px 14px; } /* ── Output chooser ── */.output-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem; margin-bottom: 2rem; } .output-card { background: var(--bg); border: none; border-radius: var(--r-xl); padding: 2rem 1.75rem; cursor: pointer; transition: var(--transition-smooth); text-align: center; box-shadow: -12px -12px 28px var(--nm-l2),12px 12px 28px var(--nm-d2),inset 1px 1px 2px rgba(255,255,255,0.5); animation: popIn 0.4s ease-out; } .output-card:hover { transform: translateY(-5px); box-shadow: -16px -16px 40px var(--nm-l2),16px 16px 40px var(--nm-d2),inset 1px 1px 3px rgba(255,255,255,0.6); } .output-card.selected { box-shadow: -16px -16px 40px var(--nm-l2),16px 16px 40px var(--nm-d2),inset -2px -2px 6px rgba(232,64,64,0.15),inset 1px 1px 2px rgba(255,255,255,0.5); background: rgba(232,64,64,0.04); } .output-card .oc-icon { font-size: 2.5rem; margin-bottom: 1rem; display: block; } .output-card h3 { font-family: 'Open Sans','Inter',sans-serif; font-size: 16px; font-weight: 700; margin-bottom: 6px; color: var(--navy); } .output-card p { font-size: 13px; color: var(--grey); line-height: 1.6; } .output-card .oc-format { font-size: 11px; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase; color: var(--red); margin-top: 10px; } /* ── Form ── */label.lbl { display: block; font-size: 12px; color: var(--text2); margin-bottom: 8px; letter-spacing: 0.04em; text-transform: uppercase; font-weight: 600; } input[type=text], select, textarea { width: 100%; font-family: 'Inter',sans-serif; font-size: 15px; color: var(--text); background: #F4F6F9; border: none; border-radius: var(--r-md); padding: 12px 16px; outline: none; transition: box-shadow 0.2s; box-shadow: inset -3px -3px 7px var(--nm-l),inset 3px 3px 7px var(--nm-d); } input[type=text]:focus, select:focus, textarea:focus { box-shadow: inset -3px -3px 7px var(--nm-l),inset 3px 3px 7px var(--nm-d),0 0 0 2px var(--blue-rim); } select { appearance: none; background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%236B7280' stroke-width='2'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E"); background-repeat: no-repeat; background-position: right 14px center; padding-right: 36px; background-color: var(--bg); cursor: pointer; } select option { background: white; } textarea { resize: vertical; line-height: 1.65; min-height: 100px; } .field { margin-bottom: 1.5rem; } .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem; } /* ── Guided questions (idea path) ── */.question-block { background: var(--bg); border-radius: var(--r-lg); padding: 1.75rem; margin-bottom: 1.25rem; border: none; box-shadow: inset -3px -3px 8px var(--nm-d),inset 3px 3px 8px var(--nm-l); transition: var(--transition-smooth); } .question-block:hover { box-shadow: inset -3px -3px 8px var(--nm-d),inset 3px 3px 8px var(--nm-l),0 0 0 1px rgba(232,64,64,0.1); } .q-num { display: inline-flex; width: 32px; height: 32px; border-radius: 50%; background: var(--blue); color: white; font-size: 13px; font-weight: 700; align-items: center; justify-content: center; margin-bottom: 1rem; box-shadow: 0 4px 12px rgba(232,64,64,0.3); } .q-label { font-size: 15px; font-weight: 600; color: var(--navy); margin-bottom: 6px; display: block; } .q-hint { font-size: 13px; color: var(--grey); margin-bottom: 1rem; } /* ── Buttons ── */.btn-primary { background: var(--blue); color: white; border: none; padding: 12px 28px; border-radius: var(--r-full); font-size: 13px; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase; cursor: pointer; font-family: 'Inter',sans-serif; display: inline-flex; align-items: center; gap: 8px; transition: var(--transition-smooth); box-shadow: -3px -3px 7px rgba(255,255,255,0.45),5px 7px 18px rgba(160,15,15,0.45); } .btn-primary:hover { background: var(--blue-lt); transform: translateY(-2px); box-shadow: -3px -3px 7px rgba(255,255,255,0.45),7px 9px 22px rgba(160,15,15,0.55); } .btn-primary:active { transform: translateY(0); box-shadow: 0 2px 8px rgba(232,51,58,0.2); } .btn-primary:disabled { opacity: 0.5; cursor: not-allowed; transform: none; box-shadow: none; } .btn-secondary { background: var(--bg); border: none; padding: 11px 22px; border-radius: var(--r-full); font-size: 13px; cursor: pointer; color: var(--text); font-family: 'Inter',sans-serif; display: inline-flex; align-items: center; gap: 8px; transition: var(--transition-smooth); font-weight: 600; letter-spacing: 0.06em; text-transform: uppercase; box-shadow: var(--sh-inset-sm); } .btn-secondary:hover { color: var(--blue); box-shadow: var(--sh-inset-sm),0 0 8px rgba(232,64,64,0.2); } .btn-secondary:active { box-shadow: var(--sh-inset-sm); } .btn-row { display: flex; gap: 12px; align-items: center; flex-wrap: wrap; margin-top: 2rem; justify-content: center; text-align: center; } /* ── Upload zone ── */.upload-zone { border: 2px dashed rgba(0,0,0,0.1); border-radius: var(--r-lg); padding: 3.5rem 2.5rem; text-align: center; cursor: pointer; transition: var(--transition-smooth); background: var(--bg); box-shadow: inset -4px -4px 10px var(--nm-d),inset 4px 4px 10px var(--nm-l); margin-bottom: 1.5rem; } .upload-zone:hover, .upload-zone.drag-over { border-color: var(--blue); background: rgba(232,64,64,0.04); box-shadow: inset -4px -4px 10px var(--nm-d),inset 4px 4px 12px var(--nm-l); } .upload-zone input { display: none; } .upload-icon { font-size: 3rem; margin-bottom: 1.25rem; display: block; } .upload-zone h3 { font-family: 'Open Sans','Inter',sans-serif; font-size: 1.2rem; font-weight: 700; margin-bottom: 8px; color: var(--navy); } .upload-zone p { font-size: 14px; color: var(--grey); } .upload-prog { display: none; align-items: center; gap: 10px; padding: 12px 16px; background: var(--bg2); border-radius: var(--r-md); margin-bottom: 1rem; font-size: 13px; color: var(--grey); border: 1px solid var(--border); } .upload-prog.on { display: flex; } .file-info { background: rgba(232,51,58,0.05); border: 1px solid rgba(232,51,58,0.2); border-radius: var(--r-md); padding: 1rem 1.25rem; display: none; margin-bottom: 1.25rem; } .file-info.on { display: block; } .file-info .fn { font-weight: 600; font-size: 14px; margin-bottom: 3px; color: var(--navy); } .file-info .fm { font-size: 12px; color: var(--grey); } /* ── Bible sections ── */.bible-section { margin-bottom: 1.5rem; } .bible-lbl { font-size: 11px; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; color: var(--red); margin-bottom: 8px; } .bible-section textarea { min-height: 100px; font-size: 14px; line-height: 1.6; } /* ── Format / approach cards ── */.format-grid { display: grid; grid-template-columns: repeat(2,1fr); gap: 1rem; margin-bottom: 1.5rem; } .format-card { background: var(--bg); border: none; border-radius: var(--r-lg); padding: 1.5rem; cursor: pointer; transition: var(--transition-smooth); box-shadow: -6px -6px 14px var(--nm-l),6px 6px 14px var(--nm-d),inset 1px 1px 2px rgba(255,255,255,0.4); } .format-card:hover { transform: translateY(-3px); box-shadow: -8px -8px 18px var(--nm-l2),8px 8px 18px var(--nm-d2),inset 1px 1px 2px rgba(255,255,255,0.5); } .format-card.selected { background: rgba(232,64,64,0.03); box-shadow: -8px -8px 18px var(--nm-l2),8px 8px 18px var(--nm-d2),inset -2px -2px 5px rgba(232,64,64,0.12),inset 1px 1px 2px rgba(255,255,255,0.4); } .format-card h3 { font-size: 15px; font-weight: 700; margin-bottom: 6px; color: var(--navy); } .format-card p { font-size: 13px; color: var(--grey); line-height: 1.6; } .format-card .fm-meta { font-size: 11px; color: var(--red); font-weight: 700; margin-top: 10px; letter-spacing: 0.04em; } .approach-grid { display: grid; grid-template-columns: repeat(3,1fr); gap: 1rem; margin-bottom: 1.5rem; } .approach-card { background: var(--bg); border: none; border-radius: var(--r-md); padding: 1.25rem; cursor: pointer; transition: var(--transition-smooth); text-align: center; box-shadow: -6px -6px 14px var(--nm-l),6px 6px 14px var(--nm-d),inset 1px 1px 2px rgba(255,255,255,0.4); } .approach-card:hover { transform: translateY(-3px); box-shadow: -8px -8px 18px var(--nm-l2),8px 8px 18px var(--nm-d2),inset 1px 1px 2px rgba(255,255,255,0.5); } .approach-card.selected { background: rgba(232,64,64,0.03); box-shadow: -8px -8px 18px var(--nm-l2),8px 8px 18px var(--nm-d2),inset -2px -2px 5px rgba(232,64,64,0.12),inset 1px 1px 2px rgba(255,255,255,0.4); } .approach-card h3 { font-size: 14px; font-weight: 700; margin-bottom: 6px; color: var(--navy); } .approach-card p { font-size: 12px; color: var(--grey); line-height: 1.5; } /* ── Calc box ── */.calc-box { background: var(--bg); border: none; border-radius: var(--r-lg); padding: 1.75rem; margin-bottom: 1.5rem; box-shadow: inset -4px -4px 10px var(--nm-d),inset 4px 4px 10px var(--nm-l); } .calc-box h3 { font-size: 12px; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; color: var(--red); margin-bottom: 1.25rem; } .calc-row { display: flex; justify-content: space-between; align-items: center; padding: 11px 0; border-bottom: 1px solid var(--border); font-size: 14px; } .calc-row:last-child { border-bottom: none; font-weight: 700; } .calc-row .l { color: var(--grey); } .calc-row .r { color: var(--navy); font-weight: 600; } .calc-row.hi .r { color: var(--red); font-weight: 700; } .calc-row.wa .r { color: #D97706; font-weight: 700; } /* ── Briefing ── */.briefing-box { background: var(--bg); border: none; border-radius: var(--r-lg); padding: 2rem; margin-bottom: 1.5rem; box-shadow: -8px -8px 18px var(--nm-l),8px 8px 18px var(--nm-d),inset 1px 1px 2px rgba(255,255,255,0.4); } .briefing-box h3 { font-size: 15px; font-weight: 700; margin-bottom: 1.5rem; color: var(--navy); } .b-row { display: flex; gap: 14px; align-items: flex-start; padding: 12px 0; border-bottom: 1px solid var(--border); font-size: 14px; } .b-row:last-child { border-bottom: none; } .b-row .ico { font-size: 18px; flex-shrink: 0; } .b-row .txt { color: var(--grey); line-height: 1.7; } .b-row .txt strong { color: var(--navy); font-weight: 600; } .honest-note { background: rgba(232,51,58,0.05); border: 1.5px solid rgba(232,51,58,0.15); border-radius: var(--r-md); padding: 1.5rem; font-size: 14px; color: var(--navy); line-height: 1.8; margin-bottom: 1.5rem; } .honest-note strong { color: var(--red); font-weight: 700; } /* ── Progress ── */.progress-card { background: var(--bg); border-radius: var(--r-xl); padding: 2.5rem; box-shadow: -12px -12px 28px var(--nm-l),12px 12px 28px var(--nm-d),inset 1px 1px 3px rgba(255,255,255,0.5); border: none; margin-bottom: 1.5rem; animation: popIn 0.4s ease-out; } .prog-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem; } .prog-label { font-family: 'Open Sans','Inter',sans-serif; font-size: 1.25rem; font-weight: 700; color: var(--navy); } .prog-pct { font-size: 28px; color: var(--red); font-weight: 800; font-family: 'Open Sans','Inter',sans-serif; } .prog-bar-bg { width: 100%; height: 8px; background: var(--bg); border-radius: 4px; overflow: hidden; margin-bottom: 1rem; box-shadow: var(--sh-inset-sm); } .prog-bar-fill { height: 100%; background: var(--red); border-radius: 4px; width: 0%; transition: width 0.5s ease; } .prog-status { font-size: 14px; color: var(--grey); } .prog-pages { font-size: 13px; color: var(--grey); margin-top: 6px; } .prog-log { background: var(--bg2); border: 1px solid var(--border); border-radius: var(--r-lg); padding: 1.25rem; max-height: 240px; overflow-y: auto; margin-top: 1.5rem; } .log-item { font-size: 13px; color: var(--grey); padding: 7px 0; border-bottom: 1px solid var(--border); display: flex; gap: 10px; } .log-item:last-child { border-bottom: none; color: var(--navy); font-weight: 500; } .log-time { color: var(--red); flex-shrink: 0; font-family: 'Courier New',monospace; font-size: 11px; font-weight: 600; } /* ── Output ── */.output-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 1.5rem; flex-wrap: wrap; gap: 12px; } .meta-pill { font-size: 12px; padding: 6px 14px; border-radius: var(--r-full); background: var(--bg2); color: var(--grey); border: 1px solid var(--border); font-weight: 500; } .meta-pill.red { background: rgba(232,51,58,0.1); color: var(--red); border-color: rgba(232,51,58,0.2); } .screenplay-out { font-family: 'Courier New',monospace; font-size: 13px; line-height: 1.8; background: var(--bg2); border-radius: var(--r-lg); padding: 2.5rem 3rem; white-space: pre-wrap; color: var(--navy2); border: 1px solid var(--border); max-height: 600px; overflow-y: auto; margin-bottom: 1.5rem; box-shadow: var(--sh-sm); } .manuscript-out { font-family: 'Inter',sans-serif; font-size: 14px; line-height: 1.8; background: var(--bg2); border-radius: var(--r-lg); padding: 2rem; white-space: pre-wrap; color: var(--navy); border: 1px solid var(--border); max-height: 600px; overflow-y: auto; margin-bottom: 1.5rem; box-shadow: var(--sh-sm); } /* ── Export buttons ── */.export-grid { display: grid; grid-template-columns: repeat(3,1fr); gap: 1rem; margin-bottom: 1.5rem; } .export-btn { background: var(--bg); border: none; border-radius: var(--r-lg); padding: 1.5rem 1.25rem; text-align: center; cursor: pointer; transition: var(--transition-smooth); font-family: 'Inter',sans-serif; color: var(--text); box-shadow: -6px -6px 14px var(--nm-l),6px 6px 14px var(--nm-d),inset 1px 1px 2px rgba(255,255,255,0.4); } .export-btn:hover { transform: translateY(-4px); box-shadow: -8px -8px 18px var(--nm-l2),8px 8px 18px var(--nm-d2),inset 1px 1px 3px rgba(255,255,255,0.5); } .export-btn .ei { font-size: 2rem; margin-bottom: 10px; display: block; } .export-btn .el { font-size: 14px; font-weight: 700; display: block; margin-bottom: 4px; } .export-btn .ed { font-size: 12px; color: var(--grey); } /* ── Red circle badge (for step 1 icons) ── */.red-circle { width: 52px; height: 52px; border-radius: 50%; background: var(--red); display: flex; align-items: center; justify-content: center; font-size: 24px; margin: 0 auto 1rem; box-shadow: 0 4px 12px rgba(232,51,58,0.3); } /* ── Spinner ── */.spinner { width: 15px; height: 15px; border: 2px solid rgba(255,255,255,0.3); border-top-color: white; border-radius: 50%; animation: spin 0.7s linear infinite; display: inline-block; } .spinner-dark { border-color: rgba(0,0,0,0.12); border-top-color: var(--navy); }
+        <style>@keyframes spin { to {  transform: rotate(360deg); } } @keyframes fadeUp { from {  opacity: 0;  transform: translateY(10px); }  to {  opacity: 1;  transform: translateY(0); } } @keyframes pulse { 0%, 100% {  opacity: 1;  transform: scale(1);  box-shadow: 0 0 6px var(--blue); }  50% {  opacity: 0.6;  transform: scale(1.5);  box-shadow: 0 0 14px var(--blue); } } @keyframes floatPill { 0%, 100% {  transform: translateX(-50%) translateY(0px); }  50% {  transform: translateX(-50%) translateY(-6px); } } @keyframes floatPillV { 0%, 100% {  transform: translateY(-50%) translateX(0px); }  50% {  transform: translateY(-50%) translateX(5px); } } @keyframes floatPillB { 0%, 100% {  transform: translateX(-50%) translateY(0px); }  50% {  transform: translateX(-50%) translateY(6px); } } @keyframes centerPulse { 0%, 100% {  box-shadow: 0 0 20px var(--blue), 0 0 50px var(--blue-glow); }  50% {  box-shadow: 0 0 30px var(--blue), 0 0 70px rgba(232,64,64,0.25), 0 0 100px rgba(232,64,64,0.1); } } @keyframes popIn { 0% {  opacity: 0;  transform: scale(0.95); }  100% {  opacity: 1;  transform: scale(1); } } @keyframes float { 0%, 100% {  transform: translateY(0px); }  50% {  transform: translateY(-8px); } } @keyframes ringPulse { 0%, 100% {  box-shadow: -14px -14px 34px var(--nm-l2), 14px 14px 34px var(--nm-d2), inset 2px 2px 4px var(--nm-l), inset -2px -2px 4px var(--nm-d); }  50% {  box-shadow: -16px -16px 40px var(--nm-l2), 16px 16px 40px var(--nm-d2), inset 2px 2px 4px var(--nm-l), inset -2px -2px 4px var(--nm-d); } } *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; } :root { --bg: #E8ECF1; --bg2: #F0F2F5; --card: #FFFFFF; --nm-l: #FFFFFF; --nm-d: #C4CAD4; --nm-l2: #FFFFFF; --nm-d2: #B4BAC4; --navy: #1A1A2E; --navy2: #2D2D44; --blue: #E84040; --blue-lt: #F05555; --blue-glow: rgba(232,64,64,0.2); --blue-rim: rgba(232,64,64,0.4); --red: #E8333A; --redDk: #C42830; --redLt: #FF5560; --grey: #6B7280; --greyLt: #9CA3AF; --text: #2D3A4A; --text2: #5A6A7E; --text3: #9AA6B4; --border: rgba(0,0,0,0.07); --border2: rgba(0,0,0,0.12); --sh-sm: 0 2px 8px rgba(0,0,0,0.06),0 1px 3px rgba(0,0,0,0.04); --sh-md: 0 4px 20px rgba(0,0,0,0.08),0 2px 8px rgba(0,0,0,0.05); --sh-lg: 0 8px 40px rgba(0,0,0,0.10),0 4px 16px rgba(0,0,0,0.06); --sh-raise: -6px -6px 14px var(--nm-l),6px 6px 14px var(--nm-d); --sh-raise-sm: -3px -3px 8px var(--nm-l),3px 3px 8px var(--nm-d); --sh-inset: inset -4px -4px 10px var(--nm-d),inset 4px 4px 10px var(--nm-l); --sh-inset-sm: inset -3px -3px 7px var(--nm-d),inset 3px 3px 7px var(--nm-l); --sh-card: -10px -10px 24px var(--nm-l),10px 10px 24px var(--nm-d); --sh-red: 0 6px 20px rgba(232,51,58,0.35); --sh-in: inset -4px -4px 10px var(--nm-d),inset 4px 4px 10px var(--nm-l); --r-sm: 8px; --r-md: 14px; --r-lg: 20px; --r-xl: 28px; --r-full: 999px; --transition-smooth: all 0.2s cubic-bezier(0.32, 0.08, 0.24, 1); } html, body { height: 100%; overflow: hidden; } #app-shell { display: flex; flex-direction: column; height: 100vh; overflow: hidden; } html { scroll-behavior: smooth; } body { font-family: 'Inter',system-ui,sans-serif; background: var(--bg); color: var(--navy); display: flex; flex-direction: column; } /* ── Navbar ── */.nav-wrap { padding: 16px 16px 0; flex-shrink: 0; z-index: 100; } .navbar { display: flex; align-items: center; justify-content: space-between; background: var(--bg); border-radius: var(--r-full); padding: 10px 14px 10px 18px; box-shadow: -6px -6px 14px var(--nm-l),6px 6px 14px var(--nm-d),inset 1px 1px 2px rgba(255,255,255,0.4); border: 1px solid transparent; } .nav-logo { display: flex; align-items: center; gap: 10px; text-decoration: none; } .nav-full-logo { height: 28px; width: auto; object-fit: contain; display: block; flex-shrink: 0; } .nav-right { display: flex; align-items: center; gap: 10px; } .nav-step { font-size: 12px; color: var(--grey); } .nav-step strong { color: var(--red); } .btn-key-toggle { background: var(--navy); color: white; border: none; border-radius: var(--r-full); padding: 8px 18px; font-size: 13px; font-weight: 600; cursor: pointer; font-family: 'Inter',sans-serif; transition: background 0.15s; display: flex; align-items: center; gap: 6px; } .btn-key-toggle:hover { background: var(--navy2); } .btn-key-toggle.open { background: var(--red); } /* ── Key panel ── */.key-wrap { padding: 0 16px; flex-shrink: 0; } .key-panel { display: none; background: var(--bg); border-radius: var(--r-lg); padding: 1.25rem 1.5rem; box-shadow: var(--sh-inset); border: none; gap: 10px; align-items: center; flex-wrap: wrap; margin-top: 10px; } .key-panel.open { display: flex; } .key-lbl { font-size: 12px; color: var(--grey); white-space: nowrap; font-weight: 500; } .key-inp { flex: 1; min-width: 180px; background: #F4F6F9; border: none; border-radius: var(--r-full); padding: 9px 16px; font-size: 13px; color: var(--navy); font-family: 'Inter',sans-serif; outline: none; transition: box-shadow 0.2s; box-shadow: inset -3px -3px 7px var(--nm-l),inset 3px 3px 7px var(--nm-d); } .key-inp:focus { box-shadow: inset -3px -3px 7px var(--nm-l),inset 3px 3px 7px var(--nm-d),0 0 0 2px var(--blue-rim); } .key-inp::placeholder { color: var(--greyLt); } .btn-ks { background: var(--blue); color: white; border: none; border-radius: var(--r-full); padding: 8px 16px; font-size: 12px; font-weight: 600; cursor: pointer; font-family: 'Inter',sans-serif; transition: background 0.15s,box-shadow 0.15s; box-shadow: -3px -3px 7px rgba(255,255,255,0.45),5px 7px 18px rgba(160,15,15,0.45); } .btn-ks:hover { background: var(--blue-lt); box-shadow: -3px -3px 7px rgba(255,255,255,0.45),7px 9px 22px rgba(160,15,15,0.55); } .btn-ks.ghost { background: var(--bg); color: var(--text2); border: none; box-shadow: var(--sh-inset-sm); } .btn-ks.ghost:hover { color: var(--blue); box-shadow: var(--sh-inset-sm); } .key-ok { font-size: 11px; color: var(--red); display: none; font-weight: 700; } /* ── Page ── */.page { max-width: 1200px; margin: 0 auto; padding: 2rem 3rem 3rem; flex: 1; overflow-y: auto; overflow-x: hidden; height: 0; /* flex child stretches to fill */ } /* ── Step indicator — uses your exact circle images via CSS ── */.steps-nav { display: flex; align-items: center; background: var(--bg); border-radius: var(--r-lg); padding: 1.25rem 1.5rem; margin-bottom: 2rem; box-shadow: -8px -8px 18px var(--nm-l),8px 8px 18px var(--nm-d),inset 1px 1px 2px rgba(255,255,255,0.5); border: none; animation: popIn 0.3s ease-out; } .step-item { display: flex; align-items: center; gap: 8px; flex: 1; } .step-num { width: 48px; height: 48px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 18px; font-weight: 700; font-family: 'Open Sans','Inter',sans-serif; flex-shrink: 0; transition: var(--transition-smooth);  /* Default: outline style (completed) */ background: var(--bg); color: var(--blue); border: 3px solid var(--blue); box-shadow: var(--sh-raise-sm); } .step-num.upcoming { /* Not yet reached */ background: var(--bg); color: var(--text3); border: 2px solid rgba(0,0,0,0.1); box-shadow: var(--sh-inset-sm); font-size: 16px; } .step-num.active { /* Current step — filled blue with glow */ background: var(--blue); color: white; border: 3px solid var(--blue); box-shadow: 0 6px 18px rgba(232,64,64,0.45),0 0 20px var(--blue-glow); font-size: 18px; } .step-label { font-size: 12px; color: var(--greyLt); white-space: nowrap; font-weight: 500; letter-spacing: 0.02em; } .step-label.active { color: var(--navy); font-weight: 600; } .step-label.done { color: var(--red); font-weight: 600; } .step-connector { flex: 1; height: 2px; background: var(--border2); margin: 0 8px; min-width: 8px; border-radius: 1px; transition: background 0.3s ease; } .step-connector.done { background: var(--red); } /* ── Panels ── */.panel { display: none; } .panel.active { display: block; animation: fadeUp 0.25s ease; } /* ── Typography ── */.eyebrow { font-size: 11px; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; color: var(--red); margin-bottom: 8px; text-align: center; } .panel-title { font-family: 'Open Sans','Inter',sans-serif; font-size: clamp(2rem,4vw,2.8rem); font-weight: 700; line-height: 1.05; margin-bottom: 1rem; color: var(--navy); letter-spacing: -0.03em; text-align: center; } .panel-title em { color: var(--red); } .panel-sub { font-size: 15px; color: var(--grey); margin-bottom: 2rem; line-height: 1.75; max-width: 660px; text-align: center; margin-left: auto; margin-right: auto; } /* ── Cards ── */.card { background: var(--bg); border-radius: var(--r-xl); padding: 2rem; margin-bottom: 1.5rem; box-shadow: -10px -10px 24px var(--nm-l),10px 10px 24px var(--nm-d),inset 1px 1px 2px rgba(255,255,255,0.5),inset -1px -1px 2px rgba(0,0,0,0.05); border: none; animation: popIn 0.4s ease-out; } /* ── Path chooser (Step 1) ── */.path-grid { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 1.25rem; margin-bottom: 2rem; } @media (max-width: 900px) { .path-grid { grid-template-columns: 1fr; } } .path-card { background: var(--bg); border: none; border-radius: var(--r-xl); padding: 2rem 1.5rem; cursor: pointer; transition: var(--transition-smooth); text-align: center; box-shadow: -12px -12px 28px var(--nm-l2),12px 12px 28px var(--nm-d2),inset 1px 1px 2px rgba(255,255,255,0.5); animation: popIn 0.4s ease-out; } .path-card:hover { transform: translateY(-6px); box-shadow: -16px -16px 40px var(--nm-l2),16px 16px 40px var(--nm-d2),inset 1px 1px 3px rgba(255,255,255,0.6); } .path-card.selected { box-shadow: -16px -16px 40px var(--nm-l2),16px 16px 40px var(--nm-d2),inset 0 0 0 2px var(--red),inset 1px 1px 2px rgba(255,255,255,0.5); background: rgba(232,64,64,0.10); } .path-card.selected h3 { color: var(--red); } .path-icon { font-size: 2.5rem; margin-bottom: 1rem; display: block; } .path-card h3 { font-family: 'Open Sans','Inter',sans-serif; font-size: 0.85rem; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; margin-bottom: 0.75rem; color: var(--navy); } .path-card p { font-size: 13px; color: var(--grey); line-height: 1.55; margin-bottom: 1rem; } .path-card .path-tag { display: inline-flex; font-size: 10px; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; color: var(--red); border: 1.5px solid var(--red); border-radius: var(--r-full); padding: 4px 14px; } /* ── Output chooser ── */.output-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem; margin-bottom: 2rem; } .output-card { background: var(--bg); border: none; border-radius: var(--r-xl); padding: 2rem 1.75rem; cursor: pointer; transition: var(--transition-smooth); text-align: center; box-shadow: -12px -12px 28px var(--nm-l2),12px 12px 28px var(--nm-d2),inset 1px 1px 2px rgba(255,255,255,0.5); animation: popIn 0.4s ease-out; } .output-card:hover { transform: translateY(-5px); box-shadow: -16px -16px 40px var(--nm-l2),16px 16px 40px var(--nm-d2),inset 1px 1px 3px rgba(255,255,255,0.6); } .output-card.selected { box-shadow: -16px -16px 40px var(--nm-l2),16px 16px 40px var(--nm-d2),inset 0 0 0 2px var(--red),inset 1px 1px 2px rgba(255,255,255,0.5); background: rgba(232,64,64,0.10); } .output-card.selected h3 { color: var(--red); } .output-card .oc-icon { font-size: 2.5rem; margin-bottom: 1rem; display: block; } .output-card h3 { font-family: 'Open Sans','Inter',sans-serif; font-size: 16px; font-weight: 700; margin-bottom: 6px; color: var(--navy); } .output-card p { font-size: 13px; color: var(--grey); line-height: 1.6; } .output-card .oc-format { font-size: 11px; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase; color: var(--red); margin-top: 10px; } /* ── Form ── */label.lbl { display: block; font-size: 12px; color: var(--text2); margin-bottom: 8px; letter-spacing: 0.04em; text-transform: uppercase; font-weight: 600; } input[type=text], select, textarea { width: 100%; font-family: 'Inter',sans-serif; font-size: 15px; color: var(--text); background: #F4F6F9; border: none; border-radius: var(--r-md); padding: 12px 16px; outline: none; transition: box-shadow 0.2s; box-shadow: inset -3px -3px 7px var(--nm-l),inset 3px 3px 7px var(--nm-d); } input[type=text]:focus, select:focus, textarea:focus { box-shadow: inset -3px -3px 7px var(--nm-l),inset 3px 3px 7px var(--nm-d),0 0 0 2px var(--blue-rim); } select { appearance: none; background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%236B7280' stroke-width='2'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E"); background-repeat: no-repeat; background-position: right 14px center; padding-right: 36px; background-color: var(--bg); cursor: pointer; } select option { background: white; } textarea { resize: vertical; line-height: 1.65; min-height: 100px; } .field { margin-bottom: 1.5rem; } .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem; } /* ── Guided questions (idea path) ── */.question-block { background: var(--bg); border-radius: var(--r-lg); padding: 1.75rem; margin-bottom: 1.25rem; border: none; box-shadow: inset -3px -3px 8px var(--nm-d),inset 3px 3px 8px var(--nm-l); transition: var(--transition-smooth); } .question-block:hover { box-shadow: inset -3px -3px 8px var(--nm-d),inset 3px 3px 8px var(--nm-l),0 0 0 1px rgba(232,64,64,0.1); } .q-num { display: inline-flex; width: 32px; height: 32px; border-radius: 50%; background: var(--blue); color: white; font-size: 13px; font-weight: 700; align-items: center; justify-content: center; margin-bottom: 1rem; box-shadow: 0 4px 12px rgba(232,64,64,0.3); } .q-label { font-size: 15px; font-weight: 600; color: var(--navy); margin-bottom: 6px; display: block; } .q-hint { font-size: 13px; color: var(--grey); margin-bottom: 1rem; } /* ── Buttons ── */.btn-primary { background: var(--blue); color: white; border: none; padding: 12px 28px; border-radius: var(--r-full); font-size: 13px; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase; cursor: pointer; font-family: 'Inter',sans-serif; display: inline-flex; align-items: center; gap: 8px; transition: var(--transition-smooth); box-shadow: -3px -3px 7px rgba(255,255,255,0.45),5px 7px 18px rgba(160,15,15,0.45); } .btn-primary:hover { background: var(--blue-lt); transform: translateY(-2px); box-shadow: -3px -3px 7px rgba(255,255,255,0.45),7px 9px 22px rgba(160,15,15,0.55); } .btn-primary:active { transform: translateY(0); box-shadow: 0 2px 8px rgba(232,51,58,0.2); } .btn-primary:disabled { opacity: 0.5; cursor: not-allowed; transform: none; box-shadow: none; } .btn-secondary { background: var(--bg); border: none; padding: 11px 22px; border-radius: var(--r-full); font-size: 13px; cursor: pointer; color: var(--text); font-family: 'Inter',sans-serif; display: inline-flex; align-items: center; gap: 8px; transition: var(--transition-smooth); font-weight: 600; letter-spacing: 0.06em; text-transform: uppercase; box-shadow: var(--sh-inset-sm); } .btn-secondary:hover { color: var(--blue); box-shadow: var(--sh-inset-sm),0 0 8px rgba(232,64,64,0.2); } .btn-secondary:active { box-shadow: var(--sh-inset-sm); } .btn-row { display: flex; gap: 12px; align-items: center; flex-wrap: wrap; margin-top: 2rem; justify-content: center; text-align: center; } /* ── Upload zone ── */.upload-zone { border: 2px dashed rgba(0,0,0,0.1); border-radius: var(--r-lg); padding: 3.5rem 2.5rem; text-align: center; cursor: pointer; transition: var(--transition-smooth); background: var(--bg); box-shadow: inset -4px -4px 10px var(--nm-d),inset 4px 4px 10px var(--nm-l); margin-bottom: 1.5rem; } .upload-zone:hover, .upload-zone.drag-over { border-color: var(--blue); background: rgba(232,64,64,0.04); box-shadow: inset -4px -4px 10px var(--nm-d),inset 4px 4px 12px var(--nm-l); } @keyframes uploadPulse { 0%, 100% { outline: 0 solid transparent; outline-offset: 0; } 30% { outline: 5px solid rgba(232,51,58,0.45); outline-offset: 4px; } 60% { outline: 3px solid rgba(232,51,58,0.25); outline-offset: 2px; } } .upload-zone.attention { animation: uploadPulse 1.6s ease-in-out; border-color: var(--red); background: rgba(232,64,64,0.06); } .upload-zone input { display: none; } .upload-icon { font-size: 3rem; margin-bottom: 1.25rem; display: block; } .upload-zone h3 { font-family: 'Open Sans','Inter',sans-serif; font-size: 1.2rem; font-weight: 700; margin-bottom: 8px; color: var(--navy); } .upload-zone p { font-size: 14px; color: var(--grey); } .upload-prog { display: none; align-items: center; gap: 10px; padding: 12px 16px; background: var(--bg2); border-radius: var(--r-md); margin-bottom: 1rem; font-size: 13px; color: var(--grey); border: 1px solid var(--border); } .upload-prog.on { display: flex; } .file-info { background: rgba(232,51,58,0.05); border: 1px solid rgba(232,51,58,0.2); border-radius: var(--r-md); padding: 1rem 1.25rem; display: none; margin-bottom: 1.25rem; } .file-info.on { display: block; } .file-info .fn { font-weight: 600; font-size: 14px; margin-bottom: 3px; color: var(--navy); } .file-info .fm { font-size: 12px; color: var(--grey); } /* ── Bible sections ── */.bible-section { margin-bottom: 1.5rem; } .bible-lbl { font-size: 11px; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; color: var(--red); margin-bottom: 8px; } .bible-section textarea { min-height: 100px; font-size: 14px; line-height: 1.6; } /* ── Format / approach cards ── */.format-grid { display: grid; grid-template-columns: repeat(2,1fr); gap: 1rem; margin-bottom: 1.5rem; } .format-card { background: var(--bg); border: none; border-radius: var(--r-lg); padding: 1.5rem; cursor: pointer; transition: var(--transition-smooth); box-shadow: -6px -6px 14px var(--nm-l),6px 6px 14px var(--nm-d),inset 1px 1px 2px rgba(255,255,255,0.4); } .format-card:hover { transform: translateY(-3px); box-shadow: -8px -8px 18px var(--nm-l2),8px 8px 18px var(--nm-d2),inset 1px 1px 2px rgba(255,255,255,0.5); } .format-card.selected { background: rgba(232,64,64,0.10); box-shadow: -8px -8px 18px var(--nm-l2),8px 8px 18px var(--nm-d2),inset 0 0 0 2px var(--red),inset 1px 1px 2px rgba(255,255,255,0.4); } .format-card.selected h3 { color: var(--red); } .format-card h3 { font-size: 15px; font-weight: 700; margin-bottom: 6px; color: var(--navy); } .format-card p { font-size: 13px; color: var(--grey); line-height: 1.6; } .format-card .fm-meta { font-size: 11px; color: var(--red); font-weight: 700; margin-top: 10px; letter-spacing: 0.04em; } .approach-grid { display: grid; grid-template-columns: repeat(3,1fr); gap: 1rem; margin-bottom: 1.5rem; } .approach-card { background: var(--bg); border: none; border-radius: var(--r-md); padding: 1.25rem; cursor: pointer; transition: var(--transition-smooth); text-align: center; box-shadow: -6px -6px 14px var(--nm-l),6px 6px 14px var(--nm-d),inset 1px 1px 2px rgba(255,255,255,0.4); } .approach-card:hover { transform: translateY(-3px); box-shadow: -8px -8px 18px var(--nm-l2),8px 8px 18px var(--nm-d2),inset 1px 1px 2px rgba(255,255,255,0.5); } .approach-card.selected { background: rgba(232,64,64,0.10); box-shadow: -8px -8px 18px var(--nm-l2),8px 8px 18px var(--nm-d2),inset 0 0 0 2px var(--red),inset 1px 1px 2px rgba(255,255,255,0.4); } .approach-card.selected h3 { color: var(--red); } .approach-card h3 { font-size: 14px; font-weight: 700; margin-bottom: 6px; color: var(--navy); } .approach-card p { font-size: 12px; color: var(--grey); line-height: 1.5; } /* ── Calc box ── */.calc-box { background: var(--bg); border: none; border-radius: var(--r-lg); padding: 1.75rem; margin-bottom: 1.5rem; box-shadow: inset -4px -4px 10px var(--nm-d),inset 4px 4px 10px var(--nm-l); } .calc-box h3 { font-size: 12px; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; color: var(--red); margin-bottom: 1.25rem; } .calc-row { display: flex; justify-content: space-between; align-items: center; padding: 11px 0; border-bottom: 1px solid var(--border); font-size: 14px; } .calc-row:last-child { border-bottom: none; font-weight: 700; } .calc-row .l { color: var(--grey); } .calc-row .r { color: var(--navy); font-weight: 600; } .calc-row.hi .r { color: var(--red); font-weight: 700; } .calc-row.wa .r { color: #D97706; font-weight: 700; } /* ── Briefing ── */.briefing-box { background: var(--bg); border: none; border-radius: var(--r-lg); padding: 2rem; margin-bottom: 1.5rem; box-shadow: -8px -8px 18px var(--nm-l),8px 8px 18px var(--nm-d),inset 1px 1px 2px rgba(255,255,255,0.4); } .briefing-box h3 { font-size: 15px; font-weight: 700; margin-bottom: 1.5rem; color: var(--navy); } .b-row { display: flex; gap: 14px; align-items: flex-start; padding: 12px 0; border-bottom: 1px solid var(--border); font-size: 14px; } .b-row:last-child { border-bottom: none; } .b-row .ico { font-size: 18px; flex-shrink: 0; } .b-row .txt { color: var(--grey); line-height: 1.7; } .b-row .txt strong { color: var(--navy); font-weight: 600; } .honest-note { background: rgba(232,51,58,0.05); border: 1.5px solid rgba(232,51,58,0.15); border-radius: var(--r-md); padding: 1.5rem; font-size: 14px; color: var(--navy); line-height: 1.8; margin-bottom: 1.5rem; } .honest-note strong { color: var(--red); font-weight: 700; } /* ── Progress ── */.progress-card { background: var(--bg); border-radius: var(--r-xl); padding: 2.5rem; box-shadow: -12px -12px 28px var(--nm-l),12px 12px 28px var(--nm-d),inset 1px 1px 3px rgba(255,255,255,0.5); border: none; margin-bottom: 1.5rem; animation: popIn 0.4s ease-out; } .prog-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem; } .prog-label { font-family: 'Open Sans','Inter',sans-serif; font-size: 1.25rem; font-weight: 700; color: var(--navy); } .prog-pct { font-size: 28px; color: var(--red); font-weight: 800; font-family: 'Open Sans','Inter',sans-serif; } .prog-bar-bg { width: 100%; height: 8px; background: var(--bg); border-radius: 4px; overflow: hidden; margin-bottom: 1rem; box-shadow: var(--sh-inset-sm); } .prog-bar-fill { height: 100%; background: var(--red); border-radius: 4px; width: 0%; transition: width 0.5s ease; } .prog-status { font-size: 14px; color: var(--grey); } .prog-pages { font-size: 13px; color: var(--grey); margin-top: 6px; } .prog-log { background: var(--bg2); border: 1px solid var(--border); border-radius: var(--r-lg); padding: 1.25rem; max-height: 240px; overflow-y: auto; margin-top: 1.5rem; } .log-item { font-size: 13px; color: var(--grey); padding: 7px 0; border-bottom: 1px solid var(--border); display: flex; gap: 10px; } .log-item:last-child { border-bottom: none; color: var(--navy); font-weight: 500; } .log-time { color: var(--red); flex-shrink: 0; font-family: 'Courier New',monospace; font-size: 11px; font-weight: 600; } /* ── Output ── */.output-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 1.5rem; flex-wrap: wrap; gap: 12px; } .meta-pill { font-size: 12px; padding: 6px 14px; border-radius: var(--r-full); background: var(--bg2); color: var(--grey); border: 1px solid var(--border); font-weight: 500; } .meta-pill.red { background: rgba(232,51,58,0.1); color: var(--red); border-color: rgba(232,51,58,0.2); } .screenplay-out { font-family: 'Courier New',monospace; font-size: 13px; line-height: 1.8; background: var(--bg2); border-radius: var(--r-lg); padding: 2.5rem 3rem; white-space: pre-wrap; color: var(--navy2); border: 1px solid var(--border); max-height: 600px; overflow-y: auto; margin-bottom: 1.5rem; box-shadow: var(--sh-sm); } .manuscript-out { font-family: 'Inter',sans-serif; font-size: 14px; line-height: 1.8; background: var(--bg2); border-radius: var(--r-lg); padding: 2rem; white-space: pre-wrap; color: var(--navy); border: 1px solid var(--border); max-height: 600px; overflow-y: auto; margin-bottom: 1.5rem; box-shadow: var(--sh-sm); } /* ── Export buttons ── */.export-grid { display: grid; grid-template-columns: repeat(3,1fr); gap: 1rem; margin-bottom: 1.5rem; } .export-btn { background: var(--bg); border: none; border-radius: var(--r-lg); padding: 1.5rem 1.25rem; text-align: center; cursor: pointer; transition: var(--transition-smooth); font-family: 'Inter',sans-serif; color: var(--text); box-shadow: -6px -6px 14px var(--nm-l),6px 6px 14px var(--nm-d),inset 1px 1px 2px rgba(255,255,255,0.4); } .export-btn:hover { transform: translateY(-4px); box-shadow: -8px -8px 18px var(--nm-l2),8px 8px 18px var(--nm-d2),inset 1px 1px 3px rgba(255,255,255,0.5); } .export-btn .ei { font-size: 2rem; margin-bottom: 10px; display: block; } .export-btn .el { font-size: 14px; font-weight: 700; display: block; margin-bottom: 4px; } .export-btn .ed { font-size: 12px; color: var(--grey); } /* ── Red circle badge (for step 1 icons) ── */.red-circle { width: 52px; height: 52px; border-radius: 50%; background: var(--red); display: flex; align-items: center; justify-content: center; font-size: 24px; margin: 0 auto 1rem; box-shadow: 0 4px 12px rgba(232,51,58,0.3); } /* ── Spinner ── */.spinner { width: 15px; height: 15px; border: 2px solid rgba(255,255,255,0.3); border-top-color: white; border-radius: 50%; animation: spin 0.7s linear infinite; display: inline-block; } .spinner-dark { border-color: rgba(0,0,0,0.12); border-top-color: var(--navy); }
 input[type=range] { -webkit-appearance: none; width: 100%; height: 6px; border-radius: 3px; background: var(--bg2); box-shadow: var(--sh-inset-sm); outline: none; padding: 0; border: none; cursor: pointer; }
 input[type=range]::-webkit-slider-thumb { -webkit-appearance: none; width: 20px; height: 20px; border-radius: 50%; background: var(--red); box-shadow: 0 2px 8px rgba(232,51,58,0.4); cursor: pointer; }
 input[type=range]::-moz-range-thumb { width: 20px; height: 20px; border-radius: 50%; background: var(--red); border: none; box-shadow: 0 2px 8px rgba(232,51,58,0.4); cursor: pointer; }
@@ -41,7 +41,7 @@ input[type=range]::-moz-range-thumb { width: 20px; height: 20px; border-radius: 
       character              22ch                (3.7in)
       transition             right-aligned       (ends at 7.5in) */
  .sp-page { white-space: normal; }
- .sp-page > div { white-space: pre-wrap; max-width: 60ch; }
+ .sp-page > div { white-space: normal; max-width: 60ch; }
  .sp-scene { text-transform: uppercase; font-weight: 700; margin: 1.6em 0 0.9em; }
  .sp-page > .sp-scene:first-child { margin-top: 0; }
  .sp-action { margin: 0 0 0.9em; }
@@ -50,6 +50,10 @@ input[type=range]::-moz-range-thumb { width: 20px; height: 20px; border-radius: 
  .sp-dialogue { margin: 0 0 0.9em 10ch; max-width: 35ch; }
  .sp-transition { text-transform: uppercase; text-align: right; max-width: 60ch; margin: 0 0 0.9em; }
  .sp-page .sp-blank { height: 0.9em; }
+ .sp-title { text-align: center; max-width: 60ch; margin: 0 0 0.9em; }
+ .sp-title:first-child { text-transform: uppercase; font-weight: 700; margin-top: 2em; }
+ .sp-titlebreak { border-top: 1px solid var(--border); margin: 2em 0; height: 0; }
+ .sp-credit { margin: 2.5em 0 0; padding-top: 1em; border-top: 1px solid var(--border); font-size: 11px; color: var(--grey); text-align: center; max-width: 60ch; letter-spacing: 0.03em; }
  @media (max-width: 768px) { .results-cols { grid-template-columns: 1fr; } } /* ── Divider ── */.divider { border: none; border-top: 1px solid var(--border); margin: 2rem 0; } /* ── Responsive ── */@media (max-width:640px){ .grid-2, .format-grid, .approach-grid, .path-grid, .output-grid, .export-grid {  grid-template-columns: 1fr; }  .steps-nav .step-label {  display: none; }  .screenplay-out, .manuscript-out {  padding: 1.5rem; }  .nav-wrap {  padding: 8px 8px 0; } } /* ── Resume banner ── */#resume-banner { display:none; align-items:center; gap:14px; background:var(--navy); color:white; border-radius:var(--r-lg); padding:1rem 1.5rem; margin-bottom:1.5rem; box-shadow:var(--sh-md); flex-wrap:wrap; } #resume-banner .rb-icon { font-size:1.5rem; flex-shrink:0; } #resume-banner .rb-text { flex:1; min-width:160px; } #resume-banner .rb-title { font-size:14px; font-weight:700; margin-bottom:2px; } #resume-banner .rb-sub { font-size:12px; opacity:0.7; } #resume-banner .rb-actions { display:flex; gap:8px; flex-shrink:0; } #resume-banner .rb-btn { background:var(--red); color:white; border:none; border-radius:var(--r-full); padding:8px 18px; font-size:12px; font-weight:700; letter-spacing:0.05em; text-transform:uppercase; cursor:pointer; font-family:'Inter',sans-serif; } #resume-banner .rb-dismiss { background:transparent; color:rgba(255,255,255,0.6); border:1px solid rgba(255,255,255,0.2); border-radius:var(--r-full); padding:8px 14px; font-size:12px; font-weight:600; cursor:pointer; font-family:'Inter',sans-serif; letter-spacing:0.04em; text-transform:uppercase; }</style>
         <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Open+Sans&display=swap">
         
@@ -74,13 +78,19 @@ input[type=range]::-moz-range-thumb { width: 20px; height: 20px; border-radius: 
       ">
         <img src="fluidscriptr_new_logo.png" alt="FluidScriptr" style="height: 34px; width: auto; display: block; margin: 0 auto 24px;" />
 
-        <div style="font-size: 11px; font-weight: 700; letter-spacing: 0.12em; text-transform: uppercase; color: #E8333A; margin-bottom: 8px;">Founding Member Access</div>
-        <div style="font-size: 15px; color: #555; margin-bottom: 28px; line-height: 1.6;">Enter your license key from your Gumroad receipt.</div>
+        <div style="font-size: 11px; font-weight: 700; letter-spacing: 0.12em; text-transform: uppercase; color: #E8333A; margin-bottom: 8px;">Unlock FluidScriptr</div>
+        <div style="font-size: 15px; color: #555; margin-bottom: 28px; line-height: 1.6;">Enter your Transaction ID from your PayPal receipt.</div>
+
+        <div style="margin-bottom: 14px; text-align: left;">
+          <label style="display: block; font-size: 11px; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; color: #6B7280; margin-bottom: 6px;">Transaction ID / License Key</label>
+          <input id="gate-license" type="text" autocomplete="off" placeholder="Paste from your PayPal receipt"
+            style="width: 100%; box-sizing: border-box; font-family: 'Courier New', monospace; font-size: 14px; color: #1A1A2E; background: #F0F2F5; border: none; border-radius: 12px; padding: 12px 16px; outline: none; box-shadow: inset -3px -3px 7px #FFFFFF, inset 3px 3px 7px #C4CAD4; letter-spacing: 0.05em;" />
+        </div>
 
         <div style="margin-bottom: 20px; text-align: left;">
-          <label style="display: block; font-size: 11px; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; color: #6B7280; margin-bottom: 6px;">License Key</label>
-          <input id="gate-license" type="text" autocomplete="off" placeholder="XXXXXXXX-XXXXXXXX-XXXXXXXX-XXXXXXXX"
-            style="width: 100%; box-sizing: border-box; font-family: 'Courier New', monospace; font-size: 14px; color: #1A1A2E; background: #F0F2F5; border: none; border-radius: 12px; padding: 12px 16px; outline: none; box-shadow: inset -3px -3px 7px #FFFFFF, inset 3px 3px 7px #C4CAD4; letter-spacing: 0.05em;" />
+          <label style="display: block; font-size: 11px; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; color: #6B7280; margin-bottom: 6px;">PayPal Email</label>
+          <input id="gate-email" type="email" autocomplete="email" placeholder="Email on your PayPal receipt"
+            style="width: 100%; box-sizing: border-box; font-family: 'Inter', sans-serif; font-size: 14px; color: #1A1A2E; background: #F0F2F5; border: none; border-radius: 12px; padding: 12px 16px; outline: none; box-shadow: inset -3px -3px 7px #FFFFFF, inset 3px 3px 7px #C4CAD4;" />
         </div>
 
         <div id="gate-error" style="display: none; font-size: 13px; color: #E8333A; margin-bottom: 16px; font-weight: 600;"></div>
@@ -94,7 +104,28 @@ input[type=range]::-moz-range-thumb { width: 20px; height: 20px; border-radius: 
         ">Unlock</button>
 
         <div style="font-size: 12px; color: #9CA3AF; margin-top: 20px; line-height: 1.7;">
-          If you do not have a key, please purchase <a href="https://kerospad.gumroad.com/l/fluidscriptr" target="_blank" style="color: #E8333A; text-decoration: none; font-weight: 600;">HERE</a>, or for more info please visit <a href="https://tinhousepress.com/fluidscriptr" target="_blank" style="color: #E8333A; text-decoration: none; font-weight: 600;">FluidScriptr</a>.
+          Don't have one yet? <a href="https://tinhousepress.com/fluidscriptr#pricing" target="_blank" style="color: #E8333A; text-decoration: none; font-weight: 600;">See pricing</a>. Your Transaction ID appears in your PayPal receipt right after checkout and unlocks the tool immediately.
+        </div>
+
+        <div style="margin-top: 14px; padding-top: 14px; border-top: 1px solid #D6DBE2;">
+          <a href="#" id="gate-sample-link" onclick="return showFreeSample();" style="font-size: 13px; color: #6B7280; text-decoration: none; font-weight: 600;">Or try a free 10-page sample — no card required →</a>
+
+          <div id="gate-sample-form" style="display: none; text-align: left;">
+            <div style="font-size: 12px; color: #6B7280; margin-bottom: 12px; line-height: 1.65;">
+              Convert the first 10 pages of your manuscript free — no card required. We'll email you the finished screenplay file.
+            </div>
+            <label style="display: block; font-size: 11px; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; color: #6B7280; margin-bottom: 6px;">Your Email</label>
+            <input id="gate-sample-email" type="email" autocomplete="email" placeholder="Where should we send it?"
+              style="width: 100%; box-sizing: border-box; font-family: 'Inter', sans-serif; font-size: 14px; color: #1A1A2E; background: #F0F2F5; border: none; border-radius: 12px; padding: 12px 16px; outline: none; box-shadow: inset -3px -3px 7px #FFFFFF, inset 3px 3px 7px #C4CAD4;" />
+            <div id="gate-sample-error" style="display: none; font-size: 13px; color: #E8333A; margin-top: 12px; font-weight: 600;"></div>
+            <button id="gate-sample-btn" onclick="startFreeSample()" style="
+              width: 100%; margin-top: 14px; background: #E8ECF1; color: #1A1A2E; border: none;
+              border-radius: 999px; padding: 12px 24px;
+              font-size: 13px; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase;
+              cursor: pointer; font-family: 'Inter', sans-serif;
+              box-shadow: -3px -3px 7px #FFFFFF, 4px 5px 12px #C4CAD4;
+            ">Start Free Sample</button>
+          </div>
         </div>
       </div>
     </div>
@@ -102,22 +133,89 @@ input[type=range]::-moz-range-thumb { width: 20px; height: 20px; border-radius: 
     <script>
     (function() {
       const LS_KEY = 'fsr_license_key';
+      const LS_EMAIL = 'fsr_payer_email';
       const WORKER = 'https://fluidscriptr-license.kerospad.workers.dev';
       const gate = document.getElementById('license-gate');
       const errEl = document.getElementById('gate-error');
       const btn = document.getElementById('gate-btn');
 
-      // Check if already validated in this browser
-      const saved = localStorage.getItem(LS_KEY);
-      if (saved) {
+      // Check if already validated in this browser. Both key AND email must be
+      // present — we now pass both to every downstream call, so an old install
+      // that only has the key needs to re-unlock so we can capture the email.
+      const savedKey = localStorage.getItem(LS_KEY);
+      const savedEmail = localStorage.getItem(LS_EMAIL);
+      if (savedKey && savedEmail) {
+        gate.remove();
+        return;
+      }
+      // Returning free-sample visitor — let them straight back in without
+      // re-entering anything. Server-side run/IP/budget caps still apply.
+      // The email must be present too: every sample call now requires it, so
+      // an install from before the email gate has to come back through it
+      // rather than hit a wall on its first generation.
+      if (localStorage.getItem('fsr_sample_mode') === 'true' && localStorage.getItem('fsr_sample_email')) {
         gate.remove();
         return;
       }
 
+      // Reveal the email field. The sample can't start without an address —
+      // it's what the finished screenplay gets delivered to, and it's the only
+      // thing we get back for the cost of the run.
+      window.showFreeSample = function() {
+        document.getElementById('gate-sample-link').style.display = 'none';
+        document.getElementById('gate-sample-form').style.display = 'block';
+        document.getElementById('gate-sample-email').focus();
+        return false;
+      };
+
+      window.startFreeSample = function() {
+        const emailEl = document.getElementById('gate-sample-email');
+        const sampleErr = document.getElementById('gate-sample-error');
+        const email = emailEl.value.trim().toLowerCase();
+        // Light client-side check only; the worker does the real validation
+        // (disposable domains, does the domain accept mail at all).
+        if (!/^[^\s@]+@[^\s@.]+(\.[^\s@.]+)+$/.test(email)) {
+          sampleErr.textContent = 'Enter a valid email address so we can send you the finished screenplay.';
+          sampleErr.style.display = 'block';
+          emailEl.focus();
+          return false;
+        }
+        sampleErr.style.display = 'none';
+
+        localStorage.setItem('fsr_sample_mode', 'true');
+        localStorage.setItem('fsr_sample_email', email);
+        if (!localStorage.getItem('fsr_sample_id')) {
+          const id = (window.crypto && crypto.randomUUID)
+            ? crypto.randomUUID()
+            : 'sample-' + Date.now() + '-' + Math.random().toString(36).slice(2);
+          localStorage.setItem('fsr_sample_id', id);
+        }
+        // Reload rather than just dismissing the gate.
+        //
+        // The main script's init block decides the sample-mode UI (banner on,
+        // fidelity section hidden, AI Settings hidden) once, at page load —
+        // which already happened, while sample mode was still off. Dismissing
+        // the gate in place would drop the visitor into a paid-looking UI
+        // offering a fidelity button the server then refuses. Reloading is
+        // instant here (everything is cached) and makes one code path
+        // responsible for sample-mode UI instead of two that can disagree.
+        // On the way back in, the returning-visitor check removes the gate.
+        gate.style.opacity = '0';
+        gate.style.transition = 'opacity 0.2s ease';
+        setTimeout(() => location.reload(), 200);
+        return false;
+      };
+
       window.doLicenseCheck = async function() {
         const key = document.getElementById('gate-license').value.trim().toUpperCase();
+        const email = document.getElementById('gate-email').value.trim().toLowerCase();
         if (!key) {
-          errEl.textContent = 'Please enter your license key.';
+          errEl.textContent = 'Please enter your Transaction ID.';
+          errEl.style.display = 'block';
+          return;
+        }
+        if (!email) {
+          errEl.textContent = 'Please enter the email address shown on your PayPal receipt.';
           errEl.style.display = 'block';
           return;
         }
@@ -130,20 +228,23 @@ input[type=range]::-moz-range-thumb { width: 20px; height: 20px; border-radius: 
           const res = await fetch(WORKER, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ license_key: key })
+            body: JSON.stringify({ license_key: key, email })
           });
           const data = await res.json();
 
           if (data.success) {
             localStorage.setItem(LS_KEY, key);
+            localStorage.setItem(LS_EMAIL, email);
             // Unlocking here means "use included credits" — don't leave a stale
             // 'own key' mode (e.g. from earlier testing) blocking straight-to-work access.
             localStorage.setItem('fsr_ai_mode', 'credits');
+            // A real unlock supersedes any earlier free-sample trial.
+            localStorage.removeItem('fsr_sample_mode');
             gate.style.opacity = '0';
             gate.style.transition = 'opacity 0.3s ease';
             setTimeout(() => gate.remove(), 320);
           } else {
-            errEl.textContent = data.error || 'Invalid license key.';
+            errEl.textContent = data.error || 'Invalid Transaction ID or email.';
             errEl.style.display = 'block';
             btn.disabled = false;
             btn.textContent = 'Unlock';
@@ -156,13 +257,22 @@ input[type=range]::-moz-range-thumb { width: 20px; height: 20px; border-radius: 
         }
       };
 
+      // Enter on either input triggers the unlock
       document.getElementById('gate-license').addEventListener('keydown', e => {
+        if (e.key === 'Enter') window.doLicenseCheck();
+      });
+      document.getElementById('gate-email').addEventListener('keydown', e => {
         if (e.key === 'Enter') window.doLicenseCheck();
       });
     })();
     </script>
 
         <div id="app-shell">
+        <!-- Free sample banner -->
+        <div id="sample-banner" style="display:none; background:#1A1A2E; color:#fff; text-align:center; font-size:13px; font-weight:600; padding:9px 16px;">
+          Free sample mode — output is capped to ~10 pages.
+          <a href="https://tinhousepress.com/fluidscriptr#pricing" target="_blank" style="color:#FF8A8A; text-decoration:underline; margin-left:6px;">Purchase a conversion for your full manuscript →</a>
+        </div>
         <!-- Navbar -->
         <div class="nav-wrap">
             <nav class="navbar">
@@ -183,6 +293,7 @@ input[type=range]::-moz-range-thumb { width: 20px; height: 20px; border-radius: 
                     <button class="btn-ks ghost" id="mode-own" onclick="setAIMode('own')">🔑 My own API key</button>
                 </span>
                 <span class="key-ok" id="credits-status" style="display:none;"></span>
+                <span class="key-ok" id="conversions-status" style="display:none;"></span>
                 <span id="own-key-row" style="display:none;">
                     <input type="password" class="key-inp" id="api-key" placeholder="sk-ant-..." autocomplete="off"/>
                     <button class="btn-ks" onclick="saveKey()">Save</button>
@@ -239,13 +350,19 @@ input[type=range]::-moz-range-thumb { width: 20px; height: 20px; border-radius: 
                 </div>
                 <div class="eyebrow">Step 1 — How would you like to start?</div>
                 <h1 class="panel-title">Every great story<br><em style="font-style: normal;">starts somewhere.</em></h1>
-                <p class="panel-sub">Choose how you want to begin. Both paths lead to a professional screenplay or publish-ready manuscript.</p>
+                <p class="panel-sub">Choose how you want to begin. Every path leads to a professional screenplay or publish-ready manuscript.</p>
                 <div class="path-grid">
                     <div class="path-card" id="path-manuscript" onclick="selectPath('manuscript')">
                         <span class="path-icon">📄</span>
                         <h3>I have a manuscript</h3>
                         <p>Upload your PDF or DOCX. FluidScriptr reads the full text and builds your Story Bible automatically.</p>
                         <span class="path-tag">Convert or Enhance</span>
+                    </div>
+                    <div class="path-card" id="path-screenplay" onclick="selectPath('screenplay')">
+                        <span class="path-icon">🎬</span>
+                        <h3>I have a screenplay</h3>
+                        <p>Upload your existing script (PDF, DOCX, Fountain, or FDX). FluidScriptr cleans up formatting and tightens structure.</p>
+                        <span class="path-tag">Clean Up &amp; Polish</span>
                     </div>
                     <div class="path-card" id="path-idea" onclick="selectPath('idea')">
                         <span class="path-icon">💡</span>
@@ -260,7 +377,7 @@ input[type=range]::-moz-range-thumb { width: 20px; height: 20px; border-radius: 
                         <input type="file" id="file-input" accept=".pdf,.doc,.docx" onchange="handleFileSelect(event)"/>
                         <span class="upload-icon">📄</span>
                         <h3>Drop your manuscript here</h3>
-                        <p>PDF or DOCX · Up to 150,000 words</p>
+                        <p>PDF or DOCX · Full-length novels supported</p>
                     </div>
                     <div class="upload-prog" id="upload-progress">
                         <div class="spinner spinner-dark"></div>
@@ -274,11 +391,11 @@ input[type=range]::-moz-range-thumb { width: 20px; height: 20px; border-radius: 
                         <div class="grid-2">
                             <div class="field">
                                 <label class="lbl">Book title</label>
-                                <input type="text" id="book-title" placeholder="e.g. A Fox, Pausing in Snow"/>
+                                <input type="text" id="book-title"/>
                             </div>
                             <div class="field">
                                 <label class="lbl">Author</label>
-                                <input type="text" id="book-author" placeholder="e.g. Steve Walker"/>
+                                <input type="text" id="book-author"/>
                             </div>
                         </div>
                         <div class="field" style="margin-bottom:0">
@@ -300,6 +417,54 @@ input[type=range]::-moz-range-thumb { width: 20px; height: 20px; border-radius: 
                     </div>
                     <div class="btn-row">
                         <button class="btn-primary" id="bible-btn" onclick="generateBible()" disabled>Generate Story Bible →</button>
+                    </div>
+                </div>
+                <!-- Screenplay sub-panel -->
+                <div id="screenplay-panel" style="display:none;">
+                    <div class="upload-zone" id="sp-upload-zone" onclick="document.getElementById('sp-file-input').click()" ondragover="event.preventDefault();this.classList.add('drag-over')" ondragleave="this.classList.remove('drag-over')" ondrop="handleScreenplayDrop(event)">
+                        <input type="file" id="sp-file-input" accept=".pdf,.doc,.docx,.fountain,.fdx,.txt" onchange="handleScreenplayFileSelect(event)"/>
+                        <span class="upload-icon">🎬</span>
+                        <h3>Drop your screenplay here</h3>
+                        <p>PDF, DOCX, .fountain, .fdx, or .txt</p>
+                    </div>
+                    <div class="upload-prog" id="sp-upload-progress">
+                        <div class="spinner spinner-dark"></div>
+                        <span id="sp-upload-progress-text">Extracting text…</span>
+                    </div>
+                    <div class="file-info" id="sp-file-info">
+                        <div class="fn" id="sp-file-name"></div>
+                        <div class="fm" id="sp-file-meta"></div>
+                    </div>
+                    <div class="card">
+                        <div class="grid-2">
+                            <div class="field">
+                                <label class="lbl">Screenplay title</label>
+                                <input type="text" id="sp-title"/>
+                            </div>
+                            <div class="field">
+                                <label class="lbl">Author</label>
+                                <input type="text" id="sp-author"/>
+                            </div>
+                        </div>
+                        <div class="field" style="margin-bottom:0">
+                            <label class="lbl">Genre</label>
+                            <select id="sp-genre">
+                                <option value="literary drama">Literary / Prestige Drama</option>
+                                <option value="thriller">Thriller</option>
+                                <option value="romance">Romance</option>
+                                <option value="horror">Horror</option>
+                                <option value="action adventure">Action / Adventure</option>
+                                <option value="comedy">Comedy</option>
+                                <option value="sci-fi">Science Fiction</option>
+                                <option value="fantasy">Fantasy</option>
+                                <option value="historical drama">Historical Drama</option>
+                                <option value="children family">Children's / Family</option>
+                                <option value="biography">Biography / True Story</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="btn-row">
+                        <button class="btn-primary" id="sp-bible-btn" onclick="generateBibleFromScreenplay()" disabled>Analyze Screenplay →</button>
                     </div>
                 </div>
                 <!-- Idea sub-panel -->
@@ -569,11 +734,64 @@ input[type=range]::-moz-range-thumb { width: 20px; height: 20px; border-radius: 
                         </div>
                         <div class="field" style="margin-top:1rem;margin-bottom:0;">
                             <label class="lbl">Target length</label>
+                            <div style="margin-bottom:0.75rem;">
+                                <button class="btn-glossary-toggle" onclick="toggleWordCountGuide()" type="button">📚 What length should I pick?</button>
+                            </div>
+                            <div class="glossary-box" id="wordcount-guide" style="display:none;">
+                                <div class="glossary-item">
+                                    <strong>Sweet spot by genre (for traditional publishing)</strong><br>
+                                    <em>Middle-grade:</em> 20–55K words<br>
+                                    <em>YA:</em> 55–80K (sweet spot ~70K)<br>
+                                    <em>Romance:</em> 50–90K (category romance often 50–75K)<br>
+                                    <em>Mystery / Thriller:</em> 70–90K — tight pacing rewarded<br>
+                                    <em>Literary fiction:</em> 80–100K — above 110K needs to earn it<br>
+                                    <em>Sci-fi / Fantasy:</em> 90–120K (epic fantasy up to 150K)<br>
+                                    <em>Historical fiction:</em> 100–120K
+                                </div>
+                                <div class="glossary-item">
+                                    <strong>Debut-author reality check.</strong> Most agents auto-reject debut novels above 100K words unless it's epic fantasy or historical. Below 50K is too short for the "novel" market (except middle-grade / novella). Aim for the sweet spot of your genre, not the ceiling.
+                                </div>
+                                <div class="glossary-item">
+                                    <strong>Self-publishing? Word count → pages → retail price.</strong> Trade paperback rule of thumb is ~250 words/page, so a 60K-word book ≈ 240 pages.<br>
+                                    <em>Under 200 pages</em> (~50K words) — hard to price above $9.99, looks slim on a shelf<br>
+                                    <em>200–300 pages</em> (~50–75K) — sweet spot: $12.99–14.99<br>
+                                    <em>300–400 pages</em> (~75–100K) — $14.99–16.99<br>
+                                    <em>400+ pages</em> (~100K+) — priced $16.99+ but per-page print cost on KDP starts eating royalties fast
+                                </div>
+                            </div>
                             <select id="manuscript-length">
-                                <option value="short">Short story / Novella (~20,000 words)</option>
-                                <option value="medium" selected>Novel (~60,000 words)</option>
-                                <option value="long">Long novel (~90,000 words)</option>
+                                <option value="novella">Novella (~25,000 words)</option>
+                                <option value="short">Short novel / YA (~55,000 words)</option>
+                                <option value="medium" selected>Standard novel / Thriller (~75,000 words)</option>
+                                <option value="literary">Literary novel (~85,000 words)</option>
+                                <option value="long">Sci-fi / Fantasy (~100,000 words)</option>
+                                <option value="epic">Epic (~120,000 words)</option>
                             </select>
+                        </div>
+                    </div>
+                </div>
+                <!-- Cleanup format options -->
+                <div id="cleanup-format-options" style="display:none;">
+                    <div class="card">
+                        <div class="honest-note" style="margin-bottom:0;">
+                            <strong>Screenplay clean-up:</strong> FluidScriptr will preserve your existing scene structure, characters, and story beats. It fixes formatting to industry-standard Fountain / Final Draft margins, tightens overly long action lines, and sharpens weak dialogue without rewriting your voice. Export in Fountain, .fdx, or PDF.
+                        </div>
+                    </div>
+                    <div class="card">
+                        <label class="lbl" style="margin-bottom:12px;">Polish intensity</label>
+                        <div class="approach-grid">
+                            <div class="approach-card" onclick="selectApproach(this,'light')">
+                                <h3>Light</h3>
+                                <p>Formatting fixes only — don't touch prose</p>
+                            </div>
+                            <div class="approach-card selected" onclick="selectApproach(this,'standard')">
+                                <h3>Standard</h3>
+                                <p>Formatting plus a gentle pass on pacing &amp; dialogue</p>
+                            </div>
+                            <div class="approach-card" onclick="selectApproach(this,'deep')">
+                                <h3>Deep</h3>
+                                <p>Full polish — tighten action, sharpen dialogue, cut redundancy</p>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -653,10 +871,14 @@ input[type=range]::-moz-range-thumb { width: 20px; height: 20px; border-radius: 
             <div class="panel" id="panel-6" style="max-width:100%;">
                 <div class="eyebrow">Step 6 — Export</div>
                 <h1 class="panel-title">Your output is ready.</h1>
-                <div style="display:flex;gap:8px;flex-wrap:wrap;justify-content:center;margin-bottom:1.5rem;">
+                <div style="display:flex;gap:8px;flex-wrap:wrap;justify-content:center;margin-bottom:1rem;">
                     <span class="meta-pill red" id="out-stat1">—</span>
                     <span class="meta-pill" id="out-stat2">—</span>
                     <span class="meta-pill" id="out-stat3">—</span>
+                </div>
+                <div id="out-context" style="display:none;max-width:640px;margin:0 auto 1.5rem;padding:14px 20px;background:var(--bg);border-radius:var(--r-md);box-shadow:var(--sh-inset-sm);text-align:center;">
+                    <div id="out-context-genre" style="font-size:13px;color:var(--navy);line-height:1.55;font-weight:500;margin-bottom:6px;"></div>
+                    <div id="out-context-price" style="font-size:12px;color:var(--grey);line-height:1.5;"></div>
                 </div>
                 <!-- Two-column results layout -->
                 <div class="results-cols">
@@ -697,6 +919,12 @@ input[type=range]::-moz-range-thumb { width: 20px; height: 20px; border-radius: 
                                         <span class="ed">Standard format</span>
                                     </div>
                                 </div>
+                            </div>
+                            <!-- Free-sample delivery. Hidden unless in sample mode; see deliverSampleByEmail(). -->
+                            <div id="sample-deliver" style="display:none;margin-top:1.5rem;padding:1.1rem 1.25rem;border-radius:var(--r-lg);background:var(--bg2);border:1px solid var(--border);">
+                                <div style="font-size:13px;font-weight:700;color:var(--navy);margin-bottom:4px;">📧 Your screenplay file</div>
+                                <div id="sample-deliver-status" style="font-size:13px;color:var(--grey);line-height:1.6;">Sending it to your inbox…</div>
+                                <button id="sample-deliver-btn" type="button" onclick="deliverSampleByEmail(true)" style="display:none;margin-top:10px;background:transparent;border:1px solid var(--border);border-radius:var(--r-full);padding:8px 16px;font-size:12px;font-weight:600;color:var(--navy);cursor:pointer;font-family:'Inter',sans-serif;">Send it again</button>
                             </div>
                             <div class="fidelity-section" style="margin-top:1.5rem;">
                                 <button class="btn-secondary" id="fidelity-btn" type="button" onclick="runFidelityCheck()" style="width:100%;justify-content:center;">
@@ -742,115 +970,6 @@ input[type=range]::-moz-range-thumb { width: 20px; height: 20px; border-radius: 
                         </div>
                     </div>
                 </div>
-                <!-- ══ ADAPTATION PACKAGE (add-on) ══════════════════════ -->
-                <div id="adaptation-section" style="margin-top:2rem;">
-                    <!-- Locked / upsell view -->
-                    <div class="card" id="ap-locked">
-                        <div class="eyebrow" style="color:var(--red);">🎬 Adaptation Package — Add-on</div>
-                        <h2 style="margin:0 0 8px;">Producers don't read cold screenplays.<br>They read pitch packages.</h2>
-                        <p style="font-size:14px;color:var(--grey);line-height:1.7;margin-bottom:1.25rem;">Turn this conversion into a producer-ready pitch: <strong>3 ranked loglines</strong>, a <strong>one-page pitch document</strong> (PDF), <strong>2–3 film/TV comp titles</strong>, and a <strong>rights-clarity checklist</strong> — generated from the same manuscript you just converted.</p>
-                        <ul style="list-style:none;padding:0;margin:0 0 1.25rem;font-size:14px;line-height:2;">
-                            <li>✓ Three logline options, ranked — pick or edit your favorite</li>
-                            <li>✓ One-page pitch PDF: logline, spoiler-light synopsis, genre positioning</li>
-                            <li>✓ Comp titles (film/TV, recent) with accuracy flags</li>
-                            <li>✓ Rights summary you can speak to before talking to producers</li>
-                        </ul>
-                        <div style="display:flex;gap:12px;flex-wrap:wrap;align-items:center;margin-bottom:1rem;">
-                            <a href="https://kerospad.gumroad.com/l/fluidscriptr-adaptation/OWNER50" target="_blank" class="btn-primary" style="text-decoration:none;display:inline-flex;align-items:center;">Add for $49 →</a>
-                            <span style="font-size:12px;color:var(--greyLt);">or $99 standalone · one-time, this and future projects</span>
-                        </div>
-                        <div class="field" style="max-width:520px;margin-bottom:0;">
-                            <label class="lbl">Already purchased? Enter your Adaptation Package license key</label>
-                            <div style="display:flex;gap:10px;">
-                                <input type="text" id="ap-license" placeholder="XXXXXXXX-XXXXXXXX-XXXXXXXX-XXXXXXXX" autocomplete="off" style="flex:1;"/>
-                                <button class="btn-secondary" id="ap-unlock-btn" onclick="unlockAdaptation()">Unlock</button>
-                            </div>
-                            <div id="ap-unlock-error" style="display:none;font-size:13px;color:var(--red);margin-top:8px;font-weight:600;"></div>
-                        </div>
-                    </div>
-
-                    <!-- Unlocked view -->
-                    <div id="ap-unlocked" style="display:none;">
-                        <div class="card" id="ap-generate-card">
-                            <div class="eyebrow" style="color:var(--red);">🎬 Adaptation Package</div>
-                            <h2 style="margin:0 0 8px;">Build your pitch package.</h2>
-                            <p style="font-size:14px;color:var(--grey);margin-bottom:1.25rem;">Three quick AI passes over your manuscript: loglines → one-pager → comp titles. Then a short rights questionnaire (no AI). Takes about a minute.</p>
-                            <button class="btn-primary" id="ap-generate-btn" onclick="generateAdaptationPackage()">✨ Generate Adaptation Package</button>
-                            <div id="ap-progress" style="display:none;margin-top:1rem;font-size:14px;color:var(--text2);"><span class="spinner spinner-dark"></span> <span id="ap-progress-label">Working…</span></div>
-                        </div>
-
-                        <div id="ap-results" style="display:none;">
-                            <!-- 1. Loglines -->
-                            <div class="card">
-                                <div class="bible-lbl" style="margin-bottom:4px;">1 · Logline</div>
-                                <p style="font-size:13px;color:var(--grey);margin-bottom:12px;">Pick the framing that best sells your story — you can edit it before it goes on the one-pager.</p>
-                                <div id="ap-logline-options"></div>
-                                <div class="field" style="margin:12px 0 0;">
-                                    <label class="lbl">Selected logline (editable)</label>
-                                    <textarea id="ap-logline-final" rows="2" oninput="state.adaptation.selectedLogline=this.value"></textarea>
-                                </div>
-                            </div>
-                            <!-- 2. One-pager -->
-                            <div class="card">
-                                <div class="bible-lbl" style="margin-bottom:4px;">2 · One-Page Pitch</div>
-                                <div id="ap-pitch-preview" style="font-size:14px;line-height:1.75;color:var(--text);"></div>
-                                <div style="margin-top:14px;display:flex;gap:10px;flex-wrap:wrap;">
-                                    <button class="btn-primary" onclick="exportPitchPDF()">📄 Export One-Pager PDF</button>
-                                    <button class="btn-secondary" onclick="regeneratePitch()">↻ Regenerate with selected logline</button>
-                                </div>
-                            </div>
-                            <!-- 3. Comps -->
-                            <div class="card">
-                                <div class="bible-lbl" style="margin-bottom:4px;">3 · Comparable Titles</div>
-                                <p style="font-size:13px;color:var(--grey);margin-bottom:12px;">Film/TV comps for producers. ⚠️ flags mean the AI is unsure — verify before using in a pitch.</p>
-                                <div id="ap-comps"></div>
-                            </div>
-                            <!-- 4. Rights checklist -->
-                            <div class="card">
-                                <div class="bible-lbl" style="margin-bottom:4px;">4 · Rights-Clarity Checklist</div>
-                                <p style="font-size:13px;color:var(--grey);margin-bottom:12px;">Four questions, no AI — just so you know where you stand before anyone asks.</p>
-                                <div class="field">
-                                    <label class="lbl">How was this book published?</label>
-                                    <select id="ap-r1" onchange="updateRightsSummary()">
-                                        <option value="">— Select —</option>
-                                        <option value="self">Self-published</option>
-                                        <option value="traditional">Traditionally published</option>
-                                        <option value="hybrid">Hybrid-published</option>
-                                        <option value="unpublished">Unpublished / this is a new work</option>
-                                    </select>
-                                </div>
-                                <div class="field" id="ap-r2-wrap" style="display:none;">
-                                    <label class="lbl">Does your publishing contract mention film, television, or dramatic rights? (Check the rights or reversion clause.)</label>
-                                    <select id="ap-r2" onchange="updateRightsSummary()">
-                                        <option value="">— Select —</option>
-                                        <option value="yes">Yes — the publisher holds or shares them</option>
-                                        <option value="no">No — it doesn't mention them</option>
-                                        <option value="unsure">I'm not sure</option>
-                                    </select>
-                                </div>
-                                <div class="field">
-                                    <label class="lbl">Do you currently hold the film/TV rights to this work, to your knowledge?</label>
-                                    <select id="ap-r3" onchange="updateRightsSummary()">
-                                        <option value="">— Select —</option>
-                                        <option value="yes">Yes</option>
-                                        <option value="no">No</option>
-                                        <option value="unsure">Not sure</option>
-                                    </select>
-                                </div>
-                                <div class="field">
-                                    <label class="lbl">Has this book, or any part of it, been optioned or adapted before?</label>
-                                    <select id="ap-r4" onchange="updateRightsSummary()">
-                                        <option value="">— Select —</option>
-                                        <option value="no">No, never</option>
-                                        <option value="expired">Yes, but the option expired / rights reverted</option>
-                                        <option value="active">Yes, and it may still be active</option>
-                                    </select>
-                                </div>
-                                <div class="honest-note" id="ap-rights-summary" style="display:none;"></div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
 
                 <hr class="divider"/>
                 <div class="btn-row">
@@ -876,8 +995,7 @@ const state = {
   bible: {}, format: 'feature', approach: 'compress',
   tone: '', dialogue: '', episodes: 4,
   manuscriptLength: 'medium',
-  output: '', currentStep: 1,
-  adaptation: { loglines: [], selectedLogline: '', pitch: null, comps: [], generated: false }
+  output: '', currentStep: 1
 };
 
 const FORMAT_TARGETS = {
@@ -893,6 +1011,18 @@ const LS_PARTIAL = 'fsr_partial_session';
 const AI_PROXY = 'https://fluidscriptr-ai.kerospad.workers.dev';
 const LS_MODE = 'fsr_ai_mode'; // 'credits' | 'own'
 function getLicense() { return (localStorage.getItem('fsr_license_key') || '').trim(); }
+function getPayerEmail() { return (localStorage.getItem('fsr_payer_email') || '').trim().toLowerCase(); }
+
+// ── Free sample mode ──────────────────────────────────────
+// Set by the "try a free sample" link on the license gate (see the gate's
+// own <script> block above). No license, no card — generation routes to the
+// AI proxy's action:'free_sample' instead of action:'generate', and never
+// calls start_project (there's no entitlement to consume). Cleared the
+// moment a real license unlocks the tool.
+const SAMPLE_WORD_CAP = 2500; // ~10 manuscript pages at ~250 words/page; mirrors SAMPLE_MAX_PAGES on the worker
+function isSampleMode() { return localStorage.getItem('fsr_sample_mode') === 'true'; }
+function getSampleId() { return (localStorage.getItem('fsr_sample_id') || '').trim(); }
+function getSampleEmail() { return (localStorage.getItem('fsr_sample_email') || '').trim().toLowerCase(); }
 function getAIMode() {
   const m = localStorage.getItem(LS_MODE);
   if (m === 'credits') return m;
@@ -909,7 +1039,7 @@ function getAIMode() {
 function setAIMode(m) {
   localStorage.setItem(LS_MODE, m);
   renderAIMode();
-  if (m === 'credits') refreshCredits();
+  if (m === 'credits') { refreshCredits(); refreshEntitlement(); }
 }
 function renderAIMode() {
   const m = getAIMode();
@@ -917,18 +1047,50 @@ function renderAIMode() {
   document.getElementById('mode-own').classList.toggle('ghost', m !== 'own');
   document.getElementById('own-key-row').style.display = m === 'own' ? 'inline' : 'none';
   document.getElementById('credits-status').style.display = m === 'credits' ? 'inline' : 'none';
+  document.getElementById('conversions-status').style.display = m === 'credits' ? 'inline' : 'none';
 }
 async function refreshCredits() {
   const lic = getLicense();
   if (!lic) return;
   try {
-    const res = await fetch(AI_PROXY, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ action: 'usage', license_key: lic }) });
+    const res = await fetch(AI_PROXY, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ action: 'usage', license_key: lic, email: getPayerEmail() }) });
     const data = await res.json();
     if (data.fsr_credits) updateCreditsUI(data.fsr_credits);
   } catch(e) { /* offline — meter just stays hidden */ }
 }
+// Tier-based conversion allowance (single/three/studio/founding) — distinct
+// from the $ credits meter above. Wired to the `entitlement` action so buyers
+// can see "2 of 3 conversions left" before they start a project.
+const TIER_LABELS = { single: 'Single', three: 'Three-pack', studio: 'Studio', founding: 'Founding member', master: 'Master key' };
+async function refreshEntitlement() {
+  const lic = getLicense();
+  if (!lic) return;
+  try {
+    const res = await fetch(AI_PROXY, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ action: 'entitlement', license_key: lic, email: getPayerEmail() }) });
+    const data = await res.json();
+    if (data.success) updateEntitlementUI(data);
+  } catch(e) { /* offline — badge just stays hidden */ }
+}
+function updateEntitlementUI(ent) {
+  const el = document.getElementById('conversions-status');
+  if (!el) return;
+  el.style.display = getAIMode() === 'credits' ? 'inline' : 'none';
+  const label = TIER_LABELS[ent.tier] || ent.tier;
+  if (ent.expired) {
+    el.textContent = `${label} access expired${ent.expires_at ? ' ' + ent.expires_at.slice(0, 10) : ''} — purchase another to continue`;
+    return;
+  }
+  if (ent.conversions_allowed == null) {
+    el.textContent = `${label} — unlimited conversions`;
+    return;
+  }
+  const remaining = ent.conversions_remaining ?? Math.max(0, ent.conversions_allowed - (ent.conversions_used || 0));
+  el.textContent = remaining <= 0
+    ? `${label}: 0 of ${ent.conversions_allowed} conversions left — purchase another to continue`
+    : `${label}: ${remaining} of ${ent.conversions_allowed} conversion${ent.conversions_allowed === 1 ? '' : 's'} left`;
+}
 // True when the user can generate in the current mode
-function canGenerate() { return getAIMode() === 'own' ? !!getKey() : !!getLicense(); }
+function canGenerate() { return isSampleMode() ? true : (getAIMode() === 'own' ? !!getKey() : !!getLicense()); }
 
 // ── Partial session persistence ───────────────────────────
 function savePartialSession() {
@@ -977,10 +1139,23 @@ function checkPartialSession() {
   } catch(e) { clearPartialSession(); }
 }
 (function() {
+  if (isSampleMode()) {
+    // No license in this mode — skip credits/entitlement UI (both require
+    // getLicense()) and the AI Settings toggle, then show the sample banner.
+    const banner = document.getElementById('sample-banner');
+    if (banner) banner.style.display = 'block';
+    const keyToggle = document.getElementById('key-toggle-btn');
+    if (keyToggle) keyToggle.style.display = 'none';
+    // Fidelity scoring is a paid feature — hide the whole section rather than
+    // offer a button that only explains why it won't run. runFidelityCheck()
+    // still guards itself in case anything else reaches it.
+    document.querySelectorAll('.fidelity-section').forEach(el => { el.style.display = 'none'; });
+    return;
+  }
   const k = localStorage.getItem(LS_KEY);
   if (k) { document.getElementById('api-key').value = k; showKeySaved(); }
   renderAIMode();
-  if (getAIMode() === 'credits') refreshCredits();
+  if (getAIMode() === 'credits') { refreshCredits(); refreshEntitlement(); }
 })();
 // Check for a saved partial session from a previous page load
 document.addEventListener('DOMContentLoaded', checkPartialSession);
@@ -1052,8 +1227,40 @@ function selectPath(path) {
   state.path = path;
   document.getElementById('path-manuscript').classList.toggle('selected', path === 'manuscript');
   document.getElementById('path-idea').classList.toggle('selected', path === 'idea');
+  document.getElementById('path-screenplay').classList.toggle('selected', path === 'screenplay');
   document.getElementById('manuscript-panel').style.display = path === 'manuscript' ? 'block' : 'none';
   document.getElementById('idea-panel').style.display = path === 'idea' ? 'block' : 'none';
+  document.getElementById('screenplay-panel').style.display = path === 'screenplay' ? 'block' : 'none';
+
+  // Prompt: after the sub-panel appears, smooth-scroll to it and pulse the
+  // upload zone (if any) so the user knows the next action is to drop a file.
+  const panelId    = path === 'manuscript' ? 'manuscript-panel'
+                   : path === 'screenplay' ? 'screenplay-panel'
+                   : 'idea-panel';
+  const uploadId   = path === 'manuscript' ? 'upload-zone'
+                   : path === 'screenplay' ? 'sp-upload-zone'
+                   : null;
+  const scrollHost = document.querySelector('.page') || window;
+  setTimeout(() => {
+    const panelEl  = document.getElementById(panelId);
+    const uploadEl = uploadId ? document.getElementById(uploadId) : null;
+    if (panelEl) {
+      if (scrollHost.scrollTo) {
+        // .page is the scroll container (html/body are locked overflow:hidden)
+        const target = panelEl.offsetTop - 24;
+        scrollHost.scrollTo({ top: target, behavior: 'smooth' });
+      } else {
+        panelEl.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      }
+    }
+    if (uploadEl) {
+      uploadEl.classList.remove('attention');
+      // Re-trigger the animation on rapid path switches
+      void uploadEl.offsetWidth;
+      uploadEl.classList.add('attention');
+      setTimeout(() => uploadEl.classList.remove('attention'), 1700);
+    }
+  }, 120);
 }
 
 // ── Output type selection (Step 3) ────────────────────────
@@ -1078,6 +1285,15 @@ function buildOutputOptions() {
         <h3>Enhance Manuscript</h3>
         <p>Rewrite and improve your draft — stronger prose, tighter structure, clearer character voices.</p>
         <div class="oc-format">DOCX · Times New Roman 12pt</div>
+      </div>`;
+  } else if (state.path === 'screenplay') {
+    sub.textContent = 'What do you want to do with your screenplay?';
+    container.innerHTML = `
+      <div class="output-card" onclick="pickOutput(this,'screenplay-cleanup')">
+        <span class="oc-icon">✨</span>
+        <h3>Clean Up &amp; Polish</h3>
+        <p>Fix formatting, tighten structure, sharpen dialogue — Final Draft-compatible output that preserves your scene structure.</p>
+        <div class="oc-format">PDF · .fountain · .fdx</div>
       </div>`;
   } else {
     sub.textContent = 'What do you want FluidScriptr to write for you?';
@@ -1105,15 +1321,18 @@ function pickOutput(el, type) {
 
   // Show/hide format options in step 4
   const isScreenplay = (type === 'screenplay');
+  const isCleanup    = (type === 'screenplay-cleanup');
   document.getElementById('screenplay-format-options').style.display = isScreenplay ? 'block' : 'none';
-  document.getElementById('manuscript-format-options').style.display = isScreenplay ? 'none' : 'block';
+  document.getElementById('manuscript-format-options').style.display = (!isScreenplay && !isCleanup) ? 'block' : 'none';
+  const cf = document.getElementById('cleanup-format-options');
+  if (cf) cf.style.display = isCleanup ? 'block' : 'none';
 }
 
 // goToStep — injects output options when entering step 3, briefing on step 5
 function goToStep(n) {
   if (n === 3) buildOutputOptions();
   if (n === 5) populateBriefing();
-  if (n === 6) renderAdaptationSection();
+  if (n === 6) deliverSampleByEmail(false);
   // Show cancel btn during active workflow (steps 2+), hide on step 1
   const cancelBtn = document.getElementById('cancel-nav-btn');
   if (cancelBtn) cancelBtn.style.display = (n > 1) ? 'flex' : 'none';
@@ -1188,7 +1407,23 @@ async function extractFile(file) {
       return;
     }
 
-    state.rawText = extracted;
+    // Free sample: truncate to ~10 manuscript pages regardless of what was
+    // uploaded. Mirrors SAMPLE_MAX_INPUT_CHARS on the worker — trimming here
+    // gives an honest page count in the UI instead of letting the full
+    // manuscript through and having the backend reject it later.
+    if (isSampleMode()) {
+      const words = extracted.split(/\s+/);
+      if (words.length > SAMPLE_WORD_CAP) {
+        state.rawText = words.slice(0, SAMPLE_WORD_CAP).join(' ');
+        state.pageCount = Math.round(SAMPLE_WORD_CAP / 250);
+        state.sampleTruncated = true;
+      } else {
+        state.rawText = extracted;
+        state.sampleTruncated = false;
+      }
+    } else {
+      state.rawText = extracted;
+    }
 
     const autoTitle = file.name.replace(/\.[^.]+$/, '').replace(/[-_]/g, ' ').replace(/\b\w/g, c => c.toUpperCase());
     const titleEl = document.getElementById('book-title');
@@ -1196,7 +1431,9 @@ async function extractFile(file) {
 
     const wc = state.rawText.split(/\s+/).length;
     document.getElementById('file-name').textContent = file.name;
-    document.getElementById('file-meta').textContent = `${state.pageCount.toLocaleString()} pages · ${wc.toLocaleString()} words · ready for bible generation`;
+    document.getElementById('file-meta').textContent = state.sampleTruncated
+      ? `Free sample: first ${state.pageCount.toLocaleString()} pages (${wc.toLocaleString()} words) of your upload · purchase to convert the full manuscript`
+      : `${state.pageCount.toLocaleString()} pages · ${wc.toLocaleString()} words · ready for bible generation`;
     document.getElementById('file-info').classList.add('on');
     document.getElementById('bible-btn').disabled = false;
     document.getElementById('calc-pages').textContent = `${state.pageCount.toLocaleString()} pages`;
@@ -1211,6 +1448,8 @@ async function extractFile(file) {
 }
 
 // ── Bible from manuscript ─────────────────────────────────
+// Handles any length. ≤100K words: single pass. >100K: split into ~80K-word
+// segments and iteratively update the Bible so it reflects the whole book.
 async function generateBible() {
   const key = getKey();
   if (!canGenerate()) { alert(getAIMode() === 'own' ? 'Add your Anthropic API key in ✨ AI Settings — or switch to Included credits.' : 'Please unlock with your license key first.'); return; }
@@ -1222,14 +1461,54 @@ async function generateBible() {
 
   const btn = document.getElementById('bible-btn');
   btn.disabled = true;
-  btn.innerHTML = '<span class="spinner spinner-dark"></span> Generating bible…';
 
+  const SINGLE_PASS_THRESHOLD = 100000; // words
+  const SEGMENT_SIZE = 80000;           // words per segment for long manuscripts
   const words = state.rawText.split(/\s+/);
-  const truncated = words.slice(0, 60000).join(' ');
+  const totalWords = words.length;
 
   try {
-    const res = await callAPI(key, getBibleSystemPrompt(), `Book: "${state.title}" by ${state.author}\nGenre: ${state.genre}\n\nManuscript:\n${truncated}`, 2000);
-    parseBible(res);
+    if (totalWords <= SINGLE_PASS_THRESHOLD) {
+      // ── Short/normal manuscript: single Bible pass ──────────────────────
+      btn.innerHTML = '<span class="spinner spinner-dark"></span> Generating bible…';
+      const text = words.slice(0, SINGLE_PASS_THRESHOLD).join(' ');
+      const res = await callAPI(
+        key,
+        getBibleSystemPrompt(),
+        `Book: "${state.title}" by ${state.author}\nGenre: ${state.genre}\n\nManuscript:\n${text}`,
+        2000
+      );
+      parseBible(res);
+    } else {
+      // ── Long manuscript: multi-pass Bible ───────────────────────────────
+      const segments = [];
+      for (let i = 0; i < totalWords; i += SEGMENT_SIZE) segments.push(words.slice(i, i + SEGMENT_SIZE).join(' '));
+      const totalSegs = segments.length;
+
+      // First pass — build initial Bible from segment 1
+      btn.innerHTML = `<span class="spinner spinner-dark"></span> Reading segment 1 of ${totalSegs}…`;
+      let currentBible = await callAPI(
+        key,
+        getBibleSystemPrompt(),
+        `Book: "${state.title}" by ${state.author}\nGenre: ${state.genre}\n\nManuscript (segment 1 of ${totalSegs} — the beginning of the book):\n${segments[0]}`,
+        2000
+      );
+
+      // Update passes — feed current Bible + next segment, ask for updated Bible
+      for (let i = 1; i < totalSegs; i++) {
+        btn.innerHTML = `<span class="spinner spinner-dark"></span> Reading segment ${i + 1} of ${totalSegs}…`;
+        const positionNote = (i === totalSegs - 1) ? 'the final section of the book' : `section ${i + 1} of ${totalSegs}`;
+        const updated = await callAPI(
+          key,
+          getBibleUpdatePrompt(),
+          `Book: "${state.title}" by ${state.author}\nGenre: ${state.genre}\n\nEXISTING STORY BIBLE (built from segments 1–${i}):\n${currentBible}\n\nNEW MANUSCRIPT SEGMENT (${positionNote}):\n${segments[i]}\n\nProduce the complete updated Story Bible reflecting the full manuscript-so-far.`,
+          2500
+        );
+        currentBible = updated;
+      }
+
+      parseBible(currentBible);
+    }
     goToStep(2);
   } catch(err) {
     alert('Error: ' + (err.message || 'Check your API key.'));
@@ -1285,8 +1564,148 @@ async function regenerateBible() {
   const sp = document.getElementById('regen-spinner');
   sp.style.display = 'inline-block';
   if (state.path === 'idea') await generateBibleFromIdea();
+  else if (state.path === 'screenplay') await generateBibleFromScreenplay();
   else await generateBible();
   sp.style.display = 'none';
+}
+
+// ── Screenplay upload + extraction ────────────────────────
+function handleScreenplayDrop(e) {
+  e.preventDefault();
+  document.getElementById('sp-upload-zone').classList.remove('drag-over');
+  const file = e.dataTransfer.files[0];
+  if (file) extractScreenplayFile(file);
+}
+function handleScreenplayFileSelect(e) {
+  const file = e.target.files[0];
+  if (file) extractScreenplayFile(file);
+}
+
+async function extractScreenplayFile(file) {
+  const prog = document.getElementById('sp-upload-progress');
+  const progText = document.getElementById('sp-upload-progress-text');
+  const zone = document.getElementById('sp-upload-zone');
+  const name = file.name.toLowerCase();
+  const isPDF   = name.endsWith('.pdf');
+  const isDOCX  = name.endsWith('.docx') || name.endsWith('.doc');
+  const isText  = name.endsWith('.fountain') || name.endsWith('.fdx') || name.endsWith('.txt');
+  if (!isPDF && !isDOCX && !isText) { alert('Please upload a PDF, DOCX, .fountain, .fdx, or .txt file.'); return; }
+
+  prog.classList.add('on');
+  zone.style.opacity = '0.5';
+  progText.textContent = isPDF ? 'Extracting text from PDF…' : isDOCX ? 'Extracting text from DOCX…' : 'Reading screenplay text…';
+
+  try {
+    let text = '';
+    if (isPDF) {
+      const buf = await file.arrayBuffer();
+      const pdf = await pdfjsLib.getDocument({ data: buf }).promise;
+      const total = pdf.numPages;
+      for (let i = 1; i <= total; i++) {
+        progText.textContent = `Reading page ${i} of ${total}…`;
+        const page = await pdf.getPage(i);
+        const content = await page.getTextContent();
+        text += content.items.map(it => it.str).join(' ') + '\n';
+      }
+      state.pageCount = total;
+    } else if (isDOCX) {
+      const buf = await file.arrayBuffer();
+      const result = await mammoth.extractRawText({ arrayBuffer: buf });
+      text = result.value;
+      state.pageCount = Math.round(text.trim().split(/\s+/).length / 250);
+    } else {
+      // .fountain / .fdx / .txt — read as plain text
+      text = await file.text();
+      // FDX is XML — strip tags to get the actual screenplay content for the Bible pass
+      if (name.endsWith('.fdx')) {
+        text = text.replace(/<[^>]+>/g, ' ').replace(/&[a-z]+;/gi, ' ').replace(/\s+/g, ' ');
+      }
+      state.pageCount = Math.max(1, Math.round(text.trim().split(/\s+/).length / 250));
+    }
+
+    const extracted = text.trim();
+    const extractedWords = extracted ? extracted.split(/\s+/).filter(Boolean).length : 0;
+
+    if (extractedWords < 50) {
+      state.rawText = '';
+      state.pageCount = 0;
+      document.getElementById('sp-file-info').classList.remove('on');
+      document.getElementById('sp-bible-btn').disabled = true;
+      document.getElementById('sp-file-input').value = '';
+      prog.classList.remove('on');
+      zone.style.opacity = '1';
+      alert(
+        isPDF
+          ? "We couldn't read any text from this PDF.\n\nIt looks like a scanned document — the pages are images, not selectable text. Try exporting from Final Draft, Highland, or Fade In as a PDF (with a text layer), or export as .fdx / .fountain and upload that instead."
+          : "We couldn't read any text from this file. It may be empty or in an unsupported format. Try re-exporting as .fountain, .fdx, or a text-selectable PDF."
+      );
+      return;
+    }
+
+    // Free sample: same ~10-page cap as the manuscript upload path.
+    if (isSampleMode()) {
+      const wordsAll = extracted.split(/\s+/);
+      if (wordsAll.length > SAMPLE_WORD_CAP) {
+        state.rawText = wordsAll.slice(0, SAMPLE_WORD_CAP).join(' ');
+        state.pageCount = Math.round(SAMPLE_WORD_CAP / 250);
+        state.sampleTruncated = true;
+      } else {
+        state.rawText = extracted;
+        state.sampleTruncated = false;
+      }
+    } else {
+      state.rawText = extracted;
+    }
+    state.isScreenplayInput = true;
+
+    const autoTitle = file.name.replace(/\.[^.]+$/, '').replace(/[-_]/g, ' ').replace(/\b\w/g, c => c.toUpperCase());
+    const titleEl = document.getElementById('sp-title');
+    if (!titleEl.value) titleEl.value = autoTitle;
+
+    const wc = state.rawText.split(/\s+/).length;
+    document.getElementById('sp-file-name').textContent = file.name;
+    document.getElementById('sp-file-meta').textContent = `${state.pageCount.toLocaleString()} pages · ${wc.toLocaleString()} words · ready for analysis`;
+    document.getElementById('sp-file-info').classList.add('on');
+    document.getElementById('sp-bible-btn').disabled = false;
+    document.getElementById('calc-pages').textContent = `${state.pageCount.toLocaleString()} pages`;
+  } catch(err) {
+    alert('Error reading file: ' + (err.message || 'Please try a different file.'));
+  }
+
+  prog.classList.remove('on');
+  zone.style.opacity = '1';
+  document.getElementById('sp-file-input').value = '';
+}
+
+// ── Bible from screenplay ─────────────────────────────────
+async function generateBibleFromScreenplay() {
+  const key = getKey();
+  if (!canGenerate()) { alert(getAIMode() === 'own' ? 'Add your Anthropic API key in ✨ AI Settings — or switch to Included credits.' : 'Please unlock with your license key first.'); return; }
+  if (!state.rawText) { alert('Please upload a screenplay first.'); return; }
+
+  state.title  = document.getElementById('sp-title').value.trim() || 'Untitled';
+  state.author = document.getElementById('sp-author').value.trim() || 'Unknown';
+  state.genre  = document.getElementById('sp-genre').value;
+
+  const btn = document.getElementById('sp-bible-btn');
+  btn.disabled = true;
+  btn.innerHTML = '<span class="spinner spinner-dark"></span> Analyzing screenplay…';
+
+  const words = state.rawText.split(/\s+/);
+  const truncated = words.slice(0, 60000).join(' ');
+
+  try {
+    const res = await callAPI(key, getBibleSystemPrompt(),
+      `Screenplay: "${state.title}" by ${state.author}\nGenre: ${state.genre}\n\nSCREENPLAY (extract characters, arcs, tone, themes from the existing script format — scene headings, action lines, dialogue):\n${truncated}`,
+      2000);
+    parseBible(res);
+    goToStep(2);
+  } catch(err) {
+    alert('Error: ' + (err.message || 'Check your API key.'));
+  }
+
+  btn.disabled = false;
+  btn.innerHTML = 'Analyze Screenplay →';
 }
 
 function getBibleSystemPrompt() {
@@ -1320,7 +1739,64 @@ What happens and what it means thematically.
 Be specific and insightful. Reference actual names and plot points.`;
 }
 
-async function callAPI(key, system, userMsg, maxTokens = 2000) {
+// Long-manuscript multi-pass: update the Bible with new manuscript segments
+// while preserving what was already captured from earlier sections.
+function getBibleUpdatePrompt() {
+  return `You are updating an existing Story Bible with additional manuscript content.
+
+The Bible below was built from earlier sections of the manuscript. You'll now read the next segment and produce an UPDATED Bible that reflects the complete story-so-far — including new characters, character arc developments, additional themes, refined structure, and any new information about how the ending resolves.
+
+Output in EXACTLY this structure (same as the input Bible):
+
+LOGLINE
+One compelling sentence (refine if the story's true scope has become clearer).
+
+CHARACTERS
+Each major character: NAME — role, arc summary. Keep every character from the existing Bible unless the new segment proves they were minor. ADD new characters found in this segment. EXTEND arcs where the new segment reveals more.
+
+WORLD & TONE
+Setting, period, atmosphere, visual language, emotional register. Preserve what was established; add new locations, tonal shifts, or visual language introduced in the new segment.
+
+THEMES
+2-4 core themes. Keep existing themes; add any new ones that emerge.
+
+STRUCTURE
+Act 1: [summary]
+Act 2: [summary]
+Act 3: [summary]
+Update the act structure so it reflects the manuscript-so-far, not just the new segment.
+
+KEY MOTIFS
+Recurring images, objects, phrases. Preserve existing motifs; add new ones.
+
+ENDING
+What happens and what it means thematically. Only update if the new segment reveals more of the ending.
+
+Be specific and insightful. Reference actual names and plot points. Do not lose anything essential from the existing Bible.`;
+}
+
+// `purpose` lets the worker refuse specific features on the free path
+// (currently fidelity scoring — the most expensive call in a run). Paid calls
+// ignore it entirely.
+async function callAPI(key, system, userMsg, maxTokens = 2000, purpose = 'generate') {
+  // Free sample → capped, budget-metered path. No license, no key, no
+  // conversion consumed. Checked first: sample mode never has a key, but be
+  // explicit.
+  if (!key && isSampleMode()) {
+    const res = await fetch(AI_PROXY, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ action: 'free_sample', sample_id: getSampleId(), email: getSampleEmail(), purpose, system, userMsg, maxTokens })
+    });
+    const data = await res.json();
+    if (!res.ok || data.success === false) {
+      const err = new Error(data.error || 'Generation failed. Try again.');
+      err.code = data.code;
+      throw err;
+    }
+    return data.content?.map(b => b.text || '').join('') || '';
+  }
+
   // Personal key → straight to Anthropic (never touches our servers).
   if (key) {
     const res = await fetch('https://api.anthropic.com/v1/messages', {
@@ -1336,7 +1812,7 @@ async function callAPI(key, system, userMsg, maxTokens = 2000) {
   const res = await fetch(AI_PROXY, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ action: 'generate', license_key: getLicense(), system, userMsg, maxTokens })
+    body: JSON.stringify({ action: 'generate', license_key: getLicense(), email: getPayerEmail(), system, userMsg, maxTokens })
   });
   const data = await res.json();
   if (!res.ok || data.success === false) {
@@ -1365,23 +1841,42 @@ function updateCreditsUI(c) {
 }
 
 // Call once at the very start of a full project run (screenplay/novel/
-// enhancement/adaptation). No-op for normal and master keys; enforces the
-// FOUNDER_KEY_LIMITED 3-generation cap server-side. Only relevant in
-// included-credits mode — BYOK never touches the proxy.
+// enhancement/adaptation). No-op for master keys; enforces the
+// FOUNDER_KEY_LIMITED 3-generation cap AND the per-tier conversion allowance
+// (single/three/studio/founding) server-side. Only relevant in included-
+// credits mode — BYOK never touches the proxy, so conversions aren't metered.
 async function checkFounderStart() {
+  // Sample mode has no license and no entitlement to consume — start_project
+  // would just fail on the missing license_key, so skip it outright.
+  if (isSampleMode()) return { ok: true };
   if (getAIMode() !== 'credits') return { ok: true };
   try {
     const res = await fetch(AI_PROXY, {
       method: 'POST', headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ action: 'start_project', license_key: getLicense() })
+      body: JSON.stringify({ action: 'start_project', license_key: getLicense(), email: getPayerEmail() })
     });
     const data = await res.json();
-    if (data.success === false && data.code === 'founder_limit_reached') {
-      return { ok: false, message: data.error };
+    if (data.success === false) {
+      // Covers founder_limit_reached, conversions_exhausted, entitlement_expired,
+      // and revoked — all legitimate stops the worker computes server-side.
+      // Previously only founder_limit_reached was honored here, so a buyer who'd
+      // used up their purchased conversions was silently waved through.
+      return { ok: false, message: data.error || 'Unable to start this project. Please check your license.' };
     }
     if (data.fsr_credits) updateCreditsUI(data.fsr_credits);
     else if (typeof data.founder_generations_remaining === 'number') {
       updateCreditsUI({ unlimited: true, founder_generations_remaining: data.founder_generations_remaining });
+    }
+    if (data.tier) {
+      // Paying-tier start_project returns the updated conversion count
+      // directly — reflect it without a second round trip.
+      updateEntitlementUI({
+        tier: data.tier, conversions_used: data.conversions_used,
+        conversions_allowed: data.conversions_allowed, conversions_remaining: data.conversions_remaining,
+        expired: false
+      });
+    } else if (typeof data.founder_generations_remaining !== 'number') {
+      refreshEntitlement(); // master key or other non-tiered response
     }
     return { ok: true };
   } catch {
@@ -1463,19 +1958,27 @@ function populateBriefing() {
 
   const isScreenplay = state.outputType === 'screenplay';
   const isEnhance    = state.outputType === 'enhance';
+  const isCleanup    = state.outputType === 'screenplay-cleanup';
 
   let fmtLabel = isScreenplay ? FORMAT_TARGETS[state.format]?.label || 'Feature Film' :
-                 isEnhance ? 'Enhanced Manuscript' : 'Original Manuscript';
+                 isCleanup    ? 'Polished Screenplay' :
+                 isEnhance    ? 'Enhanced Manuscript' : 'Original Manuscript';
   let targetLabel = isScreenplay ? FORMAT_TARGETS[state.format]?.range || '90–110 pages' :
-                    isEnhance ? 'DOCX · industry format' : 'DOCX · industry format';
+                    isCleanup    ? 'Same length as source' :
+                    isEnhance    ? 'DOCX · industry format' : 'DOCX · industry format';
 
-  const chunks = isScreenplay ? Math.ceil((state.format === 'limited' ? state.episodes * 50 : (FORMAT_TARGETS[state.format]?.pages || 20)) / 8) : 15;
+  // Cleanup and enhance both process the input in ~2500-word chunks
+  const chunks = isScreenplay ? Math.ceil((state.format === 'limited' ? state.episodes * 50 : (FORMAT_TARGETS[state.format]?.pages || 20)) / 8)
+                              : isCleanup ? Math.max(3, Math.ceil((state.rawText || '').split(/\s+/).length / 2500))
+                              : 15;
   const minT = Math.round(chunks * 0.4), maxT = Math.round(chunks * 0.8);
 
   document.getElementById('brief-title').textContent = state.title || 'Your story';
   document.getElementById('brief-pages').textContent = state.pageCount > 0 ? `${state.pageCount} pages` : 'From idea';
   document.getElementById('brief-genre').textContent = state.genre;
-  document.getElementById('brief-output').textContent = isScreenplay ? 'Screenplay' : isEnhance ? 'Enhanced Manuscript' : 'Original Manuscript';
+  document.getElementById('brief-output').textContent = isScreenplay ? 'Screenplay'
+                                                     : isCleanup    ? 'Polished Screenplay'
+                                                     : isEnhance    ? 'Enhanced Manuscript' : 'Original Manuscript';
   document.getElementById('brief-format').textContent = fmtLabel;
   document.getElementById('brief-approach').textContent = state.approach;
   document.getElementById('brief-ratio').textContent = state.pageCount > 0 && isScreenplay ? (state.pageCount / (FORMAT_TARGETS[state.format]?.pages || 20)).toFixed(1) + ':1' : 'N/A';
@@ -1530,6 +2033,8 @@ ENDING: ${state.bible.ending}`;
     await convertToScreenplay(key, bibleText);
   } else if (state.outputType === 'enhance') {
     await enhanceManuscript(key, bibleText);
+  } else if (state.outputType === 'screenplay-cleanup') {
+    await cleanupScreenplay(key, bibleText);
   } else {
     await writeManuscript(key, bibleText);
   }
@@ -1681,6 +2186,7 @@ FOUNTAIN FORMAT:
   document.getElementById('out-stat1').textContent = `~${pagesWritten} pages`;
   document.getElementById('out-stat2').textContent = `${sceneCount} scenes`;
   document.getElementById('out-stat3').textContent = `~${runtime} min`;
+  renderOutputContext(null); // screenplay — hide the novel-length context
 
   setTimeout(() => {
     populateResultsBible();
@@ -1700,8 +2206,8 @@ FOUNTAIN FORMAT:
 
 // ── Manuscript writing ────────────────────────────────────
 async function writeManuscript(key, bibleText) {
-  const lengthTargets = { short: 20000, medium: 60000, long: 90000 };
-  const targetWords = lengthTargets[state.manuscriptLength] || 60000;
+  const lengthTargets = { novella: 25000, short: 55000, medium: 75000, literary: 85000, long: 100000, epic: 120000 };
+  const targetWords = lengthTargets[state.manuscriptLength] || 75000;
   const chapters = state.approach === 'literary' ? 15 : 12;
   const wordsPerChapter = Math.round(targetWords / chapters);
 
@@ -1794,9 +2300,10 @@ FORMAT REQUIREMENTS (strictly follow):
   document.getElementById('manuscript-out').textContent = state.output;
   document.getElementById('manuscript-output-section').style.display = 'block';
   document.getElementById('screenplay-output-section').style.display = 'none';
-  document.getElementById('out-stat1').textContent = `~${wordsWritten.toLocaleString()} words`;
+  document.getElementById('out-stat1').textContent = `${wordsWritten.toLocaleString()} words`;
   document.getElementById('out-stat2').textContent = stoppedForCredits ? `${chaptersWritten} of ${chapters} chapters` : `${chapters} chapters`;
   document.getElementById('out-stat3').textContent = `~${Math.round(wordsWritten / 250)} pages`;
+  renderOutputContext(wordsWritten);
 
   setTimeout(() => {
     populateResultsBible();
@@ -1885,13 +2392,115 @@ CRITICAL: Preserve the story, characters, and plot exactly. Only improve the wri
   document.getElementById('manuscript-out').textContent = state.output;
   document.getElementById('manuscript-output-section').style.display = 'block';
   document.getElementById('screenplay-output-section').style.display = 'none';
-  document.getElementById('out-stat1').textContent = `~${wordsWritten.toLocaleString()} words`;
+  document.getElementById('out-stat1').textContent = `${wordsWritten.toLocaleString()} words`;
   document.getElementById('out-stat2').textContent = stoppedForCredits ? `${sectionsEnhanced} of ${totalChunks} enhanced` : 'Enhanced';
   document.getElementById('out-stat3').textContent = `~${Math.round(wordsWritten / 250)} pages`;
+  renderOutputContext(wordsWritten);
 
   setTimeout(() => {
     populateResultsBible();
     // Enhancement has no partial-continue mode — always show the new-project btn
+    const contRow = document.getElementById('partial-continue-row');
+    const newBtn = document.getElementById('new-project-btn');
+    if (contRow) contRow.style.display = 'none';
+    if (newBtn) newBtn.style.display = 'inline-flex';
+    goToStep(6);
+  }, 1200);
+}
+
+// ── Screenplay clean-up / polish ──────────────────────────
+async function cleanupScreenplay(key, bibleText) {
+  const words = state.rawText.split(/\s+/);
+  const chunkSize = 2500;
+  const chunks = [];
+  for (let i = 0; i < words.length; i += chunkSize) chunks.push(words.slice(i, i + chunkSize).join(' '));
+  const totalChunks = chunks.length;
+
+  const intensity = state.approach || 'standard'; // 'light' | 'standard' | 'deep'
+  addLog(`Polishing "${state.title}" — ${totalChunks} sections · ${intensity} intensity`);
+  setProgress(2, 'Starting…', 'Preparing clean-up…');
+
+  const intensityDirective = intensity === 'light'
+    ? "Fix formatting only. Do NOT rewrite prose. Correct scene headings (INT./EXT. LOCATION – TIME), character cue caps, dialogue placement, parentheticals, and transitions. Leave dialogue and action lines otherwise untouched."
+    : intensity === 'deep'
+    ? "Fix formatting AND actively tighten. Reduce redundant action, sharpen weak dialogue, cut clichés, break oversized action blocks into shorter beats, and improve scene rhythm. Preserve the story, character names, scene order, and voice — never invent new scenes or characters."
+    : "Fix formatting AND do a gentle pass on pacing and dialogue. Tighten obviously long action lines, clean up on-the-nose dialogue, but preserve author voice. Do not add or remove scenes or characters.";
+
+  const systemPrompt = `You are a professional script editor polishing "${state.title}" by ${state.author || 'the author'} (${state.genre}).
+
+${bibleText}
+
+${intensityDirective}
+
+FORMAT — output MUST be valid Fountain screenplay format:
+- Scene headings: INT. or EXT. LOCATION – TIME OF DAY (in ALL CAPS)
+- Action lines: present-tense, left-aligned prose (keep under 4 lines each)
+- Character cues: NAME in ALL CAPS, centered logically
+- Parentheticals: (in parens), one line max, only when necessary
+- Dialogue: below the character cue, block-formatted
+- Transitions: CUT TO: / FADE OUT. / etc. — right-aligned semantically (use uppercase)
+- Preserve scene order, characters, and story beats exactly
+
+Output ONLY the polished screenplay text in Fountain format. No commentary, no explanations, no markdown fences.`;
+
+  const parts = [];
+  let wordsWritten = 0;
+  let sectionsPolished = 0;
+  let stoppedForCredits = false;
+
+  for (let i = 0; i < totalChunks; i++) {
+    if (state._cancelled) break;
+    const pct = 5 + ((i / totalChunks) * 88);
+    setProgress(pct, `Section ${i + 1} of ${totalChunks}`, 'Polishing screenplay…', `~${wordsWritten.toLocaleString()} words polished`);
+    addLog(`Polishing section ${i + 1}/${totalChunks}…`);
+
+    try {
+      const part = await callAPI(key, systemPrompt, `Polish this screenplay section (preserve every scene and character; only clean up formatting${intensity === 'light' ? '' : ' and tighten as directed'}):\n\n${chunks[i]}`, 2500);
+      parts.push(part);
+      wordsWritten += part.split(/\s+/).length;
+      sectionsPolished++;
+    } catch(err) {
+      if (err.code === 'credits_exhausted' || err.code === 'rate_limited') {
+        addLog(`⚠️ ${err.message}`);
+        alert(err.message);
+        stoppedForCredits = true;
+        // Preserve the rest of the screenplay unpolished so the user doesn't lose it
+        for (let j = i; j < totalChunks; j++) parts.push(chunks[j]);
+        break;
+      }
+      addLog(`⚠️ Section ${i + 1} error — keeping original`);
+      parts.push(chunks[i]);
+    }
+  }
+
+  if (state._cancelled) {
+    state.output = parts.join('\n\n');
+    savePartialSession();
+    addLog('✕ Clean-up cancelled.');
+    return;
+  }
+
+  setProgress(96, 'Assembling…', 'Finalizing polished screenplay…');
+  state.output = parts.join('\n\n');
+  setProgress(100, stoppedForCredits ? 'Stopped early' : 'Complete!',
+    stoppedForCredits
+      ? `Included credits used up — polished ${sectionsPolished} of ${totalChunks} sections; the rest is included un-polished.`
+      : 'Your polished screenplay is ready.');
+  addLog(stoppedForCredits ? '⚠️ Clean-up stopped — included credits used up.' : '✓ Clean-up complete!');
+  savePartialSession();
+
+  document.getElementById('screenplay-out').innerHTML = renderScreenplayHTML(state.output);
+  document.getElementById('screenplay-out').classList.add('sp-page');
+  document.getElementById('screenplay-output-section').style.display = 'block';
+  document.getElementById('manuscript-output-section').style.display = 'none';
+  document.getElementById('out-stat1').textContent = `${wordsWritten.toLocaleString()} words`;
+  document.getElementById('out-stat2').textContent = stoppedForCredits ? `${sectionsPolished} of ${totalChunks} polished` : 'Polished';
+  document.getElementById('out-stat3').textContent = `~${Math.round(wordsWritten / 250)} pages`;
+  renderOutputContext(null); // screenplay clean-up — hide the novel-length context
+
+  setTimeout(() => {
+    populateResultsBible();
+    // Clean-up doesn't support partial-continue mode
     const contRow = document.getElementById('partial-continue-row');
     const newBtn = document.getElementById('new-project-btn');
     if (contRow) contRow.style.display = 'none';
@@ -1921,7 +2530,7 @@ function getSlug() {
 
 function exportFountain() {
   const date = new Date().toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' });
-  const content = `Title: ${state.title}\nAdapted by FluidScriptr\nDraft date: ${date}\n\n===\n\n${state.output}`;
+  const content = `Title: ${state.title}\nAdapted by FluidScriptr\nDraft date: ${date}\n\n===\n\n${state.output}${sampleCreditText()}`;
   downloadFile(content, getSlug() + '.fountain', 'text/plain;charset=utf-8');
   clearPartialSession();
 }
@@ -1931,7 +2540,7 @@ function escapeXML(s) {
 }
 
 function exportFDX() {
-  const lines = state.output.split('\n');
+  const lines = (state.output + sampleCreditText()).split('\n');
   let fdx = '';
   for (const line of lines) {
     const raw = line.trim();
@@ -1958,29 +2567,82 @@ const SP_TRANS_RE  = /^(FADE IN|FADE OUT|FADE TO|CUT TO|SMASH CUT|HARD CUT|MATCH
 function isCharacterCue(raw, next) {
   // A cue is short, uppercase, and immediately followed by dialogue or a
   // parenthetical. Allows the standard suffixes: (V.O.) (O.S.) (CONT'D).
+  // `next` is the IMMEDIATELY following line, not the next non-blank one —
+  // a cue is never separated from its dialogue by a blank line, and the
+  // looser test made stray all-caps lines (title blocks, shouted action)
+  // read as character names.
   if (!raw || raw.length > 40) return false;
   if (!next) return false;                       // nothing follows → not a cue
   if (SP_SCENE_RE.test(raw) || SP_TRANS_RE.test(raw)) return false;
+  if (SP_SCENE_RE.test(next) || SP_TRANS_RE.test(next)) return false;
   const core = raw.replace(/\s*\((V\.?O\.?|O\.?S\.?|O\.?C\.?|CONT'?D|CONTINUED)\)\s*$/i, '').trim();
   if (!core || /[.?!,;:]$/.test(core)) return false;
   if (core !== core.toUpperCase()) return false; // must be all caps
   return /[A-Z]/.test(core);
 }
 
+/* Everything before the first slugline or FADE IN is title-page material:
+   the Fountain key/value block we prepend in the assembler (Title:, Format:,
+   the `===` terminator) plus whatever title block the model wrote on its own.
+   Printing it as body text put "Title:" in the action margin and pushed the
+   bare-caps title into the 22ch character-cue indent. Pull it out and render
+   it centred on its own page instead. state.output is left untouched — the
+   Fountain and FDX exports rely on that header being present. */
+const SP_BODY_START_RE = /^(FADE IN|FADE UP)\b/i;
+const SP_TITLE_KEY_RE  = /^(Title|Credit|Author|Authors|Source|Draft date|Contact|Notes|Copyright|Format|Adapted by)\s*:\s*(.*)$/i;
+
+function splitTitlePage(lines) {
+  let bodyAt = -1;
+  for (let i = 0; i < lines.length; i++) {
+    const l = lines[i].trim();
+    if (SP_SCENE_RE.test(l) || SP_BODY_START_RE.test(l)) { bodyAt = i; break; }
+  }
+  // No slugline found at all — treat the whole thing as body rather than
+  // silently swallowing the script into a title page.
+  if (bodyAt <= 0) return { title: [], bodyAt: Math.max(bodyAt, 0) };
+
+  const head = lines.slice(0, bodyAt).map(l => l.trim());
+  const sep = head.indexOf('===');               // Fountain title-page terminator
+
+  // The model writes its own title block after the `===`. When it has, that
+  // one is the authored version — prefer it and drop our machine header, so
+  // the page doesn't carry the title twice plus a stray "Feature Film".
+  const authored = sep >= 0 ? head.slice(sep + 1).filter(Boolean) : [];
+  if (authored.length) return { title: authored, bodyAt };
+
+  const title = [];
+  for (const l of (sep >= 0 ? head.slice(0, sep) : head)) {
+    if (!l) continue;
+    const kv = l.match(SP_TITLE_KEY_RE);
+    if (kv && /^format$/i.test(kv[1])) continue;  // metadata, not title-page copy
+    const val = kv ? kv[2].trim() : l;            // keep the value, drop the label
+    if (val) title.push(val);
+  }
+  return { title, bodyAt };
+}
+
 function parseScreenplay(text) {
-  const lines = String(text || '').split('\n');
+  const allLines = String(text || '').split('\n');
+  const { title, bodyAt } = splitTitlePage(allLines);
+  const lines = allLines.slice(bodyAt);
   const out = [];
   let inDialogue = false;
 
+  for (const t of title) out.push({ t: 'sp-title', s: t });
+  if (title.length) out.push({ t: 'sp-titlebreak', s: '' });
+
   for (let i = 0; i < lines.length; i++) {
     const raw = lines[i].trim();
-    if (!raw) { inDialogue = false; continue; }
-
-    // Next non-blank line — needed to tell a character cue from shouted action.
-    let next = '';
-    for (let j = i + 1; j < lines.length; j++) {
-      if (lines[j].trim()) { next = lines[j].trim(); break; }
+    // A blank line ends the current paragraph AND the current dialogue run.
+    if (!raw) {
+      inDialogue = false;
+      if (out.length && out[out.length - 1].t !== 'sp-break') out.push({ t: 'sp-break' });
+      continue;
     }
+
+    // The immediately following line — a cue is never separated from its
+    // dialogue by a blank line, so don't skip past blanks looking for one.
+    const next = (lines[i + 1] || '').trim();
 
     if (SP_SCENE_RE.test(raw))            { out.push({ t: 'sp-scene', s: raw });      inDialogue = false; }
     else if (SP_TRANS_RE.test(raw) || /^[A-Z0-9\s]+TO:$/.test(raw))
@@ -1991,29 +2653,120 @@ function parseScreenplay(text) {
     else if (inDialogue)                  { out.push({ t: 'sp-dialogue', s: raw }); }
     else                                  { out.push({ t: 'sp-action', s: raw }); }
   }
-  return out;
+
+  /* The model hard-wraps action and dialogue mid-sentence. Left as separate
+     divs, every wrapped line becomes its own block with its own bottom
+     margin, so the text can never reflow to the page width. Join consecutive
+     lines of the same flowing type back into one paragraph and let CSS wrap
+     it. Blank lines already reset the run above, so real paragraph breaks
+     survive. */
+  const merged = [];
+  let broken = true; // true = a paragraph boundary sits before the next line
+  for (const el of out) {
+    if (el.t === 'sp-break') { broken = true; continue; }
+    const prev = merged[merged.length - 1];
+    const flows = el.t === 'sp-action' || el.t === 'sp-dialogue';
+    if (flows && !broken && prev && prev.t === el.t) prev.s += ' ' + el.s;
+    else merged.push({ t: el.t, s: el.s });
+    broken = false;
+  }
+  return merged;
 }
 
 function escHTML(s) {
   return String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
 }
 
+// ── Free-sample delivery ─────────────────────────────────────
+// The gate promised "we'll email you the finished screenplay file" — this is
+// what keeps that promise, and it's the reason a visitor types a real address
+// instead of a throwaway. Fires once automatically when they reach Step 6
+// with finished output; the "Send it again" button re-fires it (the worker
+// allows a small number of resends for spam-folder cases).
+let _sampleDelivered = false;
+
+async function deliverSampleByEmail(manual) {
+  if (!isSampleMode()) return;
+  const card = document.getElementById('sample-deliver');
+  const statusEl = document.getElementById('sample-deliver-status');
+  const againBtn = document.getElementById('sample-deliver-btn');
+  if (!card || !statusEl) return;
+
+  const email = getSampleEmail();
+  if (!state.output || !email) return;
+  if (_sampleDelivered && !manual) return;
+  _sampleDelivered = true;
+
+  card.style.display = 'block';
+  againBtn.style.display = 'none';
+  statusEl.textContent = 'Sending it to your inbox…';
+
+  try {
+    const res = await fetch(AI_PROXY, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        action: 'sample_deliver',
+        sample_id: getSampleId(),
+        email,
+        title: state.title || 'Your screenplay',
+        screenplay: state.output,
+      }),
+    });
+    const data = await res.json();
+    if (data.success) {
+      statusEl.innerHTML = `Sent to <strong>${escHTML(email)}</strong> — check your inbox (and your spam folder just in case).`;
+      againBtn.style.display = 'inline-block';
+      againBtn.textContent = 'Send it again';
+    } else {
+      // Includes the "not switched on yet" case. Never claim it was sent.
+      statusEl.textContent = data.error || "We couldn't email it just now — use the download buttons above to save it.";
+      againBtn.style.display = 'inline-block';
+      againBtn.textContent = 'Try again';
+    }
+  } catch {
+    statusEl.textContent = "We couldn't reach the mail service — use the download buttons above to save your screenplay.";
+    againBtn.style.display = 'inline-block';
+    againBtn.textContent = 'Try again';
+  }
+}
+
+// ── Sample credit line ───────────────────────────────────────
+// Free-sample output carries a small FluidScriptr credit. Copies of a sample
+// WILL get shared — screenshots can't be prevented and a shared screenshot of
+// a good conversion is the cheapest advertising there is — so the goal isn't
+// to stop it, it's to make sure every copy says where it came from.
+// Paid output is never marked.
+const SAMPLE_CREDIT = 'Converted with FluidScriptr — fluidscriptr.app';
+
+function sampleCreditHTML() {
+  return isSampleMode() ? `<div class="sp-credit">${SAMPLE_CREDIT}</div>` : '';
+}
+
+function sampleCreditText() {
+  return isSampleMode() ? `\n\n${SAMPLE_CREDIT}\n` : '';
+}
+
 function renderScreenplayHTML(text) {
   return parseScreenplay(text)
     .map(el => `<div class="${el.t}">${escHTML(el.s)}</div>`)
-    .join('');
+    .join('') + sampleCreditHTML();
 }
 
 function exportScreenplayPDF() {
   const w = window.open('', '_blank');
   w.document.write(`<!DOCTYPE html><html><head><title>${state.title}</title>
   <style>
+    /* The page box owns the margins. Repeating them on <body> stacked a
+       second set on top of the first and crushed the text into a ~3.5in
+       column that could not reflow. */
     @page{size:letter;margin:1in 1in 1in 1.5in;}
+    html,body{margin:0;padding:0;}
     body{font-family:'Courier New',Courier,monospace;font-size:12pt;
-      margin:1in 1in 1in 1.5in;
       line-height:1;color:#000;background:#fff;}
-    /* 10 characters per inch in 12pt Courier — see the .sp-* rules in the app */
-    div{white-space:pre-wrap;max-width:60ch;}
+    /* 10 characters per inch in 12pt Courier — see the .sp-* rules in the app.
+       normal (not pre-wrap) so paragraphs reflow to the measure. */
+    div{white-space:normal;max-width:60ch;}
     .sp-scene{text-transform:uppercase;font-weight:bold;margin:2em 0 1em;
       page-break-after:avoid;break-after:avoid;}
     .sp-action{margin:0 0 1em;}
@@ -2023,23 +2776,58 @@ function exportScreenplayPDF() {
       page-break-after:avoid;break-after:avoid;}
     .sp-dialogue{margin:0 0 1em 10ch;max-width:35ch;}
     .sp-transition{text-transform:uppercase;text-align:right;max-width:60ch;margin:0 0 1em;}
-    @media print{body{margin:1in 1in 1in 1.5in;}}
+    /* Title page: centred, roughly a third down, then its own page break. */
+    .sp-title{text-align:center;max-width:60ch;margin:0 0 1em;}
+    .sp-title:first-child{text-transform:uppercase;font-weight:bold;margin-top:3in;}
+    .sp-titlebreak{page-break-after:always;break-after:page;height:0;margin:0;}
+    .sp-credit{margin:3em 0 0;font-size:9pt;color:#666;text-align:center;
+      max-width:60ch;page-break-before:avoid;break-before:avoid;}
+    @media print{html,body{margin:0;}}
   </style></head><body>${renderScreenplayHTML(state.output)}</body></html>`);
   w.document.close();
   setTimeout(() => w.print(), 600);
   clearPartialSession();
 }
 
+// RTF only guarantees 7-bit ASCII in the body; anything else must go through
+// a \uN? escape (signed 16-bit UTF-16 code unit) or Word/Google Docs will
+// read the raw UTF-8 bytes as Windows-1252 and mangle them (e.g. an em dash
+// becomes "‚Äî"). Also escapes the three RTF control characters (\, {, })
+// so story text containing them can't corrupt the document structure.
+function rtfEscapeText(text) {
+  let out = '';
+  for (const ch of String(text ?? '')) {
+    const code = ch.codePointAt(0);
+    if (ch === '\\' || ch === '{' || ch === '}') {
+      out += '\\' + ch;
+    } else if (code < 128) {
+      out += ch; // includes \n, handled by the \par replace below
+    } else if (code <= 0xFFFF) {
+      out += `\\u${code > 32767 ? code - 65536 : code}?`;
+    } else {
+      // Astral character (e.g. emoji): split into a UTF-16 surrogate pair,
+      // each half emitted as its own \u escape.
+      const high = Math.floor((code - 0x10000) / 0x400) + 0xD800;
+      const low = ((code - 0x10000) % 0x400) + 0xDC00;
+      out += `\\u${high - 65536}?\\u${low - 65536}?`;
+    }
+  }
+  return out;
+}
+
 function exportManuscriptDOCX() {
   // Generate a basic DOCX-compatible RTF wrapped as .docx hint
   // For true DOCX we build an RTF with Times New Roman 12pt, double-spaced, 1-inch margins
+  const bodyText = rtfEscapeText(state.output + sampleCreditText())
+    .replace(/\n\n/g, '\\par\\par ')
+    .replace(/\n/g, '\\par ');
   const rtf = `{\\rtf1\\ansi\\deff0
 {\\fonttbl{\\f0 Times New Roman;}}
-{\\info{\\title ${state.title}}}
+{\\info{\\title ${rtfEscapeText(state.title)}}}
 \\paperw12240\\paperh15840
 \\margl1440\\margr1440\\margt1440\\margb1440
 \\f0\\fs24\\sl480\\slmult1
-${state.output.replace(/\n\n/g, '\\par\\par ').replace(/\n/g, '\\par ')}
+${bodyText}
 }`;
   // Download as .rtf (universally opens in Word with correct formatting)
   downloadFile(rtf, getSlug() + '-manuscript.rtf', 'application/rtf');
@@ -2056,284 +2844,12 @@ function exportManuscriptPDF() {
       line-height:2;color:#000;background:#fff;
       margin:1in;white-space:pre-wrap;word-wrap:break-word;}
     @media print{body{margin:1in;}}
-  </style></head><body>${state.output.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')}</body></html>`);
+  </style></head><body>${(state.output + sampleCreditText()).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')}</body></html>`);
   w.document.close();
   setTimeout(() => w.print(), 600);
   clearPartialSession();
 }
 
-// ══ ADAPTATION PACKAGE ═══════════════════════════════════
-const AP_LS_KEY = 'fsr_adaptation_key';
-const LICENSE_WORKER = 'https://fluidscriptr-license.kerospad.workers.dev';
-
-function hasAdaptation() { return !!localStorage.getItem(AP_LS_KEY); }
-
-function renderAdaptationSection() {
-  const unlocked = hasAdaptation();
-  document.getElementById('ap-locked').style.display = unlocked ? 'none' : 'block';
-  document.getElementById('ap-unlocked').style.display = unlocked ? 'block' : 'none';
-  if (unlocked && state.adaptation.generated) {
-    document.getElementById('ap-results').style.display = 'block';
-  }
-}
-
-async function unlockAdaptation() {
-  const key = document.getElementById('ap-license').value.trim();
-  const errEl = document.getElementById('ap-unlock-error');
-  const btn = document.getElementById('ap-unlock-btn');
-  errEl.style.display = 'none';
-  if (key.length < 10) { errEl.textContent = 'That doesn’t look like a license key.'; errEl.style.display = 'block'; return; }
-  btn.disabled = true; btn.textContent = 'Checking…';
-  try {
-    const res = await fetch(LICENSE_WORKER, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ license_key: key, product: 'adaptation' })
-    });
-    const data = await res.json();
-    if (data.success) {
-      localStorage.setItem(AP_LS_KEY, key);
-      renderAdaptationSection();
-    } else {
-      errEl.textContent = data.error || 'Invalid license key.';
-      errEl.style.display = 'block';
-    }
-  } catch (e) {
-    errEl.textContent = 'Verification unavailable. Try again shortly.';
-    errEl.style.display = 'block';
-  }
-  btn.disabled = false; btn.textContent = 'Unlock';
-}
-
-// Shared, cache-friendly system prompt: identical across all three calls so the
-// manuscript prefix is written to the prompt cache once and read twice.
-function apSystemPrompt() {
-  const source = state.rawText
-    ? state.rawText.split(/\s+/).slice(0, 60000).join(' ')
-    : synthesizeSourceFromBible();
-  return `You are a professional film/TV development executive preparing pitch materials for a manuscript. Base every answer strictly on the manuscript below. Follow the OUTPUT FORMAT in the user message exactly.
-
-BOOK: "${state.title}" by ${state.author}
-GENRE: ${state.genre || 'Unspecified'}
-WORD COUNT: ${state.rawText ? state.rawText.split(/\s+/).length : 'n/a (story bible)'}
-
-MANUSCRIPT:
-${source}`;
-}
-
-function setApProgress(label) {
-  const p = document.getElementById('ap-progress');
-  p.style.display = 'block';
-  document.getElementById('ap-progress-label').textContent = label;
-}
-
-async function generateAdaptationPackage() {
-  if (!canGenerate()) { alert(getAIMode() === 'own' ? 'Add your Anthropic API key in ✨ AI Settings — or switch to Included credits.' : 'Please unlock with your license key first.'); return; }
-  const gate = await checkFounderStart();
-  if (!gate.ok) { alert(gate.message); return; }
-  const key = getKey();
-  const btn = document.getElementById('ap-generate-btn');
-  btn.disabled = true;
-  const system = apSystemPrompt();
-
-  try {
-    // ── 1. Loglines (3 ranked options) ──
-    setApProgress('Writing loglines (1 of 3)…');
-    const logRaw = await callAPI(key, system,
-`Write loglines for this manuscript.
-
-A strong logline names a specific protagonist, a specific want, and a specific obstacle or conflict, and creates a legible question the reader needs answered. Avoid generic phrasing ("must confront their past", "everything changes").
-
-OUTPUT FORMAT — exactly this, nothing else:
-LOGLINE 1: <strongest option, 1–2 sentences>
-LOGLINE 2: <second option, 1–2 sentences>
-LOGLINE 3: <third option, 1–2 sentences>`, 600);
-    state.adaptation.loglines = parseApLoglines(logRaw);
-    state.adaptation.selectedLogline = state.adaptation.loglines[0] || '';
-
-    // ── 2. One-page pitch ──
-    setApProgress('Building your one-pager (2 of 3)…');
-    await generatePitchDoc(key, system);
-
-    // ── 3. Comp titles ──
-    setApProgress('Finding comparable titles (3 of 3)…');
-    const compRaw = await callAPI(key, system,
-`Suggest 2–3 comparable titles ("comps") for pitching this manuscript to film/TV producers.
-
-Rules:
-- FILMS or TV SERIES only — never books. This pitch goes to producers, not agents.
-- Prefer titles released in the last 3–5 years. A slightly older title is acceptable only if it is a much stronger fit.
-- ACCURACY OVER PLAUSIBILITY: if you are not fully certain a title exists, or unsure of its year or platform, you MUST mark it UNCERTAIN. Never invent a plausible-sounding title. A wrong comp destroys credibility with a producer.
-
-OUTPUT FORMAT — exactly this per comp, nothing else:
-COMP: <title> (<year>, <film or series — platform/studio if known>)
-WHY: <one sentence on the specific overlap — tone, premise, audience>
-CONFIDENCE: <CONFIRMED or UNCERTAIN>`, 700);
-    state.adaptation.comps = parseApComps(compRaw);
-
-    state.adaptation.generated = true;
-    renderApLoglines();
-    renderApPitch();
-    renderApComps();
-    document.getElementById('ap-results').style.display = 'block';
-    document.getElementById('ap-progress').style.display = 'none';
-    document.getElementById('ap-generate-btn').textContent = '↻ Regenerate entire package';
-  } catch (err) {
-    document.getElementById('ap-progress').style.display = 'none';
-    alert('Adaptation Package error: ' + (err.message || 'Generation failed. Try again.'));
-  }
-  btn.disabled = false;
-}
-
-async function generatePitchDoc(key, system) {
-  system = system || apSystemPrompt();
-  key = (key !== undefined) ? key : getKey();
-  const raw = await callAPI(key, system,
-`Write the body of a one-page pitch document for this manuscript, using this logline:
-"${state.adaptation.selectedLogline}"
-
-OUTPUT FORMAT — exactly this, nothing else:
-SYNOPSIS:
-<150–250 words. Spoiler-light: imply the ending, never state it. Present tense. Written to make a producer's assistant keep reading.>
-
-POSITIONING:
-<One line of genre/tone positioning, e.g. "Character-driven literary thriller, tonally adjacent to X and Y.">
-
-FORMAT:
-<One line: source format and length, e.g. "Novel, 84,000 words. Adaptation target: feature film.">`, 800);
-  state.adaptation.pitch = parseApPitch(raw);
-}
-
-async function regeneratePitch() {
-  setApProgress('Rebuilding your one-pager…');
-  try {
-    await generatePitchDoc();
-    renderApPitch();
-  } catch (err) {
-    alert('Error: ' + (err.message || 'Try again.'));
-  }
-  document.getElementById('ap-progress').style.display = 'none';
-}
-
-// ── Parsers ──
-function parseApLoglines(raw) {
-  const out = [];
-  const re = /LOGLINE\s*\d\s*:\s*([\s\S]*?)(?=\nLOGLINE\s*\d\s*:|$)/g;
-  let m; while ((m = re.exec(raw)) !== null) out.push(m[1].trim());
-  return out.length ? out.slice(0, 3) : [raw.trim()];
-}
-
-function parseApPitch(raw) {
-  const grab = (label) => {
-    const m = raw.match(new RegExp(label + ':\\s*\\n?([\\s\\S]*?)(?=\\n(?:SYNOPSIS|POSITIONING|FORMAT):|$)'));
-    return m ? m[1].trim() : '';
-  };
-  return { synopsis: grab('SYNOPSIS'), positioning: grab('POSITIONING'), format: grab('FORMAT') };
-}
-
-function parseApComps(raw) {
-  const out = [];
-  const re = /COMP:\s*(.*?)\n\s*WHY:\s*(.*?)\n\s*CONFIDENCE:\s*(\w+)/g;
-  let m; while ((m = re.exec(raw)) !== null) {
-    out.push({ title: m[1].trim(), why: m[2].trim(), confirmed: /CONFIRMED/i.test(m[3]) });
-  }
-  return out;
-}
-
-// ── Renderers ──
-function renderApLoglines() {
-  const box = document.getElementById('ap-logline-options');
-  box.innerHTML = state.adaptation.loglines.map((l, i) => `
-    <label style="display:flex;gap:10px;align-items:flex-start;padding:12px 14px;border-radius:14px;background:${i===0?'rgba(232,51,58,0.06)':'transparent'};cursor:pointer;margin-bottom:6px;">
-      <input type="radio" name="ap-logline" ${i===0?'checked':''} onchange="pickApLogline(${i})" style="margin-top:4px;accent-color:var(--red);flex-shrink:0;"/>
-      <span style="font-size:14px;line-height:1.6;"><strong style="color:var(--red);">#${i+1}</strong> ${escapeApHtml(l)}</span>
-    </label>`).join('');
-  document.getElementById('ap-logline-final').value = state.adaptation.selectedLogline;
-}
-
-function pickApLogline(i) {
-  state.adaptation.selectedLogline = state.adaptation.loglines[i];
-  document.getElementById('ap-logline-final').value = state.adaptation.selectedLogline;
-}
-
-function renderApPitch() {
-  const p = state.adaptation.pitch || {};
-  document.getElementById('ap-pitch-preview').innerHTML = `
-    <p style="margin-bottom:10px;"><strong>Logline.</strong> ${escapeApHtml(state.adaptation.selectedLogline)}</p>
-    <p style="margin-bottom:10px;"><strong>Synopsis.</strong> ${escapeApHtml(p.synopsis || '—')}</p>
-    <p style="margin-bottom:10px;"><strong>Positioning.</strong> ${escapeApHtml(p.positioning || '—')}</p>
-    <p style="margin-bottom:0;"><strong>Format.</strong> ${escapeApHtml(p.format || '—')}</p>`;
-}
-
-function renderApComps() {
-  const box = document.getElementById('ap-comps');
-  if (!state.adaptation.comps.length) { box.innerHTML = '<p style="font-size:14px;color:var(--grey);">No confident comps found — regenerate or add your own.</p>'; return; }
-  box.innerHTML = state.adaptation.comps.map(c => `
-    <div style="padding:12px 14px;border-radius:14px;background:rgba(0,0,0,0.03);margin-bottom:8px;">
-      <div style="font-size:14px;font-weight:700;">${c.confirmed ? '' : '⚠️ '}${escapeApHtml(c.title)} ${c.confirmed ? '' : '<span style="font-size:11px;font-weight:600;color:var(--red);text-transform:uppercase;letter-spacing:0.05em;">— unverified, check before pitching</span>'}</div>
-      <div style="font-size:13px;color:var(--grey);line-height:1.6;margin-top:2px;">${escapeApHtml(c.why)}</div>
-    </div>`).join('');
-}
-
-function escapeApHtml(s) { return String(s || '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
-
-// ── Rights checklist (no AI) ──
-function updateRightsSummary() {
-  const r1 = document.getElementById('ap-r1').value;
-  document.getElementById('ap-r2-wrap').style.display = (r1 === 'traditional' || r1 === 'hybrid') ? 'block' : 'none';
-  const r2 = document.getElementById('ap-r2').value;
-  const r3 = document.getElementById('ap-r3').value;
-  const r4 = document.getElementById('ap-r4').value;
-  const el = document.getElementById('ap-rights-summary');
-  if (!r1 || !r3 || !r4 || ((r1 === 'traditional' || r1 === 'hybrid') && !r2)) { el.style.display = 'none'; return; }
-
-  let lines = [];
-  if (r1 === 'self' || r1 === 'unpublished') {
-    lines.push('<strong>Good position:</strong> as a ' + (r1 === 'self' ? 'self-published' : 'not-yet-published') + ' author you most likely hold your film/TV rights by default — that’s exactly what a producer’s legal team wants to hear.');
-  } else if (r2 === 'yes') {
-    lines.push('<strong>Check your contract first:</strong> your publisher may hold or share the dramatic rights. Look for the rights grant and any reversion clause before approaching producers.');
-  } else if (r2 === 'no') {
-    lines.push('<strong>Likely yours:</strong> if the contract doesn’t grant film/TV/dramatic rights to the publisher, they typically remain with you — but confirm the exact contract language.');
-  } else {
-    lines.push('<strong>Find out before pitching:</strong> ask your publisher or agent directly whether dramatic rights were included in your deal. Producers will ask.');
-  }
-  if (r3 === 'no') lines.push('You indicated you don’t hold the rights — resolve that before pitching; producers can’t option what you can’t grant.');
-  if (r3 === 'unsure') lines.push('You’re unsure whether you hold the rights — resolving that is step one.');
-  if (r4 === 'active') lines.push('<strong>Important:</strong> a possibly-active prior option means the rights may be encumbered. Confirm its status in writing before any new conversation.');
-  if (r4 === 'expired') lines.push('A prior expired option is fine — just keep the reversion paperwork handy; it’s part of your chain of title.');
-  lines.push('<em>This is general information, not legal advice. Before any actual negotiation, confirm your rights position with an entertainment attorney.</em>');
-  el.innerHTML = lines.join('<br><br>');
-  el.style.display = 'block';
-}
-
-// ── One-pager PDF export (print-window pattern, consistent with other exports) ──
-function exportPitchPDF() {
-  const p = state.adaptation.pitch || {};
-  const esc = escapeApHtml;
-  const w = window.open('', '_blank');
-  w.document.write(`<!DOCTYPE html><html><head><title>${esc(state.title)} — Pitch</title>
-  <style>
-    @page { size: letter; margin: 1in; }
-    body{font-family:Georgia,'Times New Roman',serif;font-size:11.5pt;color:#111;background:#fff;line-height:1.55;max-width:6.5in;margin:1in auto;}
-    h1{font-size:20pt;margin:0 0 2px;letter-spacing:0.01em;}
-    .byline{font-size:10.5pt;color:#555;margin-bottom:24px;}
-    .lbl{font-size:9pt;text-transform:uppercase;letter-spacing:0.14em;color:#8a1f24;font-weight:bold;margin:20px 0 6px;}
-    p{margin:0 0 10px;}
-    .foot{margin-top:32px;font-size:8.5pt;color:#999;border-top:1px solid #ddd;padding-top:8px;}
-    @media print{body{margin:0 auto;}}
-  </style></head><body>
-    <h1>${esc(state.title)}</h1>
-    <div class="byline">by ${esc(state.author)} · ${esc(state.genre || '')}</div>
-    <div class="lbl">Logline</div><p>${esc(state.adaptation.selectedLogline)}</p>
-    <div class="lbl">Synopsis</div><p>${esc(p.synopsis || '')}</p>
-    <div class="lbl">Positioning</div><p>${esc(p.positioning || '')}</p>
-    <div class="lbl">Format</div><p>${esc(p.format || '')}</p>
-    ${state.adaptation.comps.length ? `<div class="lbl">Comparable Titles</div><p>${state.adaptation.comps.filter(c=>c.confirmed).map(c => esc(c.title)).join(' · ') || '—'}</p>` : ''}
-    <div class="foot">Prepared with FluidScriptr · ${new Date().toLocaleDateString('en-US',{year:'numeric',month:'long',day:'numeric'})} · Contact: ${esc(state.author)}</div>
-  </body></html>`);
-  w.document.close();
-  setTimeout(() => w.print(), 600);
-}
 
 // ── Start over ────────────────────────────────────────────
 function cancelConversion() {
@@ -2355,6 +2871,60 @@ function toggleGlossary() {
 function toggleGlossaryMs() {
   const el = document.getElementById('ms-approach-glossary');
   el.style.display = el.style.display === 'none' ? 'block' : 'none';
+}
+
+function toggleWordCountGuide() {
+  const el = document.getElementById('wordcount-guide');
+  el.style.display = el.style.display === 'none' ? 'block' : 'none';
+}
+
+// Returns friendly genre-fit + self-pub price context for a completed manuscript,
+// or null if the word count is too small to meaningfully classify.
+function getWordCountContext(words) {
+  if (!words || words < 5000) return null;
+  const pages = Math.round(words / 250);
+
+  let genreLine;
+  if (words < 20000) {
+    genreLine = 'Under novella length — fits middle-grade fiction or short-form only. Traditional agents rarely take work this short.';
+  } else if (words < 50000) {
+    genreLine = 'Novella / short-novel range — fits middle-grade or lower-end YA. Below the ~50K "novel" threshold for most adult categories.';
+  } else if (words < 75000) {
+    genreLine = 'Sweet spot for YA (55–80K), category romance (50–75K), and lean thriller/mystery. Light for literary fiction.';
+  } else if (words < 90000) {
+    genreLine = 'Sweet spot for literary fiction and mainstream commercial. Solid thriller / mystery length. Full YA.';
+  } else if (words < 110000) {
+    genreLine = 'Full novel — literary top end, sci-fi / fantasy sweet spot (90–120K), historical fiction lower end.';
+  } else if (words < 140000) {
+    genreLine = 'Long novel — sci-fi / fantasy or historical fiction territory. Agents may push back on debut novels in other genres.';
+  } else {
+    genreLine = 'Very long — expect agent pushback unless you\'re in epic fantasy or historical fiction, or you\'re an established author.';
+  }
+
+  let priceLine;
+  if (pages < 200) {
+    priceLine = `≈ ${pages} pages · Self-pub: hard to price above $9.99 (looks slim on the shelf).`;
+  } else if (pages < 300) {
+    priceLine = `≈ ${pages} pages · Self-pub sweet spot: $12.99–14.99 · Best KDP royalty margins in this range.`;
+  } else if (pages < 400) {
+    priceLine = `≈ ${pages} pages · Self-pub: $14.99–16.99 · Per-page print cost starts to matter.`;
+  } else {
+    priceLine = `≈ ${pages} pages · Self-pub: $16.99+ but KDP per-page print cost eats into royalties.`;
+  }
+
+  return { genreLine, priceLine };
+}
+
+// Renders the context block on Step 6 for manuscript-style outputs.
+// Passing null or too-small a word count hides the block.
+function renderOutputContext(words) {
+  const box = document.getElementById('out-context');
+  const ctx = getWordCountContext(words);
+  if (!box) return;
+  if (!ctx) { box.style.display = 'none'; return; }
+  document.getElementById('out-context-genre').textContent = ctx.genreLine;
+  document.getElementById('out-context-price').textContent = ctx.priceLine;
+  box.style.display = 'block';
 }
 
 function populateResultsBible() {
@@ -2457,13 +3027,8 @@ function startOver() {
     approach:'compress', tone:'', dialogue:'', episodes:4,
     manuscriptLength:'medium', output:'', currentStep:1, _cancelled: false,
     _partialOutput: null, _partialFrom: 0, _chunksConverted: 0, _totalChunks: 0,
-    adaptation: { loglines: [], selectedLogline: '', pitch: null, comps: [], generated: false }
+    sampleTruncated: false, isScreenplayInput: false
   });
-  // Reset Adaptation Package UI (unlock persists — it's a one-time purchase)
-  const apResults = document.getElementById('ap-results');
-  if (apResults) apResults.style.display = 'none';
-  const apBtn = document.getElementById('ap-generate-btn');
-  if (apBtn) { apBtn.disabled = false; apBtn.textContent = '✨ Generate Adaptation Package'; }
   const cancelBtn = document.getElementById('cancel-nav-btn');
   if (cancelBtn) cancelBtn.style.display = 'none';
   document.getElementById('file-info').classList.remove('on');
@@ -2734,6 +3299,16 @@ function buildFidelityConversionSettings() {
 }
 
 async function runFidelityCheck() {
+  // Not available on free samples. It's the most expensive call in a run (it
+  // re-sends the source AND the generated screenplay together) and a
+  // first-time visitor came to judge the writing, not read a score. The
+  // worked example lives on the proof page instead. The button is hidden in
+  // sample mode; this guard covers anyone who reaches the function anyway.
+  if (isSampleMode()) {
+    renderFidelitySampleNotice();
+    return;
+  }
+
   // Matches generateBible()/startConversion()'s exact pre-flight pattern —
   // works correctly in both included-credits mode and BYOK mode.
   const key = getKey();
@@ -2761,11 +3336,11 @@ async function runFidelityCheck() {
 
   try {
     const sp = buildFidelityStructuralPrompt(state.rawText, state.output, cs);
-    const structuralRaw = await callAPI(key, sp.system, sp.user, 8000);
+    const structuralRaw = await callAPI(key, sp.system, sp.user, 8000, 'fidelity');
     const structuralResult = fidelityExtractJSON(structuralRaw);
 
     const dp = buildFidelityDialoguePrompt(state.rawText, state.output, cs);
-    const dialogueRaw = await callAPI(key, dp.system, dp.user, 8000);
+    const dialogueRaw = await callAPI(key, dp.system, dp.user, 8000, 'fidelity');
     const dialogueResult = fidelityExtractJSON(dialogueRaw);
 
     const scores = computeFidelityScores(structuralResult, dialogueResult);
@@ -2784,6 +3359,15 @@ function renderFidelityPartialNotice(pct) {
   resultsEl.innerHTML = `
     <div class="fidelity-overall">This was a ~${pct}% partial conversion — fidelity analysis works best on a complete draft.</div>
     <div style="font-size:13px;color:var(--grey);line-height:1.6;">Finish converting the rest of your manuscript (▶ Continue Conversion), then run this check again for a meaningful fidelity score.</div>
+  `;
+  resultsEl.style.display = 'block';
+}
+
+function renderFidelitySampleNotice() {
+  const resultsEl = document.getElementById('fidelity-results');
+  resultsEl.innerHTML = `
+    <div class="fidelity-overall">Fidelity scoring is part of a purchased conversion.</div>
+    <div style="font-size:13px;color:var(--grey);line-height:1.6;">It compares your full manuscript against the finished screenplay across five measures — which needs the whole book, not a 10-page sample. <a href="https://tinhousepress.com/fluidscriptr#pricing" target="_blank" style="color:var(--red);font-weight:600;text-decoration:none;">See pricing →</a></div>
   `;
   resultsEl.style.display = 'block';
 }

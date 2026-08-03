@@ -1478,16 +1478,45 @@ function exportScreenplayPDF() {
   setTimeout(() => w.print(), 600);
 }
 
+// RTF only guarantees 7-bit ASCII in the body; anything else must go through
+// a \uN? escape (signed 16-bit UTF-16 code unit) or Word/Google Docs will
+// read the raw UTF-8 bytes as Windows-1252 and mangle them (e.g. an em dash
+// becomes "‚Äî"). Also escapes the three RTF control characters (\, {, })
+// so story text containing them can't corrupt the document structure.
+function rtfEscapeText(text) {
+  let out = '';
+  for (const ch of String(text ?? '')) {
+    const code = ch.codePointAt(0);
+    if (ch === '\\' || ch === '{' || ch === '}') {
+      out += '\\' + ch;
+    } else if (code < 128) {
+      out += ch; // includes \n, handled by the \par replace below
+    } else if (code <= 0xFFFF) {
+      out += `\\u${code > 32767 ? code - 65536 : code}?`;
+    } else {
+      // Astral character (e.g. emoji): split into a UTF-16 surrogate pair,
+      // each half emitted as its own \u escape.
+      const high = Math.floor((code - 0x10000) / 0x400) + 0xD800;
+      const low = ((code - 0x10000) % 0x400) + 0xDC00;
+      out += `\\u${high - 65536}?\\u${low - 65536}?`;
+    }
+  }
+  return out;
+}
+
 function exportManuscriptDOCX() {
   // Generate a basic DOCX-compatible RTF wrapped as .docx hint
   // For true DOCX we build an RTF with Times New Roman 12pt, double-spaced, 1-inch margins
+  const bodyText = rtfEscapeText(state.output)
+    .replace(/\n\n/g, '\\par\\par ')
+    .replace(/\n/g, '\\par ');
   const rtf = `{\\rtf1\\ansi\\deff0
 {\\fonttbl{\\f0 Times New Roman;}}
-{\\info{\\title ${state.title}}}
+{\\info{\\title ${rtfEscapeText(state.title)}}}
 \\paperw12240\\paperh15840
 \\margl1440\\margr1440\\margt1440\\margb1440
 \\f0\\fs24\\sl480\\slmult1
-${state.output.replace(/\n\n/g, '\\par\\par ').replace(/\n/g, '\\par ')}
+${bodyText}
 }`;
   // Download as .rtf (universally opens in Word with correct formatting)
   downloadFile(rtf, getSlug() + '-manuscript.rtf', 'application/rtf');
