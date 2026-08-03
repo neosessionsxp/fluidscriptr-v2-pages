@@ -596,6 +596,10 @@ input[type=range]::-moz-range-thumb { width: 20px; height: 20px; border-radius: 
                 <div id="screenplay-format-options">
                     <div class="card" style="margin-bottom:1.25rem;">
                         <label class="lbl" style="margin-bottom:12px;">Target format</label>
+                        <div id="idea-format-note" style="display:none;background:rgba(232,51,58,0.05);border:1.5px solid rgba(232,51,58,0.15);border-radius:var(--r-md);padding:1rem 1.25rem;font-size:13px;color:var(--navy);line-height:1.7;margin-bottom:1.25rem;">
+                            <strong style="color:var(--red);">Starting from an idea produces a short film.</strong>
+                            Feature and series lengths are built from a full manuscript — there simply isn't enough source material in a story outline to write 95 honest pages, and padding it would show. Upload a manuscript to unlock the longer formats.
+                        </div>
                         <div class="format-grid">
                             <div class="format-card selected" onclick="selectFormat(this,'feature')">
                                 <h3>🎬 Feature Film</h3>
@@ -1338,6 +1342,7 @@ function pickOutput(el, type) {
 // goToStep — injects output options when entering step 3, briefing on step 5
 function goToStep(n) {
   if (n === 3) buildOutputOptions();
+  if (n === 4) applyFormatConstraints();
   if (n === 5) populateBriefing();
   if (n === 6) deliverSampleByEmail(false);
   // Show cancel btn during active workflow (steps 2+), hide on step 1
@@ -1923,6 +1928,32 @@ function selectFormat(el, format) {
   state.format = format;
   document.getElementById('episodes-field').style.display = format === 'limited' ? 'block' : 'none';
   updateCalc();
+}
+
+// Starting from an idea, the only "source" is a synopsis, so the conversion has
+// exactly one section to work from — and one request tops out around 12 pages.
+// Offering "Feature Film" there promises 95 pages the path cannot produce (it
+// used to try, hit the token ceiling and stop mid-sentence). Short film is the
+// honest label for ~12 pages, and it sits inside that format's stated 10–30.
+function applyFormatConstraints() {
+  const ideaOnly = !state.rawText;              // idea path has no uploaded text
+  const note = document.getElementById('idea-format-note');
+  if (note) note.style.display = ideaOnly ? 'block' : 'none';
+
+  document.querySelectorAll('.format-card').forEach(card => {
+    const fmt = (card.getAttribute('onclick') || '').match(/'(\w+)'\s*\)/)?.[1];
+    const blocked = ideaOnly && fmt !== 'short';
+    card.style.opacity = blocked ? '0.4' : '';
+    card.style.pointerEvents = blocked ? 'none' : '';
+    card.setAttribute('aria-disabled', blocked ? 'true' : 'false');
+    if (blocked) card.classList.remove('selected');
+  });
+
+  if (ideaOnly && state.format !== 'short') {
+    const shortCard = [...document.querySelectorAll('.format-card')]
+      .find(c => (c.getAttribute('onclick') || '').includes("'short'"));
+    if (shortCard) selectFormat(shortCard, 'short');
+  }
 }
 
 function selectApproach(el, approach) {
