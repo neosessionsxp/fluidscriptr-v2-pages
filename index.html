@@ -267,8 +267,8 @@ input[type=range]::-moz-range-thumb { width: 20px; height: 20px; border-radius: 
         <div id="app-shell">
         <!-- Free sample banner -->
         <div id="sample-banner" style="display:none; background:#1A1A2E; color:#fff; text-align:center; font-size:13px; font-weight:600; padding:9px 16px;">
-          Free sample mode — output is capped to ~10 pages.
-          <a href="https://tinhousepress.com/fluidscriptr#pricing" target="_blank" style="color:#FF8A8A; text-decoration:underline; margin-left:6px;">Purchase a conversion for your full manuscript →</a>
+          Free sample — your Story Bible reads your <strong>whole manuscript</strong>; the screenplay covers the first 10 pages.
+          <a href="https://tinhousepress.com/fluidscriptr#pricing" target="_blank" style="color:#FF8A8A; text-decoration:underline; margin-left:6px;">Convert the full manuscript →</a>
         </div>
         <!-- Navbar -->
         <div class="nav-wrap">
@@ -1016,7 +1016,12 @@ function getPayerEmail() { return (localStorage.getItem('fsr_payer_email') || ''
 // AI proxy's action:'free_sample' instead of action:'generate', and never
 // calls start_project (there's no entitlement to consume). Cleared the
 // moment a real license unlocks the tool.
-const SAMPLE_WORD_CAP = 2500; // ~10 manuscript pages at ~250 words/page; mirrors SAMPLE_MAX_PAGES on the worker
+const SAMPLE_PAGES = 10;
+const SAMPLE_WORD_CAP = 2500;                 // ~10 manuscript pages at ~250 words/page — caps the SCREENPLAY only
+// The Story Bible deliberately reads the whole manuscript, not this extract:
+// "reads your entire book before it writes a single scene" is the claim being
+// demonstrated. This ceiling only stops one enormous upload eating the month.
+const SAMPLE_MAX_MANUSCRIPT_WORDS = 150000;
 function isSampleMode() { return localStorage.getItem('fsr_sample_mode') === 'true'; }
 function getSampleId() { return (localStorage.getItem('fsr_sample_id') || '').trim(); }
 function getSampleEmail() { return (localStorage.getItem('fsr_sample_email') || '').trim().toLowerCase(); }
@@ -1147,6 +1152,11 @@ function checkPartialSession() {
     // offer a button that only explains why it won't run. runFidelityCheck()
     // still guards itself in case anything else reaches it.
     document.querySelectorAll('.fidelity-section').forEach(el => { el.style.display = 'none'; });
+    // The Bible is built from the WHOLE manuscript and is accurate — that is
+    // the point of the sample. Logline, characters, world, themes and motifs
+    // are shown in full; the structural analysis stays behind the paywall.
+    lockBibleField('b-structure', 'Three-act structure');
+    lockBibleField('b-ending', 'Ending analysis');
     return;
   }
   const k = localStorage.getItem(LS_KEY);
@@ -1404,22 +1414,27 @@ async function extractFile(file) {
       return;
     }
 
-    // Free sample: truncate to ~10 manuscript pages regardless of what was
-    // uploaded. Mirrors SAMPLE_MAX_INPUT_CHARS on the worker — trimming here
-    // gives an honest page count in the UI instead of letting the full
-    // manuscript through and having the backend reject it later.
+    // Free sample: keep the WHOLE manuscript. The Story Bible reads all of it
+    // — that is the product claim and the only thing a sample can prove that a
+    // chatbot can't. A Bible built from 10 pages would have to invent a
+    // structure and an ending the author knows is wrong, which disproves the
+    // claim instead of demonstrating it.
+    //
+    // Only the SCREENPLAY is limited to 10 pages — see convertToScreenplay().
+    state.rawText = extracted;
     if (isSampleMode()) {
       const words = extracted.split(/\s+/);
-      if (words.length > SAMPLE_WORD_CAP) {
-        state.rawText = words.slice(0, SAMPLE_WORD_CAP).join(' ');
-        state.pageCount = Math.round(SAMPLE_WORD_CAP / 250);
-        state.sampleTruncated = true;
-      } else {
-        state.rawText = extracted;
-        state.sampleTruncated = false;
+      if (words.length > SAMPLE_MAX_MANUSCRIPT_WORDS) {
+        // One very long upload could take a large bite out of the monthly
+        // sample budget in a single visit. Refuse rather than silently trim,
+        // because a silently trimmed Bible is an inaccurate Bible.
+        alert(`This manuscript is about ${Math.round(words.length / 1000)}k words. Free samples cover manuscripts up to ${Math.round(SAMPLE_MAX_MANUSCRIPT_WORDS / 1000)}k words so the Story Bible can read the whole book. Purchase a conversion to run a manuscript this size.`);
+        document.getElementById('file-input').value = '';
+        prog.classList.remove('on');
+        zone.style.opacity = '1';
+        return;
       }
-    } else {
-      state.rawText = extracted;
+      state.sampleTruncated = words.length > SAMPLE_WORD_CAP; // screenplay will stop at 10 pages
     }
 
     const autoTitle = file.name.replace(/\.[^.]+$/, '').replace(/[-_]/g, ' ').replace(/\b\w/g, c => c.toUpperCase());
@@ -1429,7 +1444,7 @@ async function extractFile(file) {
     const wc = state.rawText.split(/\s+/).length;
     document.getElementById('file-name').textContent = file.name;
     document.getElementById('file-meta').textContent = state.sampleTruncated
-      ? `Free sample: first ${state.pageCount.toLocaleString()} pages (${wc.toLocaleString()} words) of your upload · purchase to convert the full manuscript`
+      ? `${state.pageCount.toLocaleString()} pages · ${wc.toLocaleString()} words — your Story Bible reads all of it · the free sample converts the first ${SAMPLE_PAGES} pages`
       : `${state.pageCount.toLocaleString()} pages · ${wc.toLocaleString()} words · ready for bible generation`;
     document.getElementById('file-info').classList.add('on');
     document.getElementById('bible-btn').disabled = false;
@@ -1639,19 +1654,19 @@ async function extractScreenplayFile(file) {
       return;
     }
 
-    // Free sample: same ~10-page cap as the manuscript upload path.
+    // Free sample: keep the whole script so the Bible reads all of it; the
+    // clean-up output is capped to ~10 pages in convertToScreenplay().
+    state.rawText = extracted;
     if (isSampleMode()) {
       const wordsAll = extracted.split(/\s+/);
-      if (wordsAll.length > SAMPLE_WORD_CAP) {
-        state.rawText = wordsAll.slice(0, SAMPLE_WORD_CAP).join(' ');
-        state.pageCount = Math.round(SAMPLE_WORD_CAP / 250);
-        state.sampleTruncated = true;
-      } else {
-        state.rawText = extracted;
-        state.sampleTruncated = false;
+      if (wordsAll.length > SAMPLE_MAX_MANUSCRIPT_WORDS) {
+        alert(`This script is about ${Math.round(wordsAll.length / 1000)}k words. Free samples cover up to ${Math.round(SAMPLE_MAX_MANUSCRIPT_WORDS / 1000)}k words so the Story Bible can read the whole thing. Purchase a conversion to run something this size.`);
+        document.getElementById('sp-file-input').value = '';
+        prog.classList.remove('on');
+        zone.style.opacity = '1';
+        return;
       }
-    } else {
-      state.rawText = extracted;
+      state.sampleTruncated = wordsAll.length > SAMPLE_WORD_CAP;
     }
     state.isScreenplayInput = true;
 
@@ -2045,7 +2060,15 @@ async function convertToScreenplay(key, bibleText) {
   else if (state.format === 'pilot') targetPages = 55;
   else targetPages = 20;
 
-  const sourceText = state.rawText || synthesizeSourceFromBible();
+  let sourceText = state.rawText || synthesizeSourceFromBible();
+  // Free sample: the Bible read the whole book, but the screenplay stops at
+  // ~10 pages. Trimming here rather than at upload is what lets the Bible be
+  // accurate while the screenplay stays a taster — and it leaves the author
+  // mid-story, which is the point.
+  if (isSampleMode()) {
+    const all = sourceText.split(/\s+/);
+    if (all.length > SAMPLE_WORD_CAP) sourceText = all.slice(0, SAMPLE_WORD_CAP).join(' ');
+  }
   const words = sourceText.split(/\s+/);
   const chunkSize = 2000;
   const chunks = [];
@@ -2931,22 +2954,65 @@ function populateResultsBible() {
   set('res-characters', b.characters);
   set('res-world', b.world);
   set('res-themes', b.themes);
-  set('res-structure', b.structure);
   set('res-motifs', b.motifs);
-  set('res-ending', b.ending);
+
+  // Free sample: the Bible was built from the WHOLE manuscript and is accurate.
+  // Logline, characters, world, themes and motifs are shown in full — that is
+  // what proves the book was actually read. Three-act structure and ending stay
+  // locked: they're the deep structural work, they're close to what the $49
+  // Manuscript Assessment sells, and revealing them removes the reason to buy.
+  if (isSampleMode()) {
+    lockBibleSection('res-structure', 'Three-act structure');
+    lockBibleSection('res-ending', 'Ending analysis');
+  } else {
+    set('res-structure', b.structure);
+    set('res-ending', b.ending);
+  }
+}
+
+function lockedNoticeHTML(label) {
+  return `<span style="display:inline-flex;align-items:center;gap:8px;font-size:13px;color:var(--grey);">
+      <span style="font-size:14px;">🔒</span>
+      <span>${label} is included with a purchased conversion.
+        <a href="https://tinhousepress.com/fluidscriptr#pricing" target="_blank" style="color:var(--red);font-weight:600;text-decoration:none;">See pricing →</a></span>
+    </span>`;
+}
+
+function lockBibleSection(id, label) {
+  const el = document.getElementById(id);
+  if (el) el.innerHTML = lockedNoticeHTML(label);
+}
+
+// Step 2 shows the Bible in editable textareas, and populateBriefing() reads
+// those values back into state.bible — which the conversion prompt then uses.
+// So the textarea must KEEP its real value: hide it, never blank it. Blanking
+// it would quietly feed an empty structure into the conversion.
+function lockBibleField(id, label) {
+  const ta = document.getElementById(id);
+  if (!ta || ta.dataset.locked) return;
+  ta.style.display = 'none';
+  ta.dataset.locked = '1';
+  const note = document.createElement('div');
+  note.innerHTML = lockedNoticeHTML(label);
+  ta.parentElement.appendChild(note);
 }
 
 // ── Print Story Bible ────────────────────────────────────
 function printBible() {
   const b = state.bible;
+  // Sample mode: the textareas still hold the real structure/ending (they are
+  // hidden, not blanked, so the conversion prompt keeps working). Printing
+  // would hand them over anyway — so substitute the same locked notice here.
+  const locked = isSampleMode();
+  const LOCKED_TEXT = 'Included with a purchased conversion — fluidscriptr.app';
   const sections = [
     ['Logline', document.getElementById('b-logline')?.value || b.logline || ''],
     ['Characters & Arcs', document.getElementById('b-characters')?.value || b.characters || ''],
     ['World & Tone', document.getElementById('b-world')?.value || b.world || ''],
     ['Themes', document.getElementById('b-themes')?.value || b.themes || ''],
-    ['Three-Act Structure', document.getElementById('b-structure')?.value || b.structure || ''],
+    ['Three-Act Structure', locked ? LOCKED_TEXT : (document.getElementById('b-structure')?.value || b.structure || '')],
     ['Key Motifs', document.getElementById('b-motifs')?.value || b.motifs || ''],
-    ['Ending', document.getElementById('b-ending')?.value || b.ending || ''],
+    ['Ending', locked ? LOCKED_TEXT : (document.getElementById('b-ending')?.value || b.ending || '')],
   ];
   const rows = sections.map(([lbl, val]) => `
     <div style="margin-bottom:1.5rem;">
