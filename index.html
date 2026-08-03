@@ -2075,7 +2075,29 @@ async function convertToScreenplay(key, bibleText) {
   for (let i = 0; i < words.length; i += chunkSize) chunks.push(words.slice(i, i + chunkSize).join(' '));
 
   const totalChunks = chunks.length;
-  const pagesPerChunk = (targetPages / totalChunks).toFixed(1);
+
+  // How much a single call can actually deliver. One request is capped at
+  // MAX_OUTPUT_TOKENS (4,096) ≈ 3,000 words ≈ 18 screenplay pages; 12 leaves
+  // headroom so a scene isn't guillotined at the end.
+  //
+  // Without this clamp, `targetPages / totalChunks` asks for the impossible
+  // whenever the source is SHORT, and the model runs to the token ceiling and
+  // stops MID-SENTENCE. Measured, not theorised:
+  //   • story idea  → 1 chunk, asked 95 pages → returned 15, cut off at
+  //     "Anna is alone now. Benjamin has gone"  (stop_reason: max_tokens)
+  //   • 10-page free sample → 2 chunks, asked 47.5 pages each — same failure
+  // A full novel is unaffected (45 chunks × ~2.1 pages) which is why this went
+  // unnoticed: the paths with the least source text are the ones that break.
+  const MAX_PAGES_PER_CALL = 12;
+
+  // A screenplay page comes from roughly 250 words of prose, so a short source
+  // cannot honestly yield a feature — asking for one just makes the model pad.
+  // Idea mode is the exception: its "source" is a synopsis, not prose, so its
+  // length says nothing about how long the finished screenplay should be.
+  const isIdeaMode = !state.rawText;
+  const sourceSupportsPages = Math.max(3, Math.round(words.length / 250));
+  const effectiveTarget = isIdeaMode ? targetPages : Math.min(targetPages, sourceSupportsPages);
+  const pagesPerChunk = Math.min(effectiveTarget / totalChunks, MAX_PAGES_PER_CALL).toFixed(1);
   const formatLabel = FORMAT_TARGETS[state.format]?.label || 'Feature Film';
 
   addLog(`Converting "${state.title}" → ${formatLabel}`);
