@@ -929,18 +929,12 @@ input[type=range]::-moz-range-thumb { width: 20px; height: 20px; border-radius: 
                             </div>
                             <div class="fidelity-section" style="margin-top:1.5rem;">
                                 <button class="btn-secondary" id="fidelity-btn" type="button" onclick="runFidelityCheck()" style="width:100%;justify-content:center;">
-                                    🔍 Check Fidelity to Source
+                                    🔍 See What Changed From My Book
                                 </button>
                                 <div id="fidelity-results" style="display:none;margin-top:1rem;"></div>
                             </div>
                             <style>
                             .fidelity-overall { font-size:14px; color:var(--navy); font-weight:600; margin-bottom:14px; padding:12px 16px; background:var(--bg2); border-radius:var(--r-md); border:1px solid var(--border); }
-                            .fidelity-scores { margin-bottom:12px; }
-                            .fidelity-score-row { display:flex; align-items:center; gap:10px; padding:6px 0; font-size:13px; }
-                            .fidelity-score-label { flex:0 0 160px; color:var(--grey); }
-                            .fidelity-score-bar { flex:1; height:8px; background:var(--bg2); border-radius:4px; overflow:hidden; box-shadow:var(--sh-inset-sm); }
-                            .fidelity-score-bar span { display:block; height:100%; background:var(--red); border-radius:4px; }
-                            .fidelity-score-value { flex:0 0 40px; text-align:right; font-weight:700; color:var(--navy); }
                             .fidelity-omission-item { padding:10px 0; border-bottom:1px solid var(--border); font-size:13px; color:var(--navy); }
                             .fidelity-omission-item:last-child { border-bottom:none; }
                             .fidelity-omission-reason { color:var(--grey); margin-top:3px; line-height:1.5; }
@@ -948,7 +942,87 @@ input[type=range]::-moz-range-thumb { width: 20px; height: 20px; border-radius: 
                             .fidelity-tag-load_bearing { background:rgba(232,51,58,0.12); color:var(--red); }
                             .fidelity-tag-moderate { background:rgba(217,119,6,0.12); color:#D97706; }
                             .fidelity-tag-cosmetic { background:rgba(107,114,128,0.12); color:var(--grey); }
+                            .fidelity-dlg-from { color:var(--grey); line-height:1.5; }
+                            .fidelity-dlg-line { color:var(--navy); line-height:1.5; margin-bottom:4px; }
+                            .fidelity-tag-dlg-verbatim { background:rgba(22,163,74,0.12); color:#16A34A; margin-left:0; }
+                            .fidelity-tag-dlg-lightly_edited { background:rgba(107,114,128,0.12); color:var(--grey); margin-left:0; }
+                            .fidelity-tag-dlg-rewritten { background:rgba(217,119,6,0.12); color:#D97706; margin-left:0; }
+                            .fidelity-tag-dlg-invented { background:rgba(232,51,58,0.12); color:var(--red); margin-left:0; }
                             </style>
+                            <!-- ══ PITCH SHEET ═══════════════════════════════════
+                                 Included with every paid conversion. This is the old
+                                 Adaptation Package minus the product: no licence gate,
+                                 no Gumroad link, no separate purchase. Hidden in sample
+                                 mode via .pitch-section. -->
+                            <div class="pitch-section" style="margin-top:1.5rem;">
+                                <button class="btn-secondary" id="pitch-btn" type="button" onclick="generatePitchSheet()" style="width:100%;justify-content:center;">
+                                    🎬 Build My Pitch Sheet
+                                </button>
+                                <div id="pitch-progress" style="display:none;margin-top:1rem;font-size:14px;color:var(--text2);"><span class="spinner spinner-dark"></span> <span id="pitch-progress-label">Working…</span></div>
+                                <div id="pitch-results" style="display:none;margin-top:1rem;">
+                                    <div class="fidelity-overall" style="margin-bottom:16px;">A one-page pitch built from the same manuscript — what a producer reads before they read the screenplay.</div>
+
+                                    <div class="results-col-header" style="font-size:14px;">1 · Logline</div>
+                                    <p style="font-size:13px;color:var(--grey);margin:0 0 12px;">Pick the framing that best sells your story — you can edit it before it goes on the sheet.</p>
+                                    <div id="pitch-logline-options"></div>
+                                    <div class="field" style="margin:12px 0 20px;">
+                                        <label class="lbl">Selected logline (editable)</label>
+                                        <textarea id="pitch-logline-final" rows="2" oninput="state.pitch.selectedLogline=this.value"></textarea>
+                                    </div>
+
+                                    <div class="results-col-header" style="font-size:14px;">2 · One-Page Pitch</div>
+                                    <div id="pitch-doc-preview" style="font-size:14px;line-height:1.75;color:var(--text);"></div>
+                                    <div style="margin:14px 0 20px;display:flex;gap:10px;flex-wrap:wrap;">
+                                        <button class="btn-primary" type="button" onclick="exportPitchPDF()">📄 Export Pitch Sheet PDF</button>
+                                        <button class="btn-secondary" type="button" onclick="regeneratePitchDoc()">↻ Rebuild with selected logline</button>
+                                    </div>
+
+                                    <div class="results-col-header" style="font-size:14px;">3 · Comparable Titles</div>
+                                    <p style="font-size:13px;color:var(--grey);margin:0 0 12px;">Film and TV comps for producers. ⚠️ means the AI is unsure the title exists — verify before you use it.</p>
+                                    <div id="pitch-comps" style="margin-bottom:20px;"></div>
+
+                                    <div class="results-col-header" style="font-size:14px;">4 · Rights-Clarity Checklist</div>
+                                    <p style="font-size:13px;color:var(--grey);margin:0 0 12px;">Four questions, no AI — just so you know where you stand before anyone asks.</p>
+                                    <div class="field">
+                                        <label class="lbl">How was this book published?</label>
+                                        <select id="pitch-r1" onchange="updateRightsSummary()">
+                                            <option value="">— Select —</option>
+                                            <option value="self">Self-published</option>
+                                            <option value="traditional">Traditionally published</option>
+                                            <option value="hybrid">Hybrid-published</option>
+                                            <option value="unpublished">Unpublished / this is a new work</option>
+                                        </select>
+                                    </div>
+                                    <div class="field" id="pitch-r2-wrap" style="display:none;">
+                                        <label class="lbl">Does your publishing contract mention film, television, or dramatic rights? (Check the rights or reversion clause.)</label>
+                                        <select id="pitch-r2" onchange="updateRightsSummary()">
+                                            <option value="">— Select —</option>
+                                            <option value="yes">Yes — the publisher holds or shares them</option>
+                                            <option value="no">No — it doesn't mention them</option>
+                                            <option value="unsure">I'm not sure</option>
+                                        </select>
+                                    </div>
+                                    <div class="field">
+                                        <label class="lbl">Do you currently hold the film/TV rights to this work, to your knowledge?</label>
+                                        <select id="pitch-r3" onchange="updateRightsSummary()">
+                                            <option value="">— Select —</option>
+                                            <option value="yes">Yes</option>
+                                            <option value="no">No</option>
+                                            <option value="unsure">Not sure</option>
+                                        </select>
+                                    </div>
+                                    <div class="field">
+                                        <label class="lbl">Has this book, or any part of it, been optioned or adapted before?</label>
+                                        <select id="pitch-r4" onchange="updateRightsSummary()">
+                                            <option value="">— Select —</option>
+                                            <option value="no">No, never</option>
+                                            <option value="expired">Yes, but the option expired / rights reverted</option>
+                                            <option value="active">Yes, and it may still be active</option>
+                                        </select>
+                                    </div>
+                                    <div class="honest-note" id="pitch-rights-summary" style="display:none;"></div>
+                                </div>
+                            </div>
                         </div>
                         <div id="manuscript-output-section" style="display:none;">
                             <div class="results-col-header">📖 Manuscript</div>
@@ -996,7 +1070,8 @@ const state = {
   bible: {}, format: 'feature', approach: 'compress',
   tone: '', dialogue: '', episodes: 4,
   manuscriptLength: 'medium',
-  output: '', currentStep: 1
+  output: '', currentStep: 1,
+  pitch: { loglines: [], selectedLogline: '', doc: null, comps: [], generated: false }
 };
 
 const FORMAT_TARGETS = {
@@ -1026,6 +1101,19 @@ const SAMPLE_WORD_CAP = 2500;                 // ~10 manuscript pages at ~250 wo
 // "reads your entire book before it writes a single scene" is the claim being
 // demonstrated. This ceiling only stops one enormous upload eating the month.
 const SAMPLE_MAX_MANUSCRIPT_WORDS = 150000;
+
+// Every Bible call asks for this much room. It matches the ceiling both worker
+// paths already enforce (MAX_OUTPUT_TOKENS / SAMPLE_MAX_OUTPUT_TOKENS = 4096),
+// so nothing is clamped server-side.
+//
+// It was 2,000 (2,500 on update passes) — about 1,500 words for seven sections.
+// A 12.7k-word memoir spent the whole allowance on Logline/Characters/World/
+// Themes and stopped mid-sentence inside Act 1: KEY MOTIFS and ENDING were
+// never written, and printed as "—". Same class of bug as the conversion
+// truncation in Session 15d — asking for more than one call can deliver — and
+// the richer the manuscript, the more certain it is to bite.
+const BIBLE_MAX_TOKENS = 4096;
+
 function isSampleMode() { return localStorage.getItem('fsr_sample_mode') === 'true'; }
 function getSampleId() { return (localStorage.getItem('fsr_sample_id') || '').trim(); }
 function getSampleEmail() { return (localStorage.getItem('fsr_sample_email') || '').trim().toLowerCase(); }
@@ -1152,10 +1240,11 @@ function checkPartialSession() {
     if (banner) banner.style.display = 'block';
     const keyToggle = document.getElementById('key-toggle-btn');
     if (keyToggle) keyToggle.style.display = 'none';
-    // Fidelity scoring is a paid feature — hide the whole section rather than
-    // offer a button that only explains why it won't run. runFidelityCheck()
-    // still guards itself in case anything else reaches it.
-    document.querySelectorAll('.fidelity-section').forEach(el => { el.style.display = 'none'; });
+    // The change report and the Pitch Sheet are both paid features — hide the
+    // whole section rather than offer a button that only explains why it won't
+    // run. runFidelityCheck() and generatePitchSheet() still guard themselves in
+    // case anything else reaches them.
+    document.querySelectorAll('.fidelity-section, .pitch-section').forEach(el => { el.style.display = 'none'; });
     // The Bible is built from the WHOLE manuscript and is accurate — that is
     // the point of the sample. Logline, characters, world, themes and motifs
     // are shown in full; the structural analysis stays behind the paywall.
@@ -1493,7 +1582,7 @@ async function generateBible() {
         key,
         getBibleSystemPrompt(),
         `Book: "${state.title}" by ${state.author}\nGenre: ${state.genre}\n\nManuscript:\n${text}`,
-        2000
+        BIBLE_MAX_TOKENS
       );
       parseBible(res);
     } else {
@@ -1508,7 +1597,7 @@ async function generateBible() {
         key,
         getBibleSystemPrompt(),
         `Book: "${state.title}" by ${state.author}\nGenre: ${state.genre}\n\nManuscript (segment 1 of ${totalSegs} — the beginning of the book):\n${segments[0]}`,
-        2000
+        BIBLE_MAX_TOKENS
       );
 
       // Update passes — feed current Bible + next segment, ask for updated Bible
@@ -1519,7 +1608,7 @@ async function generateBible() {
           key,
           getBibleUpdatePrompt(),
           `Book: "${state.title}" by ${state.author}\nGenre: ${state.genre}\n\nEXISTING STORY BIBLE (built from segments 1–${i}):\n${currentBible}\n\nNEW MANUSCRIPT SEGMENT (${positionNote}):\n${segments[i]}\n\nProduce the complete updated Story Bible reflecting the full manuscript-so-far.`,
-          2500
+          BIBLE_MAX_TOKENS
         );
         currentBible = updated;
       }
@@ -1566,7 +1655,7 @@ THEMES: ${document.getElementById('q6').value}
   try {
     const res = await callAPI(key, getBibleSystemPrompt(),
       `Genre: ${state.genre}\nTitle: "${state.title}"\n\nStory concept provided by the author:\n${ideaText}\n\nBuild a comprehensive Story Bible from this concept. Be specific and creative — fill in details that feel true to the genre and concept, and help the author see their story more clearly.`,
-      2000);
+      BIBLE_MAX_TOKENS);
     parseBible(res);
     goToStep(2);
   } catch(err) {
@@ -1714,7 +1803,7 @@ async function generateBibleFromScreenplay() {
   try {
     const res = await callAPI(key, getBibleSystemPrompt(),
       `Screenplay: "${state.title}" by ${state.author}\nGenre: ${state.genre}\n\nSCREENPLAY (extract characters, arcs, tone, themes from the existing script format — scene headings, action lines, dialogue):\n${truncated}`,
-      2000);
+      BIBLE_MAX_TOKENS);
     parseBible(res);
     goToStep(2);
   } catch(err) {
@@ -1901,17 +1990,72 @@ async function checkFounderStart() {
   }
 }
 
+// The prompt asks for seven bare-capital headings, but the model routinely
+// decorates them anyway — "## CHARACTERS", "**THEMES**", "THREE-ACT STRUCTURE".
+//
+// The old parser ended each section at the next line made only of capitals,
+// spaces and ampersands. One "## " defeats that, so NO section ever found its
+// end and every field ran to the bottom of the reply: Logline held the entire
+// Bible, Characters held everything from Characters on, and so on — the Bible
+// printed five times over, nested. It also bloated the conversion prompt, which
+// pastes all seven fields in (see bibleText in convert()).
+//
+// So: locate the headings first, then slice between them. Anything the model
+// puts around a heading is stripped before matching, and an unrecognised
+// heading is simply not a boundary — never a silent swallow of the rest.
+const BIBLE_HEADINGS = {
+  'LOGLINE': 'logline',
+  'CHARACTERS': 'characters',
+  'CHARACTERS & ARCS': 'characters',
+  'CHARACTERS AND ARCS': 'characters',
+  'CHARACTER ARCS': 'characters',
+  'WORLD & TONE': 'world',
+  'WORLD AND TONE': 'world',
+  'WORLD': 'world',
+  'THEMES': 'themes',
+  'STRUCTURE': 'structure',
+  'THREE-ACT STRUCTURE': 'structure',
+  'THREE ACT STRUCTURE': 'structure',
+  'ACT STRUCTURE': 'structure',
+  'KEY MOTIFS': 'motifs',
+  'MOTIFS': 'motifs',
+  'ENDING': 'ending',
+};
+
+// Returns { key, inline } if this line is a section heading, else null.
+// `inline` catches "LOGLINE: one sentence" — heading and content on one line.
+function bibleHeading(line) {
+  const stripped = line.replace(/^[\s#>*_-]+/, '').replace(/[\s*_#]+$/, '').trim();
+  if (!stripped) return null;
+  const colon = stripped.indexOf(':');
+  const head = (colon === -1 ? stripped : stripped.slice(0, colon)).trim().toUpperCase();
+  const key = BIBLE_HEADINGS[head];
+  if (!key) return null;
+  return { key, inline: colon === -1 ? '' : stripped.slice(colon + 1).trim() };
+}
+
 function parseBible(raw) {
-  const parse = (label) => {
-    const regex = new RegExp(label + '\\n([\\s\\S]*?)(?=\\n[A-Z &]+\\n|$)');
-    const match = raw.match(regex);
-    return match ? match[1].trim() : '';
-  };
-  state.bible = {
-    logline: parse('LOGLINE'), characters: parse('CHARACTERS'),
-    world: parse('WORLD & TONE'), themes: parse('THEMES'),
-    structure: parse('STRUCTURE'), motifs: parse('KEY MOTIFS'), ending: parse('ENDING')
-  };
+  const lines = String(raw || '').replace(/\r\n?/g, '\n').split('\n');
+
+  // First occurrence wins: a stray "World:" inside the World body can't reopen
+  // a section that has already been found.
+  const hits = [];
+  lines.forEach((line, i) => {
+    const h = bibleHeading(line);
+    if (h && !hits.some(x => x.key === h.key)) hits.push({ ...h, at: i });
+  });
+
+  const found = { logline: '', characters: '', world: '', themes: '', structure: '', motifs: '', ending: '' };
+  hits.forEach((h, n) => {
+    const end = n + 1 < hits.length ? hits[n + 1].at : lines.length;
+    const body = lines.slice(h.at + 1, end).join('\n');
+    found[h.key] = ((h.inline ? h.inline + '\n' : '') + body)
+      .replace(/^[ \t]*[-–—_*]{3,}[ \t]*$/gm, '')  // the model's "---" section rules
+      .replace(/\*\*/g, '')                        // bold markers: these fields are plain text
+      .trim();
+  });
+
+  state.bible = found;
   document.getElementById('b-logline').value = state.bible.logline;
   document.getElementById('b-characters').value = state.bible.characters;
   document.getElementById('b-world').value = state.bible.world;
@@ -3143,8 +3287,13 @@ function startOver() {
     approach:'compress', tone:'', dialogue:'', episodes:4,
     manuscriptLength:'medium', output:'', currentStep:1, _cancelled: false,
     _partialOutput: null, _partialFrom: 0, _chunksConverted: 0, _totalChunks: 0,
-    sampleTruncated: false, isScreenplayInput: false
+    sampleTruncated: false, isScreenplayInput: false,
+    pitch: { loglines: [], selectedLogline: '', doc: null, comps: [], generated: false }
   });
+  const pitchResults = document.getElementById('pitch-results');
+  if (pitchResults) pitchResults.style.display = 'none';
+  const pitchBtn = document.getElementById('pitch-btn');
+  if (pitchBtn) pitchBtn.innerHTML = '🎬 Build My Pitch Sheet';
   const cancelBtn = document.getElementById('cancel-nav-btn');
   if (cancelBtn) cancelBtn.style.display = 'none';
   document.getElementById('file-info').classList.remove('on');
@@ -3230,21 +3379,11 @@ function buildFidelityStructuralPrompt(manuscriptText, screenplayText, cs) {
 
 ${buildFidelityConversionContext(cs)}GROUNDING RULE — the MANUSCRIPT text below is the ENTIRE source that was actually used to generate this screenplay. Do not assume, infer, or reference any manuscript content beyond what is provided here — even if you recognize the book or expect it to continue. If the provided text ends mid-story, treat it as the complete manuscript for this analysis; do NOT invent a summary unit for "the rest of the book" or any chapter/section you were not actually given.
 
-STEP 0 — SCOPE CHECK. By default, most conversions use the whole submitted source, and EVERY manuscript unit should get a real relationship (adapted/merged/split/expanded/omitted), not "out_of_scope" — do not assume format choice alone (e.g. Short Film) means chapters were skipped; the real pipeline compresses the entire submitted manuscript unless told otherwise below.
+STEP 0 — SCOPE CHECK. By default, most conversions use the whole submitted source — do not assume format choice alone (e.g. Short Film) means chapters were skipped; the real pipeline compresses the entire submitted manuscript unless told otherwise below. Material that was never in scope must NOT be reported as cut: it was not attempted, so calling it a cut would be wrong.
 
-EXCEPTION — if the CONVERSION CONTEXT above states this was a PARTIAL CONVERSION with a specific percentage, that percentage is authoritative, VERIFIED information about what was actually generated — it is not a textual inference and outranks the default rule above. In that case, mark manuscript units beyond the stated boundary as "out_of_scope" even without additional evidence in the screenplay text itself, since that remainder was never attempted, not creatively excluded. Only fall back to inferring scope from the screenplay text itself when no PARTIAL CONVERSION note is present above.
+EXCEPTION — if the CONVERSION CONTEXT above states this was a PARTIAL CONVERSION with a specific percentage, that percentage is authoritative, VERIFIED information about what was actually generated — it is not a textual inference and outranks the default rule above. In that case, treat manuscript material beyond the stated boundary as out of scope and leave it out of your list entirely, even without additional evidence in the screenplay text itself, since that remainder was never attempted, not creatively excluded. Only fall back to inferring scope from the screenplay text itself when no PARTIAL CONVERSION note is present above.
 
-Then identify:
-1. The manuscript's major structural units (chapters or scenes), grouped into Act 1 / Act 2 / Act 3 based on story position.
-2. The screenplay's major scenes, similarly grouped into Act 1 / Act 2 / Act 3.
-3. A mapping from manuscript units to screenplay scenes. Each manuscript unit gets exactly one relationship:
-   - "adapted": clean 1:1 correspondence
-   - "merged": this unit was combined with others into one screenplay scene
-   - "split": this unit became multiple screenplay scenes
-   - "expanded": the screenplay adds significant new material to this unit
-   - "omitted": WITHIN the in-scope material, but no corresponding screenplay content exists
-   - "out_of_scope": outside the in-scope material — see SCOPE CHECK above
-4. A list of manuscript elements that do NOT appear in the screenplay at all: subplots, character beats, thematic threads, minor characters, world/setting details. For each, classify narrative importance IN LIGHT OF THE CONVERSION CONTEXT ABOVE:
+Then identify the manuscript elements that do NOT appear in the screenplay at all: subplots, character beats, thematic threads, minor characters, world/setting details. For each, classify narrative importance IN LIGHT OF THE CONVERSION CONTEXT ABOVE:
    - "load_bearing": removing it changes the story's meaning or a character's motivation, even accounting for the chosen format and approach
    - "moderate": noticeable but not structurally critical
    - "cosmetic": detail-level, low impact if cut
@@ -3252,15 +3391,12 @@ Then identify:
 
 IMPORTANT for full-length manuscripts — keep the response compact:
    A long manuscript will naturally have far more omissions than can be usefully listed. In "omissions", list at most the 20 MOST SIGNIFICANT ones (prioritize load_bearing and moderate; include only a few cosmetic examples if there's room) — do NOT try to catalog every omission exhaustively. Only draw these from WITHIN the in-scope material (per SCOPE CHECK above).
-   Separately, in "omission_counts", give your best estimate of the TOTAL count in each classification across the WHOLE in-scope portion (not just the sampled list above) — this is what the fidelity score is actually calculated from, so it must reflect the full in-scope material even though the list itself is a sample.
+   Separately, in "omission_counts", give your best estimate of the TOTAL count in each classification across the WHOLE in-scope portion (not just the sampled list above) — this is what the headline figure is taken from, so it must reflect the full in-scope material even though the list itself is a sample.
 
-Keep every "summary" field to one short sentence, under 15 words. This keeps the response a manageable size for longer manuscripts.
+Keep every "description" and "reason" to one short sentence, under 20 words. This keeps the response a manageable size for longer manuscripts.
 
 Your entire response must be a single JSON object and nothing else. Do not include a preamble, an explanation, an apology, or any text before or after the JSON. Do not wrap it in markdown code fences. The first character of your response must be "{" and the last character must be "}". Match this exact shape:
 {
-  "manuscript_structure": [{"id": "M1", "act": 1, "label": "string", "summary": "string"}],
-  "screenplay_structure": [{"id": "S1", "act": 1, "label": "string", "summary": "string"}],
-  "mapping": [{"manuscript_id": "M1", "screenplay_ids": ["S1"], "relationship": "adapted|merged|split|expanded|omitted|out_of_scope"}],
   "omissions": [{"element": "string", "type": "subplot|character_beat|theme|minor_character|setting_detail", "description": "string", "classification": "load_bearing|moderate|cosmetic", "reason": "string"}],
   "omission_counts": {"load_bearing": 0, "moderate": 0, "cosmetic": 0}
 }`;
@@ -3277,10 +3413,11 @@ ${buildFidelityConversionContext(cs)}Identify dialogue exchanges — where a scr
 - "rewritten": same story beat or intent, substantially reworded for the screen
 - "invented": no clear manuscript source; new dialogue created for the adaptation
 
-IMPORTANT — keep the response compact:
-1. Quote only the FIRST 8-10 WORDS of each manuscript_line and screenplay_line — just enough to identify which exchange it is, not the full line.
-2. Extract a REPRESENTATIVE SAMPLE spread across the whole excerpt (aim for roughly 20-30 exchanges) rather than exhaustively listing every single line.
-3. Still give your best full-excerpt ESTIMATE for the count fields below — these should reflect the whole excerpt, not just the sampled pairs.
+IMPORTANT — these pairs are shown to the AUTHOR so they can see how their own dialogue was handled. Choose for usefulness, not coverage:
+1. Quote up to the FIRST 15 WORDS of each manuscript_line and screenplay_line — enough that the author recognizes the line and can judge the change for themselves.
+2. Select at most 12 pairs, and PRIORITIZE "rewritten" and "invented" — those are the changes an author most needs to see. Include two or three "verbatim" or "lightly_edited" examples only as reassurance that their voice survived elsewhere. Spread the selection across the whole story rather than clustering at the opening.
+3. For an "invented" line, leave manuscript_line as an empty string — there is no source line to quote.
+4. Still give your best full-excerpt ESTIMATE for the count fields below — these should reflect the whole excerpt, not just the selected pairs.
 
 Count fields (full-excerpt estimates, not sample-only):
 - estimated_total_matched_exchanges: your best estimate of the TOTAL number of dialogue exchanges across the whole excerpt that have a manuscript source
@@ -3289,97 +3426,13 @@ Count fields (full-excerpt estimates, not sample-only):
 
 Your entire response must be a single JSON object and nothing else. Do not include a preamble, an explanation, an apology, or any text before or after the JSON. Do not wrap it in markdown code fences. The first character of your response must be "{" and the last character must be "}". Match this exact shape:
 {
-  "dialogue_pairs": [{"manuscript_line": "string (8-10 words max)", "screenplay_line": "string (8-10 words max)", "category": "verbatim|lightly_edited|rewritten|invented"}],
+  "dialogue_pairs": [{"manuscript_line": "string (15 words max, empty for invented)", "screenplay_line": "string (15 words max)", "category": "verbatim|lightly_edited|rewritten|invented"}],
   "estimated_total_matched_exchanges": 0,
   "screenplay_only_lines_count": 0,
   "manuscript_only_lines_count": 0
 }`;
   const user = `MANUSCRIPT:\n${manuscriptText}\n\n---\n\nSCREENPLAY:\n${screenplayText}`;
   return { system, user };
-}
-
-function fidelityClamp(n, min = 1, max = 10) { return Math.max(min, Math.min(max, Math.round(n))); }
-
-function fidelityInScopeMapping(mapping) {
-  return mapping.filter((m) => m.relationship !== "out_of_scope");
-}
-function fidelityInScopeManuscript(manuscriptStructure, mapping) {
-  const outIds = new Set(mapping.filter((m) => m.relationship === "out_of_scope").map((m) => m.manuscript_id));
-  return manuscriptStructure.filter((u) => !outIds.has(u.id));
-}
-
-function scoreStructuralFidelity(mapping) {
-  const scoped = fidelityInScopeMapping(mapping);
-  if (!scoped.length) return 1;
-  const penalties = { adapted: 0, expanded: 0.25, merged: 0.75, split: 1, omitted: 0 };
-  let score = 10;
-  for (const m of scoped) score -= penalties[m.relationship] ?? 0.5;
-  return fidelityClamp(score);
-}
-
-function scoreSceneRetention(manuscriptStructure, mapping) {
-  const scopedUnits = fidelityInScopeManuscript(manuscriptStructure, mapping);
-  if (!scopedUnits.length) return 1;
-  const retained = scopedUnits.filter((unit) => {
-    const m = mapping.find((x) => x.manuscript_id === unit.id);
-    return m && m.relationship !== "omitted";
-  }).length;
-  return fidelityClamp((retained / scopedUnits.length) * 10);
-}
-
-function scoreOmissionImpact(omissions, omissionCounts) {
-  const weights = { load_bearing: 3, moderate: 1, cosmetic: 0.25 };
-  let totalWeight = 0, totalCount = 0;
-  // Prefer the full-manuscript aggregate counts (accurate for long manuscripts
-  // where the omissions array itself is only a representative sample).
-  if (omissionCounts && ((omissionCounts.load_bearing || 0) + (omissionCounts.moderate || 0) + (omissionCounts.cosmetic || 0) > 0)) {
-    totalCount = (omissionCounts.load_bearing || 0) + (omissionCounts.moderate || 0) + (omissionCounts.cosmetic || 0);
-    totalWeight = (omissionCounts.load_bearing || 0) * 3 + (omissionCounts.moderate || 0) * 1 + (omissionCounts.cosmetic || 0) * 0.25;
-  } else if (omissions && omissions.length) {
-    totalCount = omissions.length;
-    totalWeight = omissions.reduce((sum, o) => sum + (weights[o.classification] ?? 0.5), 0);
-  }
-  if (!totalCount) return 10;
-  const avgWeight = totalWeight / totalCount;
-  return fidelityClamp(10 - (avgWeight / 3) * 9);
-}
-
-function scoreDialogueTransformation(dialoguePairs, screenplayOnlyLinesCount, estimatedTotalMatchedExchanges) {
-  const sampleSize = dialoguePairs.length;
-  const totalMatched = estimatedTotalMatchedExchanges != null && estimatedTotalMatchedExchanges > 0 ? estimatedTotalMatchedExchanges : sampleSize;
-  const totalDialogueUnits = totalMatched + (screenplayOnlyLinesCount || 0);
-  if (!totalDialogueUnits) return 5;
-  const counts = { verbatim: 0, lightly_edited: 0, rewritten: 0, invented: 0 };
-  for (const p of dialoguePairs) counts[p.category] = (counts[p.category] || 0) + 1;
-  const sampleRate = sampleSize ? (counts.rewritten + counts.invented) / sampleSize : 0;
-  const transformedTotal = sampleRate * totalMatched + (screenplayOnlyLinesCount || 0);
-  return fidelityClamp((transformedTotal / totalDialogueUnits) * 10);
-}
-
-function scorePacingShift(manuscriptStructure, screenplayStructure, mapping) {
-  const scopedManuscript = mapping.length ? fidelityInScopeManuscript(manuscriptStructure, mapping) : manuscriptStructure;
-  const actShare = (arr) => {
-    const counts = { 1: 0, 2: 0, 3: 0 };
-    for (const u of arr) counts[u.act] = (counts[u.act] || 0) + 1;
-    const total = arr.length || 1;
-    return { 1: counts[1] / total, 2: counts[2] / total, 3: counts[3] / total };
-  };
-  const mShare = actShare(scopedManuscript);
-  const sShare = actShare(screenplayStructure);
-  const divergence = [1, 2, 3].reduce((sum, act) => sum + Math.abs(mShare[act] - sShare[act]), 0);
-  return fidelityClamp(10 - (divergence / 2) * 9);
-}
-
-function computeFidelityScores(structuralResult, dialogueResult) {
-  const { manuscript_structure, screenplay_structure, mapping, omissions, omission_counts } = structuralResult;
-  const { dialogue_pairs, screenplay_only_lines_count, estimated_total_matched_exchanges } = dialogueResult;
-  return {
-    structuralFidelity: scoreStructuralFidelity(mapping),
-    sceneRetention: scoreSceneRetention(manuscript_structure, mapping),
-    omissionImpact: scoreOmissionImpact(omissions, omission_counts),
-    dialogueTransformation: scoreDialogueTransformation(dialogue_pairs, screenplay_only_lines_count, estimated_total_matched_exchanges),
-    pacingShift: scorePacingShift(manuscript_structure, screenplay_structure, mapping),
-  };
 }
 
 function fidelityExtractJSON(text) {
@@ -3451,17 +3504,19 @@ async function runFidelityCheck() {
   resultsEl.style.display = 'none';
 
   try {
+    // 4096 is the real ceiling on BOTH worker paths. This used to ask for 8,000,
+    // which the worker silently clamped — so on a long book the JSON was cut off
+    // and the whole check died in JSON.parse with "please try again". The
+    // response is much smaller now that no structure/mapping arrays are needed.
     const sp = buildFidelityStructuralPrompt(state.rawText, state.output, cs);
-    const structuralRaw = await callAPI(key, sp.system, sp.user, 8000, 'fidelity');
+    const structuralRaw = await callAPI(key, sp.system, sp.user, BIBLE_MAX_TOKENS, 'fidelity');
     const structuralResult = fidelityExtractJSON(structuralRaw);
 
     const dp = buildFidelityDialoguePrompt(state.rawText, state.output, cs);
-    const dialogueRaw = await callAPI(key, dp.system, dp.user, 8000, 'fidelity');
+    const dialogueRaw = await callAPI(key, dp.system, dp.user, BIBLE_MAX_TOKENS, 'fidelity');
     const dialogueResult = fidelityExtractJSON(dialogueRaw);
 
-    const scores = computeFidelityScores(structuralResult, dialogueResult);
-    const overall = Math.round((scores.structuralFidelity + scores.sceneRetention + scores.omissionImpact + scores.dialogueTransformation + scores.pacingShift) / 5);
-    renderFidelityResults(scores, overall, structuralResult, dialogueResult);
+    renderFidelityResults(structuralResult, dialogueResult);
   } catch (err) {
     alert('Fidelity check failed: ' + (err.message || 'please try again.'));
   }
@@ -3473,8 +3528,8 @@ async function runFidelityCheck() {
 function renderFidelityPartialNotice(pct) {
   const resultsEl = document.getElementById('fidelity-results');
   resultsEl.innerHTML = `
-    <div class="fidelity-overall">This was a ~${pct}% partial conversion — fidelity analysis works best on a complete draft.</div>
-    <div style="font-size:13px;color:var(--grey);line-height:1.6;">Finish converting the rest of your manuscript (▶ Continue Conversion), then run this check again for a meaningful fidelity score.</div>
+    <div class="fidelity-overall">This was a ~${pct}% partial conversion — a comparison only means something against a finished draft.</div>
+    <div style="font-size:13px;color:var(--grey);line-height:1.6;">Finish converting the rest of your manuscript (▶ Continue Conversion), then run this again. Otherwise everything not yet attempted would look like it had been cut.</div>
   `;
   resultsEl.style.display = 'block';
 }
@@ -3482,50 +3537,303 @@ function renderFidelityPartialNotice(pct) {
 function renderFidelitySampleNotice() {
   const resultsEl = document.getElementById('fidelity-results');
   resultsEl.innerHTML = `
-    <div class="fidelity-overall">Fidelity scoring is part of a purchased conversion.</div>
-    <div style="font-size:13px;color:var(--grey);line-height:1.6;">It compares your full manuscript against the finished screenplay across five measures — which needs the whole book, not a 10-page sample. <a href="https://tinhousepress.com/fluidscriptr#pricing" target="_blank" style="color:var(--red);font-weight:600;text-decoration:none;">See pricing →</a></div>
+    <div class="fidelity-overall">The change report is part of a purchased conversion.</div>
+    <div style="font-size:13px;color:var(--grey);line-height:1.6;">It reads your full manuscript against the finished screenplay and lists everything cut or reshaped — which needs the whole book and a complete draft, not a 10-page sample. <a href="https://tinhousepress.com/fluidscriptr#pricing" target="_blank" style="color:var(--red);font-weight:600;text-decoration:none;">See pricing →</a></div>
   `;
   resultsEl.style.display = 'block';
 }
 
-function renderFidelityResults(scores, overall, structuralResult, dialogueResult) {
-  const labels = {
-    structuralFidelity: 'Structural Fidelity',
-    sceneRetention: 'Scene Retention',
-    omissionImpact: 'Omission Impact',
-    dialogueTransformation: 'Dialogue Transformation',
-    pacingShift: 'Pacing Shift',
-  };
-  const verdict = overall >= 8
-    ? 'High-fidelity adaptation — closely tracks the source material.'
-    : overall >= 5
-    ? 'Moderate transformation — meaningful creative changes were made.'
-    : 'Significant transformation — the screenplay departs substantially from the source.';
+// Deliberately no scores and no bar graph. The five numbers were computed from
+// the model's own estimated counts, so "7/10 Pacing Shift" implied a precision
+// that was never there — and dropping them costs nothing, because the expense is
+// the two comparison passes, not the arithmetic. What an author can actually act
+// on is the concrete list: this got cut, this line became that line.
+function renderFidelityResults(structuralResult, dialogueResult) {
+  const counts = structuralResult.omission_counts || {};
+  const loadBearing = counts.load_bearing || 0;
+  const total = loadBearing + (counts.moderate || 0) + (counts.cosmetic || 0);
 
-  const scoreRows = Object.keys(labels).map(key => `
-    <div class="fidelity-score-row">
-      <span class="fidelity-score-label">${labels[key]}</span>
-      <span class="fidelity-score-bar"><span style="width:${scores[key] * 10}%"></span></span>
-      <span class="fidelity-score-value">${scores[key]}/10</span>
-    </div>`).join('');
+  const headline = total === 0
+    ? 'No significant material was dropped in the adaptation.'
+    : `About ${total} element${total === 1 ? '' : 's'} from your book ${total === 1 ? 'was' : 'were'} cut or reshaped for the screen` +
+      (loadBearing > 0
+        ? ` — ${loadBearing} of them load-bearing, meaning the story's meaning or a character's motivation shifts without them.`
+        : ' — none of them load-bearing, so the essential throughline survived.');
 
   const omissionsList = (structuralResult.omissions || []).map(o => `
     <div class="fidelity-omission-item">
-      <strong>${o.element}</strong> <span class="fidelity-tag fidelity-tag-${o.classification}">${o.classification.replace('_', ' ')}</span>
-      <div class="fidelity-omission-reason">${o.reason}</div>
+      <strong>${escHTML(o.element)}</strong> <span class="fidelity-tag fidelity-tag-${escHTML(o.classification)}">${escHTML(String(o.classification || '').replace('_', ' '))}</span>
+      <div class="fidelity-omission-reason">${escHTML(o.reason)}</div>
     </div>`).join('');
+
+  // Invented lines have no source to quote, so they render as a single row.
+  const dlgLabels = { verbatim: 'kept word for word', lightly_edited: 'lightly edited', rewritten: 'rewritten for screen', invented: 'written for the screen' };
+  const pairs = (dialogueResult.dialogue_pairs || []).map(p => {
+    const cat = String(p.category || '');
+    const tag = `<span class="fidelity-tag fidelity-tag-dlg-${escHTML(cat)}">${escHTML(dlgLabels[cat] || cat)}</span>`;
+    if (cat === 'invented' || !p.manuscript_line) {
+      return `<div class="fidelity-omission-item"><div class="fidelity-dlg-line">“${escHTML(p.screenplay_line)}…”</div>${tag}</div>`;
+    }
+    return `
+      <div class="fidelity-omission-item">
+        <div class="fidelity-dlg-from">Your book: “${escHTML(p.manuscript_line)}…”</div>
+        <div class="fidelity-dlg-line">Screenplay: “${escHTML(p.screenplay_line)}…”</div>
+        ${tag}
+      </div>`;
+  }).join('');
+
+  const invented = dialogueResult.screenplay_only_lines_count || 0;
+  const dropped = dialogueResult.manuscript_only_lines_count || 0;
+  const dlgSummary = `<div class="fidelity-omission-reason" style="margin:0 0 10px;">Across the whole screenplay, roughly ${invented} line${invented === 1 ? '' : 's'} of dialogue ${invented === 1 ? 'was' : 'were'} written for the screen with no source in your book, and about ${dropped} spoken line${dropped === 1 ? '' : 's'} from the book did not make it in.</div>`;
 
   const resultsEl = document.getElementById('fidelity-results');
   resultsEl.innerHTML = `
-    <div class="fidelity-overall">Overall: <strong>${overall}/10</strong> — ${verdict}</div>
-    <div class="fidelity-scores">${scoreRows}</div>
-    <button class="btn-glossary-toggle" type="button" onclick="document.getElementById('fidelity-detail').style.display = document.getElementById('fidelity-detail').style.display === 'none' ? 'block' : 'none';">📖 Show full breakdown</button>
-    <div id="fidelity-detail" style="display:none;margin-top:12px;">
-      <div class="results-col-header" style="font-size:14px;">What got cut or changed</div>
-      ${omissionsList || '<div style="font-size:13px;color:var(--grey);">No notable omissions found.</div>'}
-    </div>
+    <div class="fidelity-overall">${headline}</div>
+    <div class="results-col-header" style="font-size:14px;">What got cut or changed</div>
+    ${omissionsList || '<div style="font-size:13px;color:var(--grey);">No notable omissions found.</div>'}
+    ${pairs ? `
+      <button class="btn-glossary-toggle" type="button" style="margin-top:14px;" onclick="const d=document.getElementById('fidelity-dialogue');d.style.display=d.style.display==='none'?'block':'none';">💬 How your dialogue was handled</button>
+      <div id="fidelity-dialogue" style="display:none;margin-top:12px;">${dlgSummary}${pairs}</div>` : ''}
+    <div class="fidelity-omission-reason" style="margin-top:14px;font-style:italic;">This is a reading of your book against the screenplay, not a verdict on either. Cuts are how a book becomes a film — the list is here so the choices are yours to review, not the machine's to hide.</div>
   `;
   resultsEl.style.display = 'block';
+}
+
+// ══ PITCH SHEET ═══════════════════════════════════════════════════════════
+// Recovered from the retired Adaptation Package (commit 57941b6). What is
+// deliberately NOT recovered: the licence gate, the Gumroad link, the separate
+// product id, and the checkFounderStart() call. That last one matters — it
+// consumes an entitlement, and the Pitch Sheet is now included with a
+// conversion the buyer has already paid for. Calling it would charge them a
+// second conversion for a free extra.
+
+// One shared system prompt across all three calls, so the manuscript prefix is
+// written to the prompt cache once and read twice.
+function pitchSystemPrompt() {
+  const source = state.rawText
+    ? state.rawText.split(/\s+/).slice(0, 60000).join(' ')
+    : synthesizeSourceFromBible();
+  return `You are a professional film/TV development executive preparing pitch materials for a manuscript. Base every answer strictly on the manuscript below. Follow the OUTPUT FORMAT in the user message exactly.
+
+BOOK: "${state.title}" by ${state.author}
+GENRE: ${state.genre || 'Unspecified'}
+WORD COUNT: ${state.rawText ? state.rawText.split(/\s+/).length : 'n/a (story bible)'}
+
+MANUSCRIPT:
+${source}`;
+}
+
+function setPitchProgress(label) {
+  const p = document.getElementById('pitch-progress');
+  if (!p) return;
+  p.style.display = 'block';
+  document.getElementById('pitch-progress-label').textContent = label;
+}
+
+async function generatePitchSheet() {
+  if (isSampleMode()) { alert('The Pitch Sheet is included with a purchased conversion.'); return; }
+  if (!canGenerate()) { alert(getAIMode() === 'own' ? 'Add your Anthropic API key in ✨ AI Settings — or switch to Included credits.' : 'Please unlock with your license key first.'); return; }
+  if (!state.rawText && !(state.bible && state.bible.logline)) { alert('Generate a screenplay first — the Pitch Sheet is built from the same manuscript.'); return; }
+
+  const key = getKey();
+  const btn = document.getElementById('pitch-btn');
+  btn.disabled = true;
+  const system = pitchSystemPrompt();
+
+  try {
+    // ── 1. Loglines (3 ranked options) ──
+    setPitchProgress('Writing loglines (1 of 3)…');
+    const logRaw = await callAPI(key, system,
+`Write loglines for this manuscript.
+
+A strong logline names a specific protagonist, a specific want, and a specific obstacle or conflict, and creates a legible question the reader needs answered. Avoid generic phrasing ("must confront their past", "everything changes").
+
+OUTPUT FORMAT — exactly this, nothing else:
+LOGLINE 1: <strongest option, 1–2 sentences>
+LOGLINE 2: <second option, 1–2 sentences>
+LOGLINE 3: <third option, 1–2 sentences>`, 600);
+    state.pitch.loglines = parsePitchLoglines(logRaw);
+    state.pitch.selectedLogline = state.pitch.loglines[0] || '';
+
+    // ── 2. One-page pitch ──
+    setPitchProgress('Building your one-pager (2 of 3)…');
+    await generatePitchDoc(key, system);
+
+    // ── 3. Comp titles ──
+    setPitchProgress('Finding comparable titles (3 of 3)…');
+    const compRaw = await callAPI(key, system,
+`Suggest 2–3 comparable titles ("comps") for pitching this manuscript to film/TV producers.
+
+Rules:
+- FILMS or TV SERIES only — never books. This pitch goes to producers, not agents.
+- Prefer titles released in the last 3–5 years. A slightly older title is acceptable only if it is a much stronger fit.
+- ACCURACY OVER PLAUSIBILITY: if you are not fully certain a title exists, or unsure of its year or platform, you MUST mark it UNCERTAIN. Never invent a plausible-sounding title. A wrong comp destroys credibility with a producer.
+
+OUTPUT FORMAT — exactly this per comp, nothing else:
+COMP: <title> (<year>, <film or series — platform/studio if known>)
+WHY: <one sentence on the specific overlap — tone, premise, audience>
+CONFIDENCE: <CONFIRMED or UNCERTAIN>`, 700);
+    state.pitch.comps = parsePitchComps(compRaw);
+
+    state.pitch.generated = true;
+    renderPitchLoglines();
+    renderPitchDoc();
+    renderPitchComps();
+    document.getElementById('pitch-results').style.display = 'block';
+    document.getElementById('pitch-progress').style.display = 'none';
+    btn.innerHTML = '↻ Rebuild the whole Pitch Sheet';
+  } catch (err) {
+    document.getElementById('pitch-progress').style.display = 'none';
+    alert('Pitch Sheet error: ' + (err.message || 'Generation failed. Try again.'));
+  }
+  btn.disabled = false;
+}
+
+async function generatePitchDoc(key, system) {
+  system = system || pitchSystemPrompt();
+  key = (key !== undefined) ? key : getKey();
+  const raw = await callAPI(key, system,
+`Write the body of a one-page pitch document for this manuscript, using this logline:
+"${state.pitch.selectedLogline}"
+
+OUTPUT FORMAT — exactly this, nothing else:
+SYNOPSIS:
+<150–250 words. Spoiler-light: imply the ending, never state it. Present tense. Written to make a producer's assistant keep reading.>
+
+POSITIONING:
+<One line of genre/tone positioning, e.g. "Character-driven literary thriller, tonally adjacent to X and Y.">
+
+FORMAT:
+<One line: source format and length, e.g. "Novel, 84,000 words. Adaptation target: feature film.">`, 800);
+  state.pitch.doc = parsePitchDoc(raw);
+}
+
+async function regeneratePitchDoc() {
+  setPitchProgress('Rebuilding your one-pager…');
+  try {
+    await generatePitchDoc();
+    renderPitchDoc();
+  } catch (err) {
+    alert('Error: ' + (err.message || 'Try again.'));
+  }
+  document.getElementById('pitch-progress').style.display = 'none';
+}
+
+// ── Parsers ──
+function parsePitchLoglines(raw) {
+  const out = [];
+  const re = /LOGLINE\s*\d\s*:\s*([\s\S]*?)(?=\nLOGLINE\s*\d\s*:|$)/g;
+  let m; while ((m = re.exec(raw)) !== null) out.push(m[1].trim());
+  return out.length ? out.slice(0, 3) : [String(raw || '').trim()];
+}
+
+function parsePitchDoc(raw) {
+  const grab = (label) => {
+    const m = String(raw || '').match(new RegExp(label + ':\\s*\\n?([\\s\\S]*?)(?=\\n(?:SYNOPSIS|POSITIONING|FORMAT):|$)'));
+    return m ? m[1].trim() : '';
+  };
+  return { synopsis: grab('SYNOPSIS'), positioning: grab('POSITIONING'), format: grab('FORMAT') };
+}
+
+function parsePitchComps(raw) {
+  const out = [];
+  const re = /COMP:\s*(.*?)\n\s*WHY:\s*(.*?)\n\s*CONFIDENCE:\s*(\w+)/g;
+  let m; while ((m = re.exec(raw)) !== null) {
+    out.push({ title: m[1].trim(), why: m[2].trim(), confirmed: /CONFIRMED/i.test(m[3]) });
+  }
+  return out;
+}
+
+// ── Renderers ──
+function renderPitchLoglines() {
+  const box = document.getElementById('pitch-logline-options');
+  box.innerHTML = state.pitch.loglines.map((l, i) => `
+    <label style="display:flex;gap:10px;align-items:flex-start;padding:12px 14px;border-radius:14px;background:${i===0?'rgba(232,51,58,0.06)':'transparent'};cursor:pointer;margin-bottom:6px;">
+      <input type="radio" name="pitch-logline" ${i===0?'checked':''} onchange="pickPitchLogline(${i})" style="margin-top:4px;accent-color:var(--red);flex-shrink:0;"/>
+      <span style="font-size:14px;line-height:1.6;"><strong style="color:var(--red);">#${i+1}</strong> ${escHTML(l)}</span>
+    </label>`).join('');
+  document.getElementById('pitch-logline-final').value = state.pitch.selectedLogline;
+}
+
+function pickPitchLogline(i) {
+  state.pitch.selectedLogline = state.pitch.loglines[i];
+  document.getElementById('pitch-logline-final').value = state.pitch.selectedLogline;
+}
+
+function renderPitchDoc() {
+  const p = state.pitch.doc || {};
+  document.getElementById('pitch-doc-preview').innerHTML = `
+    <p style="margin-bottom:10px;"><strong>Logline.</strong> ${escHTML(state.pitch.selectedLogline)}</p>
+    <p style="margin-bottom:10px;"><strong>Synopsis.</strong> ${escHTML(p.synopsis || '—')}</p>
+    <p style="margin-bottom:10px;"><strong>Positioning.</strong> ${escHTML(p.positioning || '—')}</p>
+    <p style="margin-bottom:0;"><strong>Format.</strong> ${escHTML(p.format || '—')}</p>`;
+}
+
+function renderPitchComps() {
+  const box = document.getElementById('pitch-comps');
+  if (!state.pitch.comps.length) { box.innerHTML = '<p style="font-size:14px;color:var(--grey);">No confident comps found — rebuild the sheet, or add your own.</p>'; return; }
+  box.innerHTML = state.pitch.comps.map(c => `
+    <div style="padding:12px 14px;border-radius:14px;background:rgba(0,0,0,0.03);margin-bottom:8px;">
+      <div style="font-size:14px;font-weight:700;">${c.confirmed ? '' : '⚠️ '}${escHTML(c.title)} ${c.confirmed ? '' : '<span style="font-size:11px;font-weight:600;color:var(--red);text-transform:uppercase;letter-spacing:0.05em;">— unverified, check before pitching</span>'}</div>
+      <div style="font-size:13px;color:var(--grey);line-height:1.6;margin-top:2px;">${escHTML(c.why)}</div>
+    </div>`).join('');
+}
+
+// ── Rights checklist (no AI) ──
+function updateRightsSummary() {
+  const r1 = document.getElementById('pitch-r1').value;
+  document.getElementById('pitch-r2-wrap').style.display = (r1 === 'traditional' || r1 === 'hybrid') ? 'block' : 'none';
+  const r2 = document.getElementById('pitch-r2').value;
+  const r3 = document.getElementById('pitch-r3').value;
+  const r4 = document.getElementById('pitch-r4').value;
+  const el = document.getElementById('pitch-rights-summary');
+  if (!r1 || !r3 || !r4 || ((r1 === 'traditional' || r1 === 'hybrid') && !r2)) { el.style.display = 'none'; return; }
+
+  let lines = [];
+  if (r1 === 'self' || r1 === 'unpublished') {
+    lines.push('<strong>Good position:</strong> as a ' + (r1 === 'self' ? 'self-published' : 'not-yet-published') + ' author you most likely hold your film/TV rights by default — that’s exactly what a producer’s legal team wants to hear.');
+  } else if (r2 === 'yes') {
+    lines.push('<strong>Check your contract first:</strong> your publisher may hold or share the dramatic rights. Look for the rights grant and any reversion clause before approaching producers.');
+  } else if (r2 === 'no') {
+    lines.push('<strong>Likely yours:</strong> if the contract doesn’t grant film/TV/dramatic rights to the publisher, they typically remain with you — but confirm the exact contract language.');
+  } else {
+    lines.push('<strong>Find out before pitching:</strong> ask your publisher or agent directly whether dramatic rights were included in your deal. Producers will ask.');
+  }
+  if (r3 === 'no') lines.push('You indicated you don’t hold the rights — resolve that before pitching; producers can’t option what you can’t grant.');
+  if (r3 === 'unsure') lines.push('You’re unsure whether you hold the rights — resolving that is step one.');
+  if (r4 === 'active') lines.push('<strong>Important:</strong> a possibly-active prior option means the rights may be encumbered. Confirm its status in writing before any new conversation.');
+  if (r4 === 'expired') lines.push('A prior expired option is fine — just keep the reversion paperwork handy; it’s part of your chain of title.');
+  lines.push('<em>This is general information, not legal advice. Before any actual negotiation, confirm your rights position with an entertainment attorney.</em>');
+  el.innerHTML = lines.join('<br><br>');
+  el.style.display = 'block';
+}
+
+// ── Pitch Sheet PDF (print-window pattern, consistent with the other exports) ──
+function exportPitchPDF() {
+  const p = state.pitch.doc || {};
+  const w = window.open('', '_blank');
+  w.document.write(`<!DOCTYPE html><html><head><title>${escHTML(state.title)} — Pitch Sheet</title>
+  <style>
+    @page { size: letter; margin: 1in; }
+    body{font-family:Georgia,'Times New Roman',serif;font-size:11.5pt;color:#111;background:#fff;line-height:1.55;max-width:6.5in;margin:1in auto;}
+    h1{font-size:20pt;margin:0 0 2px;letter-spacing:0.01em;}
+    .byline{font-size:10.5pt;color:#555;margin-bottom:24px;}
+    .lbl{font-size:9pt;text-transform:uppercase;letter-spacing:0.14em;color:#8a1f24;font-weight:bold;margin:20px 0 6px;}
+    p{margin:0 0 10px;}
+    .foot{margin-top:32px;font-size:8.5pt;color:#999;border-top:1px solid #ddd;padding-top:8px;}
+    @media print{body{margin:0 auto;}}
+  </style></head><body>
+    <h1>${escHTML(state.title)}</h1>
+    <div class="byline">by ${escHTML(state.author)} · ${escHTML(state.genre || '')}</div>
+    <div class="lbl">Logline</div><p>${escHTML(state.pitch.selectedLogline)}</p>
+    <div class="lbl">Synopsis</div><p>${escHTML(p.synopsis || '')}</p>
+    <div class="lbl">Positioning</div><p>${escHTML(p.positioning || '')}</p>
+    <div class="lbl">Format</div><p>${escHTML(p.format || '')}</p>
+    ${state.pitch.comps.length ? `<div class="lbl">Comparable Titles</div><p>${state.pitch.comps.filter(c=>c.confirmed).map(c => escHTML(c.title)).join(' · ') || '—'}</p>` : ''}
+    <div class="foot">Prepared with FluidScriptr · ${new Date().toLocaleDateString('en-US',{year:'numeric',month:'long',day:'numeric'})} · Contact: ${escHTML(state.author)}</div>
+  </body></html>`);
+  w.document.close();
+  setTimeout(() => w.print(), 600);
 }
 </script>
     </body>
