@@ -733,7 +733,7 @@ input[type=range]::-moz-range-thumb { width: 20px; height: 20px; border-radius: 
                                 <p>Elevated prose, rich description, deep interiority</p>
                             </div>
                         </div>
-                        <div class="field" style="margin-top:1rem;margin-bottom:0;">
+                        <div class="field" id="ms-length-field" style="margin-top:1rem;margin-bottom:0;">
                             <label class="lbl">Target length</label>
                             <div style="margin-bottom:0.75rem;">
                                 <button class="btn-glossary-toggle" onclick="toggleWordCountGuide()" type="button">📚 What length should I pick?</button>
@@ -768,6 +768,7 @@ input[type=range]::-moz-range-thumb { width: 20px; height: 20px; border-radius: 
                                 <option value="long">Sci-fi / Fantasy (~100,000 words)</option>
                                 <option value="epic">Epic (~120,000 words)</option>
                             </select>
+                            <div id="ms-length-note" style="display:none;font-size:12px;line-height:1.6;color:var(--grey);margin-top:10px;"></div>
                         </div>
                     </div>
                 </div>
@@ -2133,6 +2134,108 @@ function applyFormatConstraints() {
       .find(c => (c.getAttribute('onclick') || '').includes("'short'"));
     if (shortCard) selectFormat(shortCard, 'short');
   }
+
+  applyManuscriptConstraints();
+}
+
+// Typical finished length by genre, US trade market. Ordered shortest first so
+// the nearest valid option can be found by walking the list.
+const MS_LENGTHS = ['novella', 'short', 'medium', 'literary', 'long', 'epic'];
+const MS_LENGTH_WORDS = { novella: 25000, short: 55000, medium: 75000, literary: 85000, long: 100000, epic: 120000 };
+// Ranges are the band an acquiring editor or a self-pub price point expects —
+// not hard rules of writing. Deliberately generous at the edges.
+// Keyed by the <option> VALUE (lowercase slugs like 'sci-fi'), NOT the visible
+// label — the two differ, and matching on the label silently matches nothing.
+//
+// The word ranges are taken from the app's OWN "Sweet spot by genre" glossary,
+// which sits a few inches above this control. If the two disagree the app
+// contradicts itself on screen, so change them together or not at all.
+const GENRE_LENGTH_BANDS = {
+  'literary drama':   { label: 'Literary fiction',    min: 80000,  max: 100000, note: '80,000–100,000 words. Above 110,000 a debut has to earn it.' },
+  'thriller':         { label: 'Mystery / Thriller',  min: 70000,  max: 90000,  note: '70,000–90,000 words — tight pacing is what the genre rewards.' },
+  'romance':          { label: 'Romance',             min: 50000,  max: 90000,  note: '50,000–90,000 words, and category romance often 50,000–75,000.' },
+  'horror':           { label: 'Horror',              min: 70000,  max: 100000, note: '70,000–100,000 words.' },
+  'action adventure': { label: 'Action / Adventure',  min: 70000,  max: 100000, note: '70,000–100,000 words.' },
+  'comedy':           { label: 'Comedy',              min: 70000,  max: 90000,  note: '70,000–90,000 words — comic novels rarely run long.' },
+  'sci-fi':           { label: 'Science fiction',     min: 90000,  max: 120000, note: '90,000–120,000 words.' },
+  'fantasy':          { label: 'Fantasy',             min: 90000,  max: 120000, note: '90,000–120,000 words, and epic fantasy is the one genre where longer is normal.' },
+  'historical drama': { label: 'Historical fiction',  min: 100000, max: 120000, note: '100,000–120,000 words.' },
+  'children family':  { label: "Children's / Family", min: 20000,  max: 55000,  note: "20,000–55,000 words. Anything longer will not be shelved as children's." },
+  'biography':        { label: 'Biography / memoir',  min: 70000,  max: 100000, note: '70,000–100,000 words.' },
+};
+// The six presets rarely land exactly on a band edge (a 75,000-word "standard
+// novel" against a 80,000-word literary floor). A 10% tolerance keeps the
+// nearest sensible preset available instead of dimming it on a technicality.
+const GENRE_BAND_TOLERANCE = 0.10;
+
+// Two separate jobs, both about not offering a choice the app will ignore:
+//
+//  1. ENHANCE ignores target length entirely — it rewrites what was uploaded,
+//     so the output is however long the author's book already is. Turning a
+//     12,000-word manuscript into a 120,000-word one is not enhancement, it is
+//     inventing 108,000 words of new story. The control used to sit there fully
+//     active and silently do nothing.
+//  2. On the WRITE-A-MANUSCRIPT path the length is real, but lengths outside the
+//     chosen genre's band are dimmed — a 120,000-word children's book is not a
+//     children's book. Same dim-with-a-reason pattern as the format cards above.
+function applyManuscriptConstraints() {
+  const sel   = document.getElementById('manuscript-length');
+  const field = document.getElementById('ms-length-field');
+  const note  = document.getElementById('ms-length-note');
+  if (!sel || !field || !note) return;
+
+  const isEnhance = state.outputType === 'enhance';
+
+  // 'Expand' is meaningless when the length is fixed to the source — dim it too
+  // rather than leave a button that promises lengthening and delivers none.
+  document.querySelectorAll('#manuscript-format-options .approach-card').forEach(card => {
+    const ap = (card.getAttribute('onclick') || '').match(/'(\w+)'\s*\)/)?.[1];
+    const blocked = isEnhance && ap === 'expand';
+    card.style.opacity = blocked ? '0.4' : '';
+    card.style.pointerEvents = blocked ? 'none' : '';
+    card.setAttribute('aria-disabled', blocked ? 'true' : 'false');
+    if (blocked && card.classList.contains('selected')) {
+      const faithful = [...document.querySelectorAll('#manuscript-format-options .approach-card')]
+        .find(c => (c.getAttribute('onclick') || '').includes("'faithful'"));
+      if (faithful) selectApproach(faithful, 'faithful');
+    }
+  });
+
+  if (isEnhance) {
+    sel.disabled = true;
+    field.style.opacity = '0.45';
+    note.style.display = 'block';
+    note.innerHTML = '<strong>Not used when enhancing.</strong> Enhancement rewrites the book you uploaded, so it comes back at its own length. Target length applies when FluidScriptr writes a manuscript from your idea.';
+    return;
+  }
+
+  sel.disabled = false;
+  field.style.opacity = '';
+
+  const band = GENRE_LENGTH_BANDS[state.genre];
+  if (!band) { note.style.display = 'none'; [...sel.options].forEach(o => o.disabled = false); return; }
+
+  const lo = band.min * (1 - GENRE_BAND_TOLERANCE), hi = band.max * (1 + GENRE_BAND_TOLERANCE);
+  let allowed = [];
+  [...sel.options].forEach(o => {
+    const w = MS_LENGTH_WORDS[o.value];
+    const ok = w >= lo && w <= hi;
+    o.disabled = !ok;
+    o.textContent = o.textContent.replace(/ — outside .*$/, '') + (ok ? '' : ' — outside this genre');
+    if (ok) allowed.push(o.value);
+  });
+
+  // Current choice just became invalid — move it to the nearest allowed length
+  // rather than silently submitting a disabled value.
+  if (!allowed.includes(sel.value)) {
+    const cur = MS_LENGTHS.indexOf(sel.value);
+    sel.value = allowed.reduce((best, v) =>
+      Math.abs(MS_LENGTHS.indexOf(v) - cur) < Math.abs(MS_LENGTHS.indexOf(best) - cur) ? v : best, allowed[0]);
+    state.manuscriptLength = sel.value;
+  }
+
+  note.style.display = 'block';
+  note.innerHTML = `<strong>${band.label}:</strong> ${band.note} Lengths outside that band are dimmed — change the genre if your book is genuinely different.`;
 }
 
 function selectApproach(el, approach) {
