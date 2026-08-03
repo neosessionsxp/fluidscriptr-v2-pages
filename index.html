@@ -2493,8 +2493,27 @@ async function writeManuscript(key, bibleText) {
   const chapters = state.approach === 'literary' ? 15 : 12;
   const wordsPerChapter = Math.round(targetWords / chapters);
 
+  // ⚠️ THIRD INSTANCE OF THE SAME BUG — see Session 15d (screenplay conversion)
+  // and 15f (Story Bible). Both were fixed; this path never was.
+  //
+  // One request tops out at MANUSCRIPT_MAX_TOKENS ≈ 3,000 words, but this loop
+  // used to ask for `wordsPerChapter` in a single 2,000-token call. At the
+  // default 75,000-word target over 12 chapters that is 6,250 words demanded of
+  // a ~1,500-word ceiling — so EVERY chapter ran to the ceiling and stopped
+  // mid-sentence, and a "75,000-word novel" came out around 18,000 with no
+  // ending. Every length setting over-asked, novella included.
+  //
+  // The chapter count is the reader-facing structure and is left alone: a
+  // chapter is now written in as many passes as it needs, then joined. So a
+  // 12-chapter book stays a 12-chapter book and actually reaches its length.
+  const MANUSCRIPT_MAX_TOKENS = 4000;   // matches the conversion path; under the 4,096 worker ceiling
+  const MAX_WORDS_PER_CALL = 2200;      // ≈2,930 tokens — headroom so a pass isn't guillotined
+  const partsPerChapter = Math.max(1, Math.ceil(wordsPerChapter / MAX_WORDS_PER_CALL));
+  const wordsPerPass = Math.round(wordsPerChapter / partsPerChapter);
+  const totalCalls = chapters * partsPerChapter;
+
   addLog(`Writing "${state.title}" — target ${targetWords.toLocaleString()} words`);
-  addLog(`${chapters} chapters · ~${wordsPerChapter.toLocaleString()} words each`);
+  addLog(`${chapters} chapters · ~${wordsPerChapter.toLocaleString()} words each · ${partsPerChapter} pass${partsPerChapter > 1 ? 'es' : ''} per chapter (${totalCalls} calls)`);
   setProgress(2, 'Starting…', 'Building your manuscript…', `0 of ~${chapters} chapters`);
 
   const systemPrompt = `You are a professional novelist writing "${state.title}" — a ${state.genre} story.
@@ -2505,17 +2524,18 @@ WRITING STYLE: ${state.approach === 'literary' ? 'Elevated literary prose — ri
 
 FORMAT REQUIREMENTS (strictly follow):
 - Write in flowing prose paragraphs
-- Chapter title on first line: CHAPTER [NUMBER]: [TITLE]
 - New paragraph for each scene shift or speaker
 - Show don't tell — use specific sensory details
 - Dialogue must feel natural and character-specific
-- Target approximately ${wordsPerChapter} words for this chapter
+- Each request states its own word target and whether it opens a chapter or
+  continues one — follow that instruction exactly
 - NO markdown, NO asterisks, NO bullet points`;
 
   const parts = [];
   let wordsWritten = 0;
   let chaptersWritten = 0;
   let stoppedForCredits = false;
+  const failedChapters = [];
 
   // Build chapter outlines from bible structure
   const structureLines = state.bible.structure.split('\n').filter(l => l.trim());
@@ -2536,28 +2556,70 @@ FORMAT REQUIREMENTS (strictly follow):
     ];
     const status = statusMsgs[Math.min(i, statusMsgs.length - 1)];
 
-    setProgress(pct, `Chapter ${chapterNum} of ${chapters}`, status, `~${wordsWritten.toLocaleString()} of ~${targetWords.toLocaleString()} words written`);
-    addLog(`Chapter ${chapterNum}/${chapters} — ${actLabel} — ${status}`);
+    const isFinalChapter = chapterNum === chapters;
+    const arcNote = actLabel === 'Act 1'
+      ? 'Establish the world, introduce key characters, and plant the central conflict.'
+      : actLabel === 'Act 3'
+      ? 'Resolve the central conflict, deliver the emotional payoff, and close character arcs.'
+      : 'Develop complications, deepen character relationships, and build toward the climax.';
 
-    const prev = parts.length > 0 ? '\n\nPREVIOUS CHAPTER ENDING:\n' + parts[parts.length - 1].split('\n').slice(-8).join('\n') : '';
-    const prompt = `${prev}\n\nWrite Chapter ${chapterNum} of ${chapters} (${actLabel}) of "${state.title}".\n\nThis chapter should: ${actLabel === 'Act 1' ? 'Establish the world, introduce key characters, and plant the central conflict.' : actLabel === 'Act 3' ? 'Resolve the central conflict, deliver the emotional payoff, and close character arcs.' : 'Develop complications, deepen character relationships, and build toward the climax.'}\n\nWrite approximately ${wordsPerChapter} words of polished prose.`;
+    // A chapter is written across `partsPerChapter` passes so no single request
+    // is asked for more than it can return. Pass 1 opens the chapter with its
+    // heading; the rest continue the same chapter with no new heading, each
+    // handed the tail of the pass before it so the prose joins cleanly.
+    const chapterPieces = [];
+    let chapterFailed = false;
 
-    try {
-      const part = await callAPI(key, systemPrompt, prompt, 2000);
-      parts.push(part);
-      wordsWritten += part.split(/\s+/).length;
-      chaptersWritten++;
-    } catch(err) {
-      if (err.code === 'credits_exhausted' || err.code === 'rate_limited') {
-        addLog(`⚠️ ${err.message}`);
-        alert(err.message);
-        stoppedForCredits = true;
-        break;
+    for (let p = 0; p < partsPerChapter; p++) {
+      if (state._cancelled) break;
+      const callsDone = i * partsPerChapter + p;
+      setProgress(5 + ((callsDone / totalCalls) * 88),
+        `Chapter ${chapterNum} of ${chapters}`,
+        partsPerChapter > 1 ? `${status} (pass ${p + 1} of ${partsPerChapter})` : status,
+        `~${wordsWritten.toLocaleString()} of ~${targetWords.toLocaleString()} words written`);
+      addLog(`Chapter ${chapterNum}/${chapters}${partsPerChapter > 1 ? ` pass ${p + 1}/${partsPerChapter}` : ''} — ${actLabel} — ${status}`);
+
+      let prompt;
+      if (p === 0) {
+        const prev = parts.length > 0
+          ? '\n\nPREVIOUS CHAPTER ENDING:\n' + parts[parts.length - 1].split('\n').slice(-8).join('\n')
+          : '';
+        prompt = `${prev}\n\nWrite Chapter ${chapterNum} of ${chapters} (${actLabel}) of "${state.title}".\n\nOpen with the chapter heading on its own first line, in the form: CHAPTER ${chapterNum}: [TITLE]\n\nThis chapter should: ${arcNote}\n\nWrite approximately ${wordsPerPass} words of polished prose.${partsPerChapter > 1 ? ' This is the opening stretch of the chapter — do NOT wrap the chapter up; leave it mid-flow for the next pass to continue.' : ''}`;
+      } else {
+        const soFar = chapterPieces.join('\n\n').split('\n').slice(-10).join('\n');
+        const isLastPass = p === partsPerChapter - 1;
+        prompt = `CONTINUING Chapter ${chapterNum} of "${state.title}". Here is how the chapter reads so far — pick up exactly where it stops:\n\n${soFar}\n\nContinue this same chapter for approximately ${wordsPerPass} more words. Do NOT write a chapter heading, do NOT restate what has already happened, and do NOT start a new chapter.${isLastPass ? ' This is the final stretch of the chapter — bring it to a natural chapter ending.' : ' Leave it mid-flow for the next pass to continue.'}`;
       }
-      addLog(`⚠️ Chapter ${chapterNum} error`);
-      parts.push(`\n\nCHAPTER ${chapterNum}\n\n[Chapter could not be generated — please retry]\n\n`);
-      chaptersWritten++;
+
+      if (isFinalChapter && p === partsPerChapter - 1) {
+        prompt += `\n\nTHIS IS THE FINAL PASS OF THE FINAL CHAPTER. End the novel properly: resolve the story, land the emotional close, and finish on a deliberate last line. Do not trail off and do not stop mid-scene.`;
+      }
+
+      try {
+        const piece = await callAPI(key, systemPrompt, prompt, MANUSCRIPT_MAX_TOKENS);
+        chapterPieces.push(piece);
+        wordsWritten += piece.split(/\s+/).length;
+      } catch(err) {
+        if (err.code === 'credits_exhausted' || err.code === 'rate_limited') {
+          addLog(`⚠️ ${err.message}`);
+          alert(err.message);
+          stoppedForCredits = true;
+          break;
+        }
+        addLog(`⚠️ Chapter ${chapterNum} pass ${p + 1} error — ${err.message || 'unknown error'}`);
+        chapterFailed = true;
+        chapterPieces.push(`\n\n[Part of Chapter ${chapterNum} could not be generated — please retry]\n\n`);
+      }
     }
+
+    if (chapterPieces.length) {
+      parts.push(chapterPieces.join('\n\n'));
+      chaptersWritten++;
+      // A chapter with a hole in it must not be counted as clean — the run
+      // used to report "Complete!" regardless of how many chapters failed.
+      if (chapterFailed) failedChapters.push(chapterNum);
+    }
+    if (stoppedForCredits) break;
   }
 
   // User explicitly cancelled — they've already been navigated back to Step 1.
@@ -2571,11 +2633,18 @@ FORMAT REQUIREMENTS (strictly follow):
 
   setProgress(96, 'Assembling manuscript…', 'Formatting to submission standards…');
   state.output = parts.join('\n\n');
-  setProgress(100, stoppedForCredits ? 'Stopped early' : 'Complete!',
+  setProgress(100,
+    stoppedForCredits ? 'Stopped early'
+      : failedChapters.length ? `Finished with gaps — ${failedChapters.length} of ${chapters} chapters incomplete.`
+      : 'Complete!',
     stoppedForCredits
       ? `Included credits used up — wrote ${chaptersWritten} of ${chapters} chapters. Add your own API key (✨ AI Settings) to finish, or come back once credits reset.`
+      : failedChapters.length
+      ? `Chapter${failedChapters.length > 1 ? 's' : ''} ${failedChapters.join(', ')} ${failedChapters.length > 1 ? 'have' : 'has'} a missing stretch, marked in the text. Re-run to fill ${failedChapters.length > 1 ? 'them' : 'it'} in.`
       : 'Your manuscript is ready.');
-  addLog(stoppedForCredits ? '⚠️ Manuscript stopped — included credits used up.' : '✓ Manuscript complete!');
+  addLog(stoppedForCredits ? '⚠️ Manuscript stopped — included credits used up.'
+    : failedChapters.length ? `⚠️ Manuscript finished with gaps in chapter${failedChapters.length > 1 ? 's' : ''} ${failedChapters.join(', ')}.`
+    : '✓ Manuscript complete!');
   // Safety net: back up the finished manuscript so a refresh/crash before exporting isn't a total loss.
   savePartialSession();
 
