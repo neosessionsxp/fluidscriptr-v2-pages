@@ -1904,14 +1904,49 @@ async function callAPI(key, system, userMsg, maxTokens = 2000, purpose = 'genera
   }
 
   // Personal key → straight to Anthropic (never touches our servers).
+  //
+  // ⚠️ This branch used to have NO error handling whatsoever: no res.ok check,
+  // no throw. `data.content?.…  || ''` meant a rate-limited, overloaded or
+  // billing-rejected call returned an EMPTY STRING that looked exactly like a
+  // successful one. The caller's try/catch never fired, the empty section was
+  // stitched into the screenplay as if it had been written, lastCompletedChunk
+  // still advanced, isPartial stayed false — and the run reported "Complete!"
+  // while handing back a script that stops mid-story with no ending.
+  //
+  // Measured, not theorised: 429, 529 and "credit balance too low" all returned
+  // "" and threw nothing. Both proxy branches above already checked; only the
+  // personal-key path did not — so this hit exactly the people running their
+  // own key on a long, many-call conversion.
   if (key) {
-    const res = await fetch('https://api.anthropic.com/v1/messages', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json', 'x-api-key': key, 'anthropic-version': '2023-06-01', 'anthropic-beta': 'prompt-caching-2024-07-31', 'anthropic-dangerous-direct-browser-access': 'true' },
-      body: JSON.stringify({ model: 'claude-sonnet-4-6', max_tokens: maxTokens, system: [{ type: 'text', text: system, cache_control: { type: 'ephemeral' } }], messages: [{ role: 'user', content: userMsg }] })
-    });
-    const data = await res.json();
-    return data.content?.map(b => b.text || '').join('') || '';
+    // 429 (rate limit) and 529 (overloaded) are transient and near-certain on a
+    // 45-call novel run. Retry each once rather than lose a section to a blip.
+    const TRANSIENT = new Set([429, 500, 502, 503, 529]);
+    let res, data;
+    for (let attempt = 0; attempt < 2; attempt++) {
+      res = await fetch('https://api.anthropic.com/v1/messages', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'x-api-key': key, 'anthropic-version': '2023-06-01', 'anthropic-beta': 'prompt-caching-2024-07-31', 'anthropic-dangerous-direct-browser-access': 'true' },
+        body: JSON.stringify({ model: 'claude-sonnet-4-6', max_tokens: maxTokens, system: [{ type: 'text', text: system, cache_control: { type: 'ephemeral' } }], messages: [{ role: 'user', content: userMsg }] })
+      });
+      data = await res.json().catch(() => ({}));
+      if (res.ok && !data.error) break;
+      if (attempt === 0 && TRANSIENT.has(res.status)) {
+        const wait = Number(res.headers?.get?.('retry-after')) || 5;
+        addLog(`⚠️ API busy (${res.status}) — retrying in ${wait}s…`);
+        await new Promise(r => setTimeout(r, Math.min(wait, 30) * 1000));
+        continue;
+      }
+      break;
+    }
+    if (!res.ok || data.error) {
+      const err = new Error(data.error?.message || `Anthropic API error (HTTP ${res.status}). Check your API key and account credit.`);
+      err.code = res.status === 429 ? 'rate_limited' : 'api_error';
+      throw err;
+    }
+    const text = data.content?.map(b => b.text || '').join('') || '';
+    // An empty completion is a failure too — never let it pass as content.
+    if (!text.trim()) throw new Error('The API returned an empty response.');
+    return text;
   }
 
   // No key → included AI credits via the FluidScriptr proxy (license-metered).
@@ -2313,6 +2348,7 @@ FOUNTAIN FORMAT:
   const parts = [];
   let pagesWritten = 0;
   let stoppedForCredits = false;
+  const failedSections = [];
 
   // Respect partial conversion slider
   const partialPct = parseInt(document.getElementById('partial-range')?.value || 100);
@@ -2334,7 +2370,16 @@ FOUNTAIN FORMAT:
     addLog(`Section ${i + 1}/${totalChunks} — ${msg}`);
 
     const prev = parts.length > 0 ? '\n\nPREVIOUS ENDING:\n' + parts[parts.length - 1].split('\n').slice(-12).join('\n') : '';
-    const prompt = `${prev}\n\nSOURCE — Section ${i + 1} of ${totalChunks}:\n${chunks[i]}\n\nConvert this section to screenplay format now. Write the full ${pagesPerChunk} pages — do not stop early or summarize. Every scene should be fully written out in Fountain format with scene headings, action lines, and dialogue.`;
+    // Every section used to get an identical instruction, so the final one had
+    // no idea it was final — it converted its 2,000 words and stopped wherever
+    // they ran out. A finished script that simply halts reads as truncated even
+    // when every section succeeded. Tell the last section to land the ending.
+    // Sample mode is exempt: stopping mid-story IS the sample.
+    const isFinalSection = (i === totalChunks - 1) && !isSampleMode();
+    const closeNote = isFinalSection
+      ? `\n\nTHIS IS THE FINAL SECTION of the screenplay. Bring the story to its true conclusion: write the closing scene in full, resolve the central conflict and the protagonist's arc, and finish on a line reading FADE OUT. Do not stop mid-scene and do not trail off.`
+      : '';
+    const prompt = `${prev}\n\nSOURCE — Section ${i + 1} of ${totalChunks}:\n${chunks[i]}\n\nConvert this section to screenplay format now. Write the full ${pagesPerChunk} pages — do not stop early or summarize. Every scene should be fully written out in Fountain format with scene headings, action lines, and dialogue.${closeNote}`;
 
     try {
       const part = await callAPI(key, systemPrompt, prompt, 4000);
@@ -2347,7 +2392,11 @@ FOUNTAIN FORMAT:
         stoppedForCredits = true;
         break;
       }
-      addLog(`⚠️ Section ${i + 1} error`);
+      // A section that failed is a HOLE in the screenplay. It used to be
+      // recorded only in the log, while the run still finished announcing
+      // "Complete!" — so a script with missing scenes looked finished.
+      addLog(`⚠️ Section ${i + 1} error — ${err.message || 'unknown error'}`);
+      failedSections.push(i + 1);
       parts.push(`\n\n[Section ${i + 1} could not be generated]\n\n`);
     }
     lastCompletedChunk = i + 1;
@@ -2358,7 +2407,18 @@ FOUNTAIN FORMAT:
 
   setProgress(96, 'Assembling…', 'Stitching sections…');
   const titlePage = `Title: ${state.title}\nAdapted by FluidScriptr\nFormat: ${formatLabel}\n\n===\n\n`;
-  const assembled = (state._partialOutput ? state._partialOutput + '\n\n' : titlePage) + parts.join('\n\n');
+  let assembled = (state._partialOutput ? state._partialOutput + '\n\n' : titlePage) + parts.join('\n\n');
+
+  // Belt and braces for the ending. The final-section instruction above usually
+  // lands FADE OUT, but the model can still finish on a stray action line. Only
+  // ever added when the whole script really is done — never on a partial run
+  // (it would be a lie) and never in sample mode (the cliffhanger is the point).
+  if (!isPartial && !stoppedForCredits && !isSampleMode() && !failedSections.length) {
+    const tail = assembled.trimEnd().split('\n').slice(-3).join('\n');
+    if (!/\b(FADE OUT|THE END|FADE TO BLACK)\b/i.test(tail)) {
+      assembled = assembled.trimEnd() + '\n\nFADE OUT.\n\nTHE END\n';
+    }
+  }
   state.output = assembled;
 
   // Preserve partial state for Continue, or back up the finished screenplay if fully done
@@ -2384,11 +2444,16 @@ FOUNTAIN FORMAT:
     ? `Stopped early — ${lastCompletedChunk} of ${totalChunks} sections done.`
     : isPartial
     ? `Sections 1–${lastCompletedChunk} of ${totalChunks} complete.`
+    // Never report a script with holes in it as finished.
+    : failedSections.length
+    ? `Finished with gaps — ${failedSections.length} of ${totalChunks} sections failed.`
     : 'Complete!';
   const statusSub = stoppedForCredits
     ? 'Included credits used up this month. Add your own API key (✨ AI Settings) and hit Continue to finish, or come back once credits reset.'
     : isPartial
     ? 'Continue below to convert remaining sections.'
+    : failedSections.length
+    ? `Section${failedSections.length > 1 ? 's' : ''} ${failedSections.join(', ')} could not be generated and are marked in the script. Re-run to fill them in.`
     : 'Your screenplay is ready.';
   setProgress(100, statusLabel, statusSub);
   addLog(stoppedForCredits ? '⚠️ Conversion stopped — included credits used up.' : '✓ Conversion complete!');
@@ -2979,8 +3044,19 @@ function exportScreenplayPDF() {
        column that could not reflow. */
     @page{size:letter;margin:1in 1in 1in 1.5in;}
     html,body{margin:0;padding:0;}
+    *{box-sizing:border-box;}
     body{font-family:'Courier New',Courier,monospace;font-size:12pt;
       line-height:1;color:#000;background:#fff;}
+    /* ON SCREEN the @page box does not exist, so the script sat flush against
+       the window edge with no margin at all, and the centred title block —
+       centred inside a 6in column that starts 1.5in in — read as badly
+       off-centre against a wide window. Draw the letter page itself here.
+       Print ignores this block entirely; @page still owns the real margins. */
+    @media screen{
+      html{background:#5A5F66;}
+      body{width:8.5in;min-height:11in;margin:24px auto;
+        padding:1in 1in 1in 1.5in;box-shadow:0 2px 18px rgba(0,0,0,.4);}
+    }
     /* 10 characters per inch in 12pt Courier — see the .sp-* rules in the app.
        normal (not pre-wrap) so paragraphs reflow to the measure. */
     div{white-space:normal;max-width:60ch;}
@@ -2993,8 +3069,12 @@ function exportScreenplayPDF() {
       page-break-after:avoid;break-after:avoid;}
     .sp-dialogue{margin:0 0 1em 10ch;max-width:35ch;}
     .sp-transition{text-transform:uppercase;text-align:right;max-width:60ch;margin:0 0 1em;}
-    /* Title page: centred, roughly a third down, then its own page break. */
-    .sp-title{text-align:center;max-width:60ch;margin:0 0 1em;}
+    /* Title page: centred on the PAGE, roughly a third down, then its own page
+       break. The -0.25in pulls the centring box left by half the difference
+       between the 1.5in left margin and the 1in right one — without it the
+       title centres on the text column (4.5in) instead of the sheet (4.25in)
+       and visibly leans right. */
+    .sp-title{text-align:center;max-width:60ch;margin:0 0 1em -0.25in;}
     .sp-title:first-child{text-transform:uppercase;font-weight:bold;margin-top:3in;}
     .sp-titlebreak{page-break-after:always;break-after:page;height:0;margin:0;}
     .sp-credit{margin:3em 0 0;font-size:9pt;color:#666;text-align:center;
@@ -3057,10 +3137,23 @@ function exportManuscriptPDF() {
   const w = window.open('', '_blank');
   w.document.write(`<!DOCTYPE html><html><head><title>${state.title}</title>
   <style>
-    body{font-family:'Inter',sans-serif;font-size:12pt;
+    /* The page box owns the margins. Setting them on <body> too stacked a
+       second set on top of the browser's own default page margin, so the
+       printed text sat in an off-centre column. Same trap as the screenplay
+       export — see the note there. Times New Roman 12pt double-spaced matches
+       what exportManuscriptDOCX already promises, so PDF and RTF now agree. */
+    @page{size:letter;margin:1in;}
+    html,body{margin:0;padding:0;}
+    *{box-sizing:border-box;}
+    body{font-family:'Times New Roman',Times,serif;font-size:12pt;
       line-height:2;color:#000;background:#fff;
-      margin:1in;white-space:pre-wrap;word-wrap:break-word;}
-    @media print{body{margin:1in;}}
+      white-space:pre-wrap;word-wrap:break-word;}
+    /* Screen only — @page does not apply on screen, so draw the sheet. */
+    @media screen{
+      html{background:#5A5F66;}
+      body{width:8.5in;min-height:11in;margin:24px auto;padding:1in;
+        box-shadow:0 2px 18px rgba(0,0,0,.4);}
+    }
   </style></head><body>${(state.output + sampleCreditText()).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')}</body></html>`);
   w.document.close();
   setTimeout(() => w.print(), 600);
@@ -3222,7 +3315,15 @@ function printBible() {
     h1{font-size:22px;font-weight:800;margin-bottom:4px;}
     .sub{font-size:13px;color:#6B7280;margin-bottom:2rem;}
     hr{border:none;border-top:1px solid #e0e0e0;margin:1.5rem 0;}
-    @media print{body{margin:20px;}}
+    /* The old rule was body{margin:20px}, which replaced the whole shorthand
+       — including the "auto" that was doing the horizontal centring — so the
+       printed Bible hugged the left edge. Let @page own the margins and keep
+       "auto" for the centring. 700px is wider than the printable column, so
+       release the max-width in print rather than let it overflow the sheet.
+       NB: no backticks in here — this whole block sits inside a template
+       literal, and one would end the string. */
+    @page{size:letter;margin:0.75in;}
+    @media print{body{margin:0 auto;padding:0;max-width:100%;}}
     </style></head><body>
     <h1>Story Bible</h1>
     <div class="sub">${state.title || 'Untitled'} &mdash; generated by FluidScriptr</div>
