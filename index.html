@@ -2670,7 +2670,13 @@ FORMAT REQUIREMENTS (strictly follow):
 // ── Manuscript enhancement ────────────────────────────────
 async function enhanceManuscript(key, bibleText) {
   const words = state.rawText.split(/\s+/);
-  const chunkSize = 2500;
+  // 4th instance of the ask-for-more-than-one-call-can-deliver bug (15d, 15f,
+  // and writeManuscript). This one REWRITES the author's own prose, so output
+  // should be roughly as long as input — but 2,500-word chunks were capped at
+  // 2,000 tokens (~1,481 words), so ~40% of every section was cut off
+  // mid-sentence and the "enhanced" manuscript came back shorter than the
+  // original. Smaller chunks + the 4,000-token cap leaves real headroom.
+  const chunkSize = 2000;
   const chunks = [];
   for (let i = 0; i < words.length; i += chunkSize) chunks.push(words.slice(i, i + chunkSize).join(' '));
   const totalChunks = chunks.length;
@@ -2703,7 +2709,7 @@ CRITICAL: Preserve the story, characters, and plot exactly. Only improve the wri
     addLog(`Enhancing section ${i + 1}/${totalChunks}…`);
 
     try {
-      const part = await callAPI(key, systemPrompt, `Enhance this section:\n\n${chunks[i]}`, 2000);
+      const part = await callAPI(key, systemPrompt, `Enhance this section:\n\n${chunks[i]}`, 4000);
       parts.push(part);
       wordsWritten += part.split(/\s+/).length;
       sectionsEnhanced++;
@@ -2762,7 +2768,11 @@ CRITICAL: Preserve the story, characters, and plot exactly. Only improve the wri
 // ── Screenplay clean-up / polish ──────────────────────────
 async function cleanupScreenplay(key, bibleText) {
   const words = state.rawText.split(/\s+/);
-  const chunkSize = 2500;
+  // Same fault as enhanceManuscript, and worse in consequence: clean-up is
+  // supposed to PRESERVE EVERY SCENE, but 2,500-word chunks against a 2,500
+  // token cap (~1,851 words) meant roughly a quarter of each section was
+  // dropped. Scenes were disappearing from the author's own script.
+  const chunkSize = 2000;
   const chunks = [];
   for (let i = 0; i < words.length; i += chunkSize) chunks.push(words.slice(i, i + chunkSize).join(' '));
   const totalChunks = chunks.length;
@@ -2806,7 +2816,7 @@ Output ONLY the polished screenplay text in Fountain format. No commentary, no e
     addLog(`Polishing section ${i + 1}/${totalChunks}…`);
 
     try {
-      const part = await callAPI(key, systemPrompt, `Polish this screenplay section (preserve every scene and character; only clean up formatting${intensity === 'light' ? '' : ' and tighten as directed'}):\n\n${chunks[i]}`, 2500);
+      const part = await callAPI(key, systemPrompt, `Polish this screenplay section (preserve every scene and character; only clean up formatting${intensity === 'light' ? '' : ' and tighten as directed'}):\n\n${chunks[i]}`, 4000);
       parts.push(part);
       wordsWritten += part.split(/\s+/).length;
       sectionsPolished++;
