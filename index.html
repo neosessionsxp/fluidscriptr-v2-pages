@@ -409,6 +409,7 @@ input[type=range]::-moz-range-thumb { width: 20px; height: 20px; border-radius: 
                                 <option value="historical drama">Historical Drama</option>
                                 <option value="children family">Children's / Family</option>
                                 <option value="biography">Biography / True Story</option>
+                                <option value="memoir">Memoir</option>
                             </select>
                         </div>
                     </div>
@@ -457,6 +458,7 @@ input[type=range]::-moz-range-thumb { width: 20px; height: 20px; border-radius: 
                                 <option value="historical drama">Historical Drama</option>
                                 <option value="children family">Children's / Family</option>
                                 <option value="biography">Biography / True Story</option>
+                                <option value="memoir">Memoir</option>
                             </select>
                         </div>
                     </div>
@@ -486,6 +488,7 @@ input[type=range]::-moz-range-thumb { width: 20px; height: 20px; border-radius: 
                                     <option value="historical drama">Historical Drama</option>
                                     <option value="children family">Children's / Family</option>
                                     <option value="biography">Biography / True Story</option>
+                                <option value="memoir">Memoir</option>
                                 </select>
                             </div>
                         </div>
@@ -747,7 +750,9 @@ input[type=range]::-moz-range-thumb { width: 20px; height: 20px; border-radius: 
                                     <em>Mystery / Thriller:</em> 70–90K — tight pacing rewarded<br>
                                     <em>Literary fiction:</em> 80–100K — above 110K needs to earn it<br>
                                     <em>Sci-fi / Fantasy:</em> 90–120K (epic fantasy up to 150K)<br>
-                                    <em>Historical fiction:</em> 100–120K
+                                    <em>Historical fiction:</em> 100–120K<br>
+                                    <em>Memoir:</em> 60–90K — shorter than biography; over 100K is a hard sell for a debut<br>
+                                    <em>Biography / narrative nonfiction:</em> 70–100K
                                 </div>
                                 <div class="glossary-item">
                                     <strong>Debut-author reality check.</strong> Most agents auto-reject debut novels above 100K words unless it's epic fantasy or historical. Below 50K is too short for the "novel" market (except middle-grade / novella). Aim for the sweet spot of your genre, not the ceiling.
@@ -2161,7 +2166,8 @@ const GENRE_LENGTH_BANDS = {
   'fantasy':          { label: 'Fantasy',             min: 90000,  max: 120000, note: '90,000–120,000 words, and epic fantasy is the one genre where longer is normal.' },
   'historical drama': { label: 'Historical fiction',  min: 100000, max: 120000, note: '100,000–120,000 words.' },
   'children family':  { label: "Children's / Family", min: 20000,  max: 55000,  note: "20,000–55,000 words. Anything longer will not be shelved as children's." },
-  'biography':        { label: 'Biography / memoir',  min: 70000,  max: 100000, note: '70,000–100,000 words.' },
+  'biography':        { label: 'Biography / True Story', min: 70000, max: 100000, note: '70,000–100,000 words.' },
+  'memoir':           { label: 'Memoir',              min: 60000,  max: 90000,  note: '60,000–90,000 words. Memoir runs shorter than biography, and a debut memoir over 100,000 words is a hard sell.' },
 };
 // The six presets rarely land exactly on a band edge (a 75,000-word "standard
 // novel" against a 80,000-word literary floor). A 10% tolerance keeps the
