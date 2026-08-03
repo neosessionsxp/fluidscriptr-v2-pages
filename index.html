@@ -884,7 +884,7 @@ input[type=range]::-moz-range-thumb { width: 20px; height: 20px; border-radius: 
                     <span class="meta-pill" id="out-stat3">—</span>
                 </div>
                 <div id="out-context" style="display:none;max-width:640px;margin:0 auto 1.5rem;padding:14px 20px;background:var(--bg);border-radius:var(--r-md);box-shadow:var(--sh-inset-sm);text-align:center;">
-                    <div id="out-context-genre" style="font-size:13px;color:var(--navy);line-height:1.55;font-weight:500;margin-bottom:6px;"></div>
+                    <div id="out-context-pages" style="font-size:13px;color:var(--navy);line-height:1.55;font-weight:500;margin-bottom:6px;"></div>
                     <div id="out-context-price" style="font-size:12px;color:var(--grey);line-height:1.5;"></div>
                 </div>
                 <!-- Two-column results layout -->
@@ -1453,6 +1453,73 @@ function handleDrop(e) {
   const file = e.dataTransfer.files[0];
   if (file) extractFile(file);
 }
+// ── Front matter ─────────────────────────────────────────
+// Authors upload the book as it stands, which usually opens with a title page,
+// copyright notice, table of contents, dedication and acknowledgements. None of
+// that is story, and all of it poisons the work downstream: the Story Bible
+// treats a contents list as narrative, and the conversion spends its first
+// section dramatising a copyright page.
+//
+// Deliberately conservative — it would rather leave front matter in than eat a
+// real first chapter:
+//   • only ever cuts at a line that looks like a chapter opening
+//   • only within the first 15% of the document (a "Chapter One" appearing
+//     halfway through is a chapter, not the start of the book)
+//   • never leaves less than 60% of the words behind
+//   • returns the original untouched if anything looks off
+const FRONT_MATTER_CUES = /^\s*(table of contents|contents|acknowledge?ments?|acknowledgements|dedication|copyright|about the author|foreword|preface|epigraph|also by|praise for|title page|colophon)\s*$/i;
+const CHAPTER_START_RE = new RegExp(
+  '^\\s*(' +
+    'chapter\\s+(\\d{1,3}|[ivxlc]+|one|two|three|four|five|six|seven|eight|nine|ten|eleven|twelve)\\b' +
+    '|part\\s+(one|1|i)\\b' +
+    '|prologue' +
+    '|\\d{1,2}\\s*$' +          // a bare numeral on its own line, e.g. "1"
+  ')[.:\\s—–-]*(.*)$', 'i');
+
+function stripFrontMatter(text) {
+  const raw = String(text || '');
+  const lines = raw.split('\n');
+  if (lines.length < 20) return { text: raw, removed: 0, cut: null };
+
+  const totalWords = raw.split(/\s+/).filter(Boolean).length;
+  // Scan by WORDS, not by line count. Front matter is many lines but very few
+  // words — a 40-entry table of contents is 40 lines and barely 120 words — so
+  // a line-percentage window stops before the real Chapter One and finds
+  // nothing. Measured: a 15%-of-lines window missed a perfectly ordinary memoir
+  // whose front matter ran 22 lines. Stop once 20% of the book has gone by;
+  // anything past that is the story, not the preliminaries.
+  const wordBudget = totalWords * 0.20;
+
+  let cutAt = -1, cutLabel = null, seen = 0;
+  for (let i = 0; i < lines.length; i++) {
+    seen += lines[i].split(/\s+/).filter(Boolean).length;
+    if (seen > wordBudget) break;
+    const line = lines[i].trim();
+    if (!line || line.length > 80) continue;      // body paragraphs are long; headings are not
+    const m = line.match(CHAPTER_START_RE);
+    if (!m) continue;
+    // "Chapter One ....... 12" is a contents entry, not the chapter itself.
+    if (/\.{3,}\s*\d+\s*$/.test(line) || /\s{3,}\d+\s*$/.test(line)) continue;
+    cutAt = i; cutLabel = line;
+    break;
+  }
+  if (cutAt <= 0) return { text: raw, removed: 0, cut: null };
+
+  // Only worth doing if what we'd drop actually looks like front matter.
+  const head = lines.slice(0, cutAt);
+  const headText = head.join('\n');
+  const looksLikeFrontMatter =
+    head.some(l => FRONT_MATTER_CUES.test(l.trim())) ||
+    /\bcopyright\b|\ball rights reserved\b|\bisbn\b/i.test(headText);
+  if (!looksLikeFrontMatter) return { text: raw, removed: 0, cut: null };
+
+  const kept = lines.slice(cutAt).join('\n').trim();
+  const keptWords = kept.split(/\s+/).filter(Boolean).length;
+  if (!keptWords || keptWords < totalWords * 0.6) return { text: raw, removed: 0, cut: null };
+
+  return { text: kept, removed: totalWords - keptWords, cut: cutLabel };
+}
+
 function handleFileSelect(e) {
   const file = e.target.files[0];
   if (file) extractFile(file);
@@ -1521,9 +1588,23 @@ async function extractFile(file) {
     // claim instead of demonstrating it.
     //
     // Only the SCREENPLAY is limited to 10 pages — see convertToScreenplay().
-    state.rawText = extracted;
+    //
+    // Drop the title page / copyright / contents / acknowledgements first, so
+    // the Story Bible reads story and the conversion doesn't spend its opening
+    // section dramatising a contents list. Manuscript uploads only — a
+    // screenplay's front matter is a title page the parser already handles.
+    const fm = stripFrontMatter(extracted);
+    state.rawText = fm.text;
+    if (fm.removed > 0) {
+      state._frontMatterRemoved = fm.removed;
+      state._frontMatterCut = fm.cut;
+      addLog(`Skipped ${fm.removed.toLocaleString()} words of front matter — starting at "${fm.cut}"`);
+    } else {
+      state._frontMatterRemoved = 0;
+      state._frontMatterCut = null;
+    }
     if (isSampleMode()) {
-      const words = extracted.split(/\s+/);
+      const words = state.rawText.split(/\s+/);
       if (words.length > SAMPLE_MAX_MANUSCRIPT_WORDS) {
         // One very long upload could take a large bite out of the monthly
         // sample budget in a single visit. Refuse rather than silently trim,
@@ -3213,6 +3294,25 @@ function sampleCreditHTML() {
   return isSampleMode() ? `<div class="sp-credit">${SAMPLE_CREDIT}</div>` : '';
 }
 
+// Heads an exported manuscript with the three facts an author is asked for
+// first: how long it is in words, what that comes to in printed pages, and
+// roughly what a book that size sells for. Industry convention puts the word
+// count on the first page of a submitted manuscript, so it goes at the top.
+function manuscriptHeadMatter() {
+  const words = String(state.output || '').split(/\s+/).filter(Boolean).length;
+  if (!words) return '';
+  const pages = Math.round(words / 250);
+  const price = pages < 100 ? '$7.99–9.99'
+              : pages < 200 ? '$9.99–12.99'
+              : pages < 300 ? '$12.99–14.99'
+              : pages < 400 ? '$14.99–16.99'
+              : '$16.99 and up';
+  return `${state.title || 'Untitled'}\n`
+       + `${words.toLocaleString()} words · approximately ${pages.toLocaleString()} printed pages\n`
+       + `Comparable paperbacks retail around ${price}\n\n`
+       + `${'\u2014'.repeat(30)}\n\n`;
+}
+
 function sampleCreditText() {
   return isSampleMode() ? `\n\n${SAMPLE_CREDIT}\n` : '';
 }
@@ -3303,7 +3403,7 @@ function rtfEscapeText(text) {
 function exportManuscriptDOCX() {
   // Generate a basic DOCX-compatible RTF wrapped as .docx hint
   // For true DOCX we build an RTF with Times New Roman 12pt, double-spaced, 1-inch margins
-  const bodyText = rtfEscapeText(state.output + sampleCreditText())
+  const bodyText = rtfEscapeText(manuscriptHeadMatter() + state.output + sampleCreditText())
     .replace(/\n\n/g, '\\par\\par ')
     .replace(/\n/g, '\\par ');
   const rtf = `{\\rtf1\\ansi\\deff0
@@ -3342,7 +3442,7 @@ function exportManuscriptPDF() {
       body{width:8.5in;min-height:11in;margin:24px auto;padding:1in;
         box-shadow:0 2px 18px rgba(0,0,0,.4);}
     }
-  </style></head><body>${(state.output + sampleCreditText()).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')}</body></html>`);
+  </style></head><body>${(manuscriptHeadMatter() + state.output + sampleCreditText()).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')}</body></html>`);
   w.document.close();
   setTimeout(() => w.print(), 600);
   clearPartialSession();
@@ -3379,38 +3479,30 @@ function toggleWordCountGuide() {
 // Returns friendly genre-fit + self-pub price context for a completed manuscript,
 // or null if the word count is too small to meaningfully classify.
 function getWordCountContext(words) {
-  if (!words || words < 5000) return null;
+  // Deliberately NON-JUDGEMENTAL. This used to lead with lines like "Under
+  // novella length — traditional agents rarely take work this short" and
+  // "hard to price above $9.99 (looks slim on the shelf)", shown to an author
+  // at the exact moment they first see their finished book. It also judged
+  // every manuscript as if it were a novel, so a 12,000-word memoir was told
+  // it did not fit middle-grade fiction.
+  //
+  // Length is the author's decision, not the tool's to second-guess. What is
+  // genuinely useful here is only two facts: how long the book turned out, and
+  // roughly what a book that size sells for. Nothing else.
+  if (!words || words < 500) return null;
   const pages = Math.round(words / 250);
 
-  let genreLine;
-  if (words < 20000) {
-    genreLine = 'Under novella length — fits middle-grade fiction or short-form only. Traditional agents rarely take work this short.';
-  } else if (words < 50000) {
-    genreLine = 'Novella / short-novel range — fits middle-grade or lower-end YA. Below the ~50K "novel" threshold for most adult categories.';
-  } else if (words < 75000) {
-    genreLine = 'Sweet spot for YA (55–80K), category romance (50–75K), and lean thriller/mystery. Light for literary fiction.';
-  } else if (words < 90000) {
-    genreLine = 'Sweet spot for literary fiction and mainstream commercial. Solid thriller / mystery length. Full YA.';
-  } else if (words < 110000) {
-    genreLine = 'Full novel — literary top end, sci-fi / fantasy sweet spot (90–120K), historical fiction lower end.';
-  } else if (words < 140000) {
-    genreLine = 'Long novel — sci-fi / fantasy or historical fiction territory. Agents may push back on debut novels in other genres.';
-  } else {
-    genreLine = 'Very long — expect agent pushback unless you\'re in epic fantasy or historical fiction, or you\'re an established author.';
-  }
-
   let priceLine;
-  if (pages < 200) {
-    priceLine = `≈ ${pages} pages · Self-pub: hard to price above $9.99 (looks slim on the shelf).`;
-  } else if (pages < 300) {
-    priceLine = `≈ ${pages} pages · Self-pub sweet spot: $12.99–14.99 · Best KDP royalty margins in this range.`;
-  } else if (pages < 400) {
-    priceLine = `≈ ${pages} pages · Self-pub: $14.99–16.99 · Per-page print cost starts to matter.`;
-  } else {
-    priceLine = `≈ ${pages} pages · Self-pub: $16.99+ but KDP per-page print cost eats into royalties.`;
-  }
+  if (pages < 100)      priceLine = 'Comparable paperbacks retail around $7.99–9.99.';
+  else if (pages < 200) priceLine = 'Comparable paperbacks retail around $9.99–12.99.';
+  else if (pages < 300) priceLine = 'Comparable paperbacks retail around $12.99–14.99.';
+  else if (pages < 400) priceLine = 'Comparable paperbacks retail around $14.99–16.99.';
+  else                  priceLine = 'Comparable paperbacks retail around $16.99 and up.';
 
-  return { genreLine, priceLine };
+  return {
+    pagesLine: `${words.toLocaleString()} words · approximately ${pages} printed pages`,
+    priceLine,
+  };
 }
 
 // Renders the context block on Step 6 for manuscript-style outputs.
@@ -3420,7 +3512,7 @@ function renderOutputContext(words) {
   const ctx = getWordCountContext(words);
   if (!box) return;
   if (!ctx) { box.style.display = 'none'; return; }
-  document.getElementById('out-context-genre').textContent = ctx.genreLine;
+  document.getElementById('out-context-pages').textContent = ctx.pagesLine;
   document.getElementById('out-context-price').textContent = ctx.priceLine;
   box.style.display = 'block';
 }
