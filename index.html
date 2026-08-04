@@ -625,6 +625,7 @@ input[type=range]::-moz-range-thumb { width: 20px; height: 20px; border-radius: 
                                 <div class="fm-meta">Target: 10–30 pages · 10–30 min</div>
                             </div>
                         </div>
+                        <div id="format-fit-note" style="display:none;background:rgba(45,58,74,0.04);border:1.5px solid rgba(45,58,74,0.12);border-radius:var(--r-md);padding:1rem 1.25rem;font-size:13px;color:var(--navy);line-height:1.7;margin-top:1.25rem;"></div>
                         <div class="field" id="episodes-field" style="display:none;">
                             <label class="lbl">Number of episodes</label>
                             <select id="episodes" onchange="updateCalc()">
@@ -660,6 +661,7 @@ input[type=range]::-moz-range-thumb { width: 20px; height: 20px; border-radius: 
                                 <p>Stay close to source within constraints</p>
                             </div>
                         </div>
+                        <div id="approach-fit-note" style="display:none;background:rgba(45,58,74,0.04);border:1.5px solid rgba(45,58,74,0.12);border-radius:var(--r-md);padding:1rem 1.25rem;font-size:13px;color:var(--navy);line-height:1.7;margin-top:1rem;margin-bottom:1.25rem;"></div>
                         <div class="grid-2">
                             <div class="field">
                                 <label class="lbl">Tone</label>
@@ -979,7 +981,7 @@ input[type=range]::-moz-range-thumb { width: 20px; height: 20px; border-radius: 
                                     <div class="results-col-header" style="font-size:14px;">2 · One-Page Pitch</div>
                                     <div id="pitch-doc-preview" style="font-size:14px;line-height:1.75;color:var(--text);"></div>
                                     <div style="margin:14px 0 20px;display:flex;gap:10px;flex-wrap:wrap;">
-                                        <button class="btn-primary" type="button" onclick="exportPitchPDF()">📄 Export Pitch Sheet PDF</button>
+                                        <button class="btn-primary" type="button" onclick="exportPitchPDF()">📄 Print Pitch Sheet + Change Report</button>
                                         <button class="btn-secondary" type="button" onclick="regeneratePitchDoc()">↻ Rebuild with selected logline</button>
                                     </div>
 
@@ -1077,7 +1079,8 @@ const state = {
   tone: '', dialogue: '', episodes: 4,
   manuscriptLength: 'medium',
   output: '', currentStep: 1,
-  pitch: { loglines: [], selectedLogline: '', doc: null, comps: [], generated: false }
+  pitch: { loglines: [], selectedLogline: '', doc: null, comps: [], generated: false },
+  fidelity: null
 };
 
 const FORMAT_TARGETS = {
@@ -2221,7 +2224,149 @@ function applyFormatConstraints() {
     if (shortCard) selectFormat(shortCard, 'short');
   }
 
+  applyScreenplayFitConstraints();
   applyManuscriptConstraints();
+}
+
+// ── How long a screenplay this manuscript can honestly fill ───────────────
+//
+// A screenplay page is written from roughly 250 words of prose. This is the
+// SAME figure convertToScreenplay uses to decide how many pages it will
+// actually produce (`sourceSupportsPages`). If one changes, change both — or
+// the interface will offer a format the engine has already decided to ignore.
+//
+// That mismatch was the bug here: a 16,000-word memoir could be sent to
+// "Feature Film · 90–110 pages" and the estimate box would agree, while the
+// engine silently built ~64 pages. Limited Series produced the same 64 pages
+// under a different name. The choice looked real and largely wasn't.
+const SOURCE_WORDS_PER_PAGE = 250;
+
+// An adaptation needs more source than it keeps, or there is nothing to adapt
+// and it becomes a transcription. Real adaptations run 3–5× (a 100,000-word
+// novel into a 95-page feature is about 4×). 2× is the floor below which the
+// app says so rather than letting the author find out in the output.
+const COMFORTABLE_ADAPTATION_RATIO = 2;
+
+function screenplayTargetPages(fmt, episodes) {
+  if (fmt === 'limited') return (episodes || 4) * 50;
+  return FORMAT_TARGETS[fmt]?.pages || 20;
+}
+
+// Set while auto-correcting a now-invalid choice: selectFormat calls
+// updateCalc, which calls back here, and without this the correction would
+// re-enter itself.
+let _fitPassRunning = false;
+
+function applyScreenplayFitConstraints() {
+  const grid = document.querySelector('.format-grid');
+  const note = document.getElementById('format-fit-note');
+  if (!grid || !note || _fitPassRunning) return;
+
+  const cards = [...document.querySelectorAll('.format-card')];
+  const clearTags = () => cards.forEach(c => { const t = c.querySelector('.fm-fit'); if (t) t.remove(); });
+
+  // Starting from an idea, everything is already locked to Short Film with its
+  // own explanation, and the word count of a synopsis says nothing about how
+  // long the finished screenplay should be. Leave that note in charge.
+  if (!state.rawText || state.outputType !== 'screenplay') {
+    note.style.display = 'none';
+    clearTags();
+    return;
+  }
+
+  const words    = state.rawText.trim().split(/\s+/).length;
+  const supports = Math.max(3, Math.round(words / SOURCE_WORDS_PER_PAGE));
+
+  const fits = {};
+  let firstPossible = null, recommended = null;
+  cards.forEach(card => {
+    const fmt = (card.getAttribute('onclick') || '').match(/'(\w+)'\s*\)/)?.[1];
+    if (!fmt) return;
+    // Limited Series is judged on its SHORTEST configuration — if even two
+    // episodes don't fit, no episode count will.
+    const need    = fmt === 'limited' ? 100 : screenplayTargetPages(fmt);
+    const blocked = need > supports;
+    const thin    = !blocked && words < need * SOURCE_WORDS_PER_PAGE * COMFORTABLE_ADAPTATION_RATIO;
+    fits[fmt] = blocked ? 'blocked' : thin ? 'thin' : 'good';
+    // Cards are in DOM order (feature, limited, pilot, short), which is also
+    // longest-first for practical purposes, so the first match is the most
+    // ambitious format the book can carry.
+    if (!blocked && !firstPossible) firstPossible = fmt;
+    if (fits[fmt] === 'good' && !recommended) recommended = fmt;
+
+    card.style.opacity      = blocked ? '0.4' : '';
+    card.style.pointerEvents= blocked ? 'none' : '';
+    card.setAttribute('aria-disabled', blocked ? 'true' : 'false');
+    if (blocked) card.classList.remove('selected');
+
+    let tag = card.querySelector('.fm-fit');
+    if (!tag) { tag = document.createElement('div'); tag.className = 'fm-fit'; tag.style.cssText = 'font-size:11px;font-weight:700;margin-top:6px;letter-spacing:0.02em;'; card.appendChild(tag); }
+    if (blocked) { tag.textContent = `Needs ~${(need * SOURCE_WORDS_PER_PAGE).toLocaleString()} words`; tag.style.color = 'var(--grey)'; }
+    else if (thin){ tag.textContent = 'Possible, but thin';  tag.style.color = 'var(--grey)'; }
+    else          { tag.textContent = '✓ Good fit';          tag.style.color = 'var(--red)'; }
+  });
+
+  // The selected format just became impossible — move to the one we would
+  // recommend rather than submitting a disabled choice.
+  const fallback = recommended || firstPossible;
+  if (fits[state.format] === 'blocked' && fallback) {
+    const card = cards.find(c => (c.getAttribute('onclick') || '').includes(`'${fallback}'`));
+    if (card) { _fitPassRunning = true; selectFormat(card, fallback); _fitPassRunning = false; }
+  }
+
+  // Episode counts that the source cannot fill are disabled for the same reason.
+  const epSel = document.getElementById('episodes');
+  if (epSel) {
+    const allowed = [];
+    [...epSel.options].forEach(o => {
+      const ok = (parseInt(o.value) * 50) <= supports;
+      o.disabled = !ok;
+      o.textContent = o.textContent.replace(/ — too long for this book$/, '') + (ok ? '' : ' — too long for this book');
+      if (ok) allowed.push(o.value);
+    });
+    if (allowed.length && !allowed.includes(epSel.value)) { epSel.value = allowed[allowed.length - 1]; state.episodes = parseInt(epSel.value); }
+  }
+
+  const rec  = recommended;
+  const recL = rec ? FORMAT_TARGETS[rec].label : null;
+  note.style.display = 'block';
+  note.innerHTML =
+    `<strong>Your manuscript is ${words.toLocaleString()} words — about ${supports} screenplay pages.</strong> ` +
+    `A screenplay page is written from roughly ${SOURCE_WORDS_PER_PAGE} words of prose, so that is the longest script this book can fill without inventing new story. ` +
+    (recL
+      ? `<br><br><strong>${recL}</strong> is the best fit${rec !== 'short' ? ', and shorter formats work too' : ''} — it leaves enough of your book to choose from. Anything dimmed above needs more words than you have.`
+      : `<br><br>Everything longer is dimmed: it would need more words than the book contains. Short Film is the honest fit.`);
+
+  if (fits[state.format] === 'thin') {
+    note.innerHTML += `<br><br><strong style="color:var(--red);">A note on your current choice.</strong> ` +
+      `${FORMAT_TARGETS[state.format].label} will fill, but only just — nearly every page of the book ends up on screen, so there is little room to select the strongest scenes.`;
+  }
+
+  // Keep the estimate box in step with the cards. Guarded because updateCalc
+  // calls back into this function.
+  _fitPassRunning = true;
+  try { updateCalc(); } finally { _fitPassRunning = false; }
+
+  applyApproachFitNote(supports);
+}
+
+// The three approaches only differ when there is more story than screen time.
+// Rather than leave the author to work out which applies, say which one their
+// own ratio calls for. Nothing is disabled — this is an artistic choice and
+// all three remain valid — but the reason to pick one is now on screen.
+function applyApproachFitNote(supports) {
+  const note = document.getElementById('approach-fit-note');
+  if (!note) return;
+  const target = screenplayTargetPages(state.format, state.episodes);
+  const ratio  = target > 0 ? supports / target : 1;
+
+  const rec = ratio >= 3   ? { name: 'Select Best', why: `Your book holds about ${ratio.toFixed(1)}× more story than ${target} pages can carry. Something has to go, and choosing the strongest scenes beats trimming every scene until none of them breathe.` }
+            : ratio >= 1.4 ? { name: 'Compress',    why: `Your book runs about ${ratio.toFixed(1)}× longer than ${target} pages. That is close enough to keep every subplot if each scene is tightened.` }
+            :                { name: 'Faithful',    why: `Your book is roughly the length ${target} pages needs. Nothing has to be cut, so staying close to what you wrote is the natural choice.` };
+
+  note.style.display = 'block';
+  note.innerHTML = `<strong>For this book, we'd pick ${rec.name}.</strong> ${rec.why}` +
+    `<br><br>All three still work — this is your call, not a rule. “What do these mean?” above explains each one in full.`;
 }
 
 // Typical finished length by genre, US trade market. Ordered shortest first so
@@ -2343,15 +2488,28 @@ function updateCalc() {
   else if (state.format === 'pilot') { target = 55; formatLabel = 'TV Pilot'; range = '50–60 pages'; }
   else { target = 20; formatLabel = 'Short Film'; range = '10–30 pages'; }
 
-  const ratio = pages > 0 ? (pages / target).toFixed(1) + ':1' : '—';
-  const chunks = Math.ceil(target / 8);
+  // What the conversion will ACTUALLY write. The engine caps output at the
+  // pages the source can fill, so quoting the format's nominal range to an
+  // author whose book is shorter than that is a promise it will not keep.
+  const isIdea    = !state.rawText;
+  const effective = (pages > 0 && !isIdea) ? Math.min(target, pages) : target;
+  const chunks = Math.ceil(effective / 8);
   const minT = Math.round(chunks * 0.4), maxT = Math.round(chunks * 0.8);
 
   document.getElementById('calc-pages').textContent = pages > 0 ? `${pages.toLocaleString()} pages` : '—';
   document.getElementById('calc-format').textContent = formatLabel;
-  document.getElementById('calc-ratio').textContent = pages > 0 ? ratio : '—';
+  document.getElementById('calc-ratio').textContent =
+    pages <= 0            ? '—' :
+    effective < target    ? `1:1 — your book fills ~${effective} of ${target} pages` :
+                            (pages / target).toFixed(1) + ':1';
   document.getElementById('calc-time').textContent = pages > 0 ? `${minT}–${maxT} minutes` : '—';
-  document.getElementById('calc-output').textContent = range;
+  document.getElementById('calc-output').textContent =
+    (pages > 0 && effective < target) ? `~${effective} pages` : range;
+
+  // Episode count feeds the page target, so the fit check has to re-run when
+  // it changes — this is where both the format cards and the episode list are
+  // brought back in line with what the book can carry.
+  applyScreenplayFitConstraints();
 }
 
 // ── Briefing ──────────────────────────────────────────────
@@ -2453,6 +2611,80 @@ ENDING: ${state.bible.ending}`;
 }
 
 // ── Screenplay conversion ─────────────────────────────────
+// ── Canonical name roster ─────────────────────────────────────────────────
+//
+// THE CAUSE OF THE NAME DRIFT, written down because it is not obvious and it
+// looks like a model-quality problem when it isn't.
+//
+// A conversion is not one call over the whole book. The manuscript is split
+// into ~2,000-word sections and each section is a SEPARATE call that has never
+// seen the others. Each one receives: the Story Bible, its own 2,000 words, and
+// the last 12 lines of the previous section's output. Nothing more.
+//
+// So a character introduced in section 2 and returning in section 6 is, to
+// section 6, a stranger — it cannot know how the name was spelled the first
+// time. If the Bible names them, it gets it right; if not, it fills the gap
+// with something plausible, and the author gets two names for one person.
+//
+// ⚠️ A larger model does NOT fix this. No model can recall text it was never
+// shown. The fix is to read the names out of the manuscript ONCE, before the
+// first section runs, and hand the identical list to every section.
+const ROSTER_MAX_TOKENS = 1500;
+
+async function buildNameRoster(key, sourceText) {
+  const sample = sourceText.split(/\s+/).slice(0, 60000).join(' ');
+  const raw = await callAPI(key,
+`You are a script supervisor building a name sheet for an adaptation. Extract ONLY names that literally appear in the text. Never invent a name, never normalise a spelling, and never supply a surname the manuscript does not give.`,
+`Read the manuscript below and list every proper name in it.
+
+OUTPUT FORMAT — exactly this, nothing else:
+CHARACTERS:
+<one per line: exact name as written | what they are usually called | short identifying phrase>
+PLACES:
+<one per line: exact name as written>
+OTHER:
+<one per line: any other proper noun that must stay consistent — organisations, vessels, titles, invented terms>
+
+Rules:
+- Spelling must match the manuscript exactly, including accents, apostrophes and hyphens.
+- If someone is called several things (nickname, rank, title), put them on one line separated by " / ".
+- Leave out a section entirely if it has no entries.
+
+MANUSCRIPT:
+${sample}`, ROSTER_MAX_TOKENS);
+  return String(raw || '').trim();
+}
+
+// Wrapped so a failed roster never costs the author their conversion — the run
+// continues exactly as it did before, just without the name sheet.
+async function tryBuildNameRoster(key, sourceText, label) {
+  if (isSampleMode()) return '';        // free sample: not worth the extra call
+  try {
+    addLog('Reading character and place names from your manuscript…');
+    const roster = await buildNameRoster(key, sourceText);
+    const entries = roster.split('\n').filter(l => l.trim() && !/^[A-Z]+:$/.test(l.trim())).length;
+    addLog(`Name sheet ready — ${entries} name${entries === 1 ? '' : 's'} locked for every section`);
+    return roster;
+  } catch (e) {
+    addLog(`⚠️ Name sheet unavailable (${e.message || 'error'}) — continuing without it`);
+    return '';
+  }
+}
+
+// The block handed to every section. Kept identical across sections on purpose:
+// that sameness is the whole mechanism.
+function rosterPromptBlock(roster) {
+  if (!roster) return '';
+  return `
+
+CANONICAL NAMES — this list was read from the author's manuscript. Spell every
+name EXACTLY as it appears here, every time it appears. Do not shorten, expand,
+translate or "correct" a name, and never introduce a character, place or term
+that is not on this list unless it appears in the section you are given.
+
+${roster}`;
+}
+
 async function convertToScreenplay(key, bibleText) {
   let targetPages;
   if (state.format === 'feature') targetPages = 95;
@@ -2501,8 +2733,20 @@ async function convertToScreenplay(key, bibleText) {
   const formatLabel = FORMAT_TARGETS[state.format]?.label || 'Feature Film';
 
   addLog(`Converting "${state.title}" → ${formatLabel}`);
-  addLog(`${state.pageCount || 'Idea-based'} → target ${targetPages} screenplay pages`);
-  setProgress(2, 'Starting…', 'Preparing sections…', `0 of ~${targetPages} pages`);
+  // Report the target we will ACTUALLY write to, not the nominal one. When the
+  // source is shorter than the chosen format needs, effectiveTarget is already
+  // the smaller number — telling the author (and the model) 95 pages while
+  // building 64 pages of sections is a promise the run has decided not to keep.
+  if (effectiveTarget < targetPages) {
+    addLog(`Source supports ~${effectiveTarget} pages — writing to that, not ${targetPages}`);
+  }
+  addLog(`${state.pageCount || 'Idea-based'} → target ${effectiveTarget} screenplay pages`);
+  setProgress(2, 'Starting…', 'Preparing sections…', `0 of ~${effectiveTarget} pages`);
+
+  // Read the names once, up front, so all sections agree on them. Idea mode has
+  // no manuscript to read them from.
+  setProgress(3, 'Reading names…', 'Building the name sheet…', `0 of ~${effectiveTarget} pages`);
+  const roster = isIdeaMode ? '' : await tryBuildNameRoster(key, sourceText);
 
   const progressMsgs = [
     'Reading opening act…','Establishing characters…','Setting the scene…',
@@ -2521,11 +2765,12 @@ async function convertToScreenplay(key, bibleText) {
   const systemPrompt = `You are a professional Hollywood screenplay writer adapting "${state.title}" into a ${formatLabel} (${state.genre} genre).
 
 ${bibleText}
+${rosterPromptBlock(roster)}
 
 APPROACH: ${approachNote}
 TONE: ${state.tone}
 DIALOGUE: ${state.dialogue}
-TARGET: ~${targetPages} total pages · ~${pagesPerChunk} pages this section
+TARGET: ~${effectiveTarget} total pages · ~${pagesPerChunk} pages this section
 
 FOUNTAIN FORMAT:
 - Scene headings: INT./EXT. LOCATION - DAY/NIGHT (ALL CAPS)
@@ -2556,7 +2801,7 @@ FOUNTAIN FORMAT:
     if (state._cancelled) break;
     const pct = 5 + (((i - startChunk) / (chunksToRun - startChunk)) * 88);
     const msg = progressMsgs[Math.min(Math.floor(((i - startChunk) / (chunksToRun - startChunk)) * progressMsgs.length), progressMsgs.length - 1)];
-    setProgress(pct, `Section ${i + 1} of ${totalChunks}`, msg, `~${pagesWritten} of ~${targetPages} pages`);
+    setProgress(pct, `Section ${i + 1} of ${totalChunks}`, msg, `~${pagesWritten} of ~${effectiveTarget} pages`);
     addLog(`Section ${i + 1}/${totalChunks} — ${msg}`);
 
     const prev = parts.length > 0 ? '\n\nPREVIOUS ENDING:\n' + parts[parts.length - 1].split('\n').slice(-12).join('\n') : '';
@@ -2596,7 +2841,10 @@ FOUNTAIN FORMAT:
   state._totalChunks = totalChunks;
 
   setProgress(96, 'Assembling…', 'Stitching sections…');
-  const titlePage = `Title: ${state.title}\nAdapted by FluidScriptr\nFormat: ${formatLabel}\n\n===\n\n`;
+  // The author's name, not ours. This is paid work product going to producers —
+  // a tool credit on the title page is not something a buyer should have to
+  // explain away.
+  const titlePage = `Title: ${state.title}\nBy ${state.author || 'Unknown'}\nFormat: ${formatLabel}\n\n===\n\n`;
   let assembled = (state._partialOutput ? state._partialOutput + '\n\n' : titlePage) + parts.join('\n\n');
 
   // Belt and braces for the ending. The final-section instruction above usually
@@ -2874,9 +3122,16 @@ async function enhanceManuscript(key, bibleText) {
   addLog(`Enhancing "${state.title}" — ${totalChunks} sections`);
   setProgress(2, 'Starting…', 'Preparing enhancement…');
 
+  // Enhancement is chunked the same way a conversion is, so it has the same
+  // blind spot: section 6 has never seen section 2. Rewriting the author's own
+  // prose makes a changed name worse, not better — it is the author's book.
+  setProgress(3, 'Reading names…', 'Building the name sheet…');
+  const roster = await tryBuildNameRoster(key, state.rawText);
+
   const systemPrompt = `You are a professional developmental editor and literary stylist working on "${state.title}" by ${state.author || 'the author'}.
 
 ${bibleText}
+${rosterPromptBlock(roster)}
 
 Your task: Rewrite and enhance this manuscript section while preserving the author's voice and core story. Improve:
 - Prose clarity and rhythm
@@ -3081,7 +3336,7 @@ function getSlug() {
 
 function exportFountain() {
   const date = new Date().toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' });
-  const content = `Title: ${state.title}\nAdapted by FluidScriptr\nDraft date: ${date}\n\n===\n\n${state.output}${sampleCreditText()}`;
+  const content = `Title: ${state.title}\nBy ${state.author || 'Unknown'}\nDraft date: ${date}\n\n===\n\n${state.output}${sampleCreditText()}`;
   downloadFile(content, getSlug() + '.fountain', 'text/plain;charset=utf-8');
   clearPartialSession();
 }
@@ -3323,8 +3578,28 @@ function renderScreenplayHTML(text) {
     .join('') + sampleCreditHTML();
 }
 
+// ── Print windows ─────────────────────────────────────────
+//
+// Every export in the app works by opening a blank window and writing a
+// printable page into it. When a popup blocker stops that, window.open returns
+// NULL and the very next line (w.document.write) throws — so the export does
+// nothing at all and says nothing at all. From the author's side the button is
+// simply dead, which is exactly how it was reported.
+//
+// Same family as the silent own-key failure in 15h: a failure that produces
+// silence instead of an error. Every print path in the app had it.
+function openPrintWindow() {
+  let w = null;
+  try { w = window.open('', '_blank'); } catch (e) { w = null; }
+  if (!w || w.closed || typeof w.document === 'undefined') {
+    alert('Your browser blocked the print window.\n\nLook for a blocked-popup icon in the address bar, allow pop-ups for this site, then click the button again.');
+    return null;
+  }
+  return w;
+}
+
 function exportScreenplayPDF() {
-  const w = window.open('', '_blank');
+  const w = openPrintWindow(); if (!w) return;
   w.document.write(`<!DOCTYPE html><html><head><title>${state.title}</title>
   <style>
     /* The page box owns the margins. Repeating them on <body> stacked a
@@ -3422,7 +3697,7 @@ ${bodyText}
 }
 
 function exportManuscriptPDF() {
-  const w = window.open('', '_blank');
+  const w = openPrintWindow(); if (!w) return;
   w.document.write(`<!DOCTYPE html><html><head><title>${state.title}</title>
   <style>
     /* The page box owns the margins. Setting them on <body> too stacked a
@@ -3589,7 +3864,7 @@ function printBible() {
       <div style="font-size:10px;font-weight:700;letter-spacing:0.1em;text-transform:uppercase;color:#E8333A;margin-bottom:6px;">${lbl}</div>
       <div style="font-size:13px;line-height:1.75;color:#1A1A2E;white-space:pre-wrap;">${val || '—'}</div>
     </div>`).join('');
-  const win = window.open('', '_blank');
+  const win = openPrintWindow(); if (!win) return;
   win.document.write(`<!DOCTYPE html><html><head><title>Story Bible — ${state.title || 'FluidScriptr'}</title>
     <style>body{font-family:'Inter',sans-serif;max-width:700px;margin:40px auto;padding:0 24px;color:#1A1A2E;}
     h1{font-size:22px;font-weight:800;margin-bottom:4px;}
@@ -3606,7 +3881,7 @@ function printBible() {
     @media print{body{margin:0 auto;padding:0;max-width:100%;}}
     </style></head><body>
     <h1>Story Bible</h1>
-    <div class="sub">${state.title || 'Untitled'} &mdash; generated by FluidScriptr</div>
+    <div class="sub">${state.title || 'Untitled'}${state.author && state.author !== 'Unknown' ? ' &mdash; ' + escHTML(state.author) : ''}</div>
     <hr>${rows}
     <script>window.onload=function(){window.print();}<\/script>
     </body></html>`);
@@ -3669,7 +3944,8 @@ function startOver() {
     manuscriptLength:'medium', output:'', currentStep:1, _cancelled: false,
     _partialOutput: null, _partialFrom: 0, _chunksConverted: 0, _totalChunks: 0,
     sampleTruncated: false, isScreenplayInput: false,
-    pitch: { loglines: [], selectedLogline: '', doc: null, comps: [], generated: false }
+    pitch: { loglines: [], selectedLogline: '', doc: null, comps: [], generated: false },
+    fidelity: null
   });
   const pitchResults = document.getElementById('pitch-results');
   if (pitchResults) pitchResults.style.display = 'none';
@@ -3897,6 +4173,9 @@ async function runFidelityCheck() {
     const dialogueRaw = await callAPI(key, dp.system, dp.user, BIBLE_MAX_TOKENS, 'fidelity');
     const dialogueResult = fidelityExtractJSON(dialogueRaw);
 
+    // Kept so the change report can be printed alongside the Pitch Sheet.
+    // Without this the findings existed only as rendered HTML on screen.
+    state.fidelity = { structural: structuralResult, dialogue: dialogueResult, ranAt: new Date() };
     renderFidelityResults(structuralResult, dialogueResult);
   } catch (err) {
     alert('Fidelity check failed: ' + (err.message || 'please try again.'));
@@ -4190,9 +4469,52 @@ function updateRightsSummary() {
 }
 
 // ── Pitch Sheet PDF (print-window pattern, consistent with the other exports) ──
+// Builds the change-report half of the printed pack. Returns '' when no
+// fidelity check has been run, so the Pitch Sheet still prints on its own.
+function fidelityPrintSection() {
+  const f = state.fidelity;
+  if (!f || !f.structural) return '';
+  const counts = f.structural.omission_counts || {};
+  const loadBearing = counts.load_bearing || 0;
+  const total = loadBearing + (counts.moderate || 0) + (counts.cosmetic || 0);
+
+  const headline = total === 0
+    ? 'No significant material was dropped in the adaptation.'
+    : `About ${total} element${total === 1 ? '' : 's'} from the book ${total === 1 ? 'was' : 'were'} cut or reshaped for the screen` +
+      (loadBearing > 0
+        ? ` — ${loadBearing} of them load-bearing, meaning the story's meaning or a character's motivation shifts without them.`
+        : ' — none of them load-bearing, so the essential throughline survived.');
+
+  const omissions = (f.structural.omissions || []).map(o =>
+    `<div class="fx"><strong>${escHTML(o.element)}</strong> <em>(${escHTML(String(o.classification || '').replace('_', ' '))})</em><br>${escHTML(o.reason)}</div>`).join('');
+
+  const dlgLabels = { verbatim: 'kept word for word', lightly_edited: 'lightly edited', rewritten: 'rewritten for screen', invented: 'written for the screen' };
+  const pairs = ((f.dialogue || {}).dialogue_pairs || []).map(p => {
+    const cat = String(p.category || '');
+    const lbl = dlgLabels[cat] || cat;
+    if (cat === 'invented' || !p.manuscript_line) {
+      return `<div class="fx">“${escHTML(p.screenplay_line)}…” <em>(${escHTML(lbl)})</em></div>`;
+    }
+    return `<div class="fx">Book: “${escHTML(p.manuscript_line)}…”<br>Screen: “${escHTML(p.screenplay_line)}…” <em>(${escHTML(lbl)})</em></div>`;
+  }).join('');
+
+  const invented = (f.dialogue || {}).screenplay_only_lines_count || 0;
+  const dropped  = (f.dialogue || {}).manuscript_only_lines_count || 0;
+
+  return `
+    <div class="pagebreak"></div>
+    <h2>Change Report</h2>
+    <p class="sub">How the screenplay differs from the book it came from.</p>
+    <div class="lbl">Overall</div><p>${escHTML(headline)}</p>
+    ${omissions ? `<div class="lbl">What changed</div>${omissions}` : ''}
+    <div class="lbl">Dialogue</div>
+    <p>Roughly ${invented} line${invented === 1 ? '' : 's'} of dialogue ${invented === 1 ? 'was' : 'were'} written for the screen with no source in the book, and about ${dropped} spoken line${dropped === 1 ? '' : 's'} from the book did not make it in.</p>
+    ${pairs}`;
+}
+
 function exportPitchPDF() {
   const p = state.pitch.doc || {};
-  const w = window.open('', '_blank');
+  const w = openPrintWindow(); if (!w) return;
   w.document.write(`<!DOCTYPE html><html><head><title>${escHTML(state.title)} — Pitch Sheet</title>
   <style>
     @page { size: letter; margin: 1in; }
@@ -4201,6 +4523,11 @@ function exportPitchPDF() {
     .byline{font-size:10.5pt;color:#555;margin-bottom:24px;}
     .lbl{font-size:9pt;text-transform:uppercase;letter-spacing:0.14em;color:#8a1f24;font-weight:bold;margin:20px 0 6px;}
     p{margin:0 0 10px;}
+    h2{font-size:16pt;margin:0 0 2px;}
+    .sub{font-size:10.5pt;color:#555;margin-bottom:18px;}
+    .fx{font-size:10.5pt;line-height:1.5;padding:8px 0;border-bottom:1px solid #eee;}
+    .fx em{color:#8a1f24;font-style:normal;font-size:9pt;text-transform:uppercase;letter-spacing:0.06em;}
+    .pagebreak{page-break-before:always;height:0;}
     .foot{margin-top:32px;font-size:8.5pt;color:#999;border-top:1px solid #ddd;padding-top:8px;}
     @media print{body{margin:0 auto;}}
   </style></head><body>
@@ -4211,7 +4538,8 @@ function exportPitchPDF() {
     <div class="lbl">Positioning</div><p>${escHTML(p.positioning || '')}</p>
     <div class="lbl">Format</div><p>${escHTML(p.format || '')}</p>
     ${state.pitch.comps.length ? `<div class="lbl">Comparable Titles</div><p>${state.pitch.comps.filter(c=>c.confirmed).map(c => escHTML(c.title)).join(' · ') || '—'}</p>` : ''}
-    <div class="foot">Prepared with FluidScriptr · ${new Date().toLocaleDateString('en-US',{year:'numeric',month:'long',day:'numeric'})} · Contact: ${escHTML(state.author)}</div>
+    ${fidelityPrintSection()}
+    <div class="foot">${new Date().toLocaleDateString('en-US',{year:'numeric',month:'long',day:'numeric'})} · Contact: ${escHTML(state.author)}</div>
   </body></html>`);
   w.document.close();
   setTimeout(() => w.print(), 600);
