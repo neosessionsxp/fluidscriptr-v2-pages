@@ -927,6 +927,11 @@ input[type=range]::-moz-range-thumb { width: 20px; height: 20px; border-radius: 
                                         <span class="el">PDF</span>
                                         <span class="ed">Standard format</span>
                                     </div>
+                                    <div class="export-btn" onclick="exportScreenplayDOCX()">
+                                        <span class="ei">📘</span>
+                                        <span class="el">DOCX</span>
+                                        <span class="ed">Word · Courier 12pt</span>
+                                    </div>
                                 </div>
                             </div>
                             <!-- Free-sample delivery. Hidden unless in sample mode; see deliverSampleByEmail(). -->
@@ -1040,14 +1045,24 @@ input[type=range]::-moz-range-thumb { width: 20px; height: 20px; border-radius: 
                                 <div class="export-grid" style="grid-template-columns:repeat(2,1fr);">
                                     <div class="export-btn" onclick="exportManuscriptDOCX()">
                                         <span class="ei">📝</span>
-                                        <span class="el">DOCX</span>
-                                        <span class="ed">Times New Roman 12pt, double-spaced</span>
+                                        <span class="el">RTF</span>
+                                        <span class="ed">Opens in Word · Times New Roman 12pt, double-spaced</span>
                                     </div>
                                     <div class="export-btn" onclick="exportManuscriptPDF()">
                                         <span class="ei">📄</span>
                                         <span class="el">PDF</span>
                                         <span class="ed">Print-ready format</span>
                                     </div>
+                                </div>
+                                <!-- The manuscript export is RTF by design, not .docx. Say so
+                                     plainly here rather than letting the reader discover it in
+                                     their Downloads folder. -->
+                                <div style="margin-top:12px;font-size:13px;line-height:1.7;color:var(--grey);text-align:left;">
+                                    <strong style="color:var(--text);">About the RTF file:</strong>
+                                    it opens directly in Microsoft Word, Pages and Google&nbsp;Docs with
+                                    the formatting already applied — nothing to set up. It is not a
+                                    <em>.docx</em> file. If you need one, open it in Word and choose
+                                    <em>File&nbsp;→&nbsp;Save&nbsp;As&nbsp;→&nbsp;Word Document (.docx)</em>.
                                 </div>
                             </div>
                         </div>
@@ -3369,6 +3384,12 @@ function exportFDX() {
 // instead of dumping everything flush left.
 const SP_SCENE_RE  = /^(INT\.?|EXT\.?|EST\.?|INT\.?\/EXT\.?|I\/E\.?)[\s.]/i;
 const SP_TRANS_RE  = /^(FADE IN|FADE OUT|FADE TO|CUT TO|SMASH CUT|HARD CUT|MATCH CUT|JUMP CUT|DISSOLVE TO|WIPE TO|IRIS OUT|THE END)\b/i;
+// NOTE: standard format puts the opening FADE IN flush LEFT while every other
+// transition goes flush right. That was implemented in 15j and reverted the same
+// session on the author's instruction — existing PDF output was not to change.
+// Deliberate: all transitions, FADE IN included, print flush right, and preview
+// / PDF / DOCX agree with each other. Do not "fix" this without asking. See
+// handoff.md 15j.
 
 function isCharacterCue(raw, next) {
   // A cue is short, uppercase, and immediately followed by dialogue or a
@@ -3649,6 +3670,226 @@ function exportScreenplayPDF() {
   clearPartialSession();
 }
 
+// ── Screenplay .docx ──────────────────────────────────────
+//
+// A .docx is a ZIP of XML parts, so writing one means writing a ZIP. The app
+// loads no zip library and the export path should not start depending on a CDN
+// that can be blocked or go down mid-conversion, so the minimum viable writer
+// lives here. Entries are STORED (uncompressed) — Word accepts that, and it
+// removes any need for a deflate implementation. A screenplay is a few hundred
+// KB either way.
+//
+// The manuscript export deliberately stays RTF (see exportManuscriptDOCX): it
+// is a plain double-spaced document that RTF carries perfectly. The screenplay
+// is the file that gets sent to agents and readers, and script layout is the
+// part RTF renders inconsistently between Word, Pages and Google Docs.
+
+let _crcTable = null;
+function crc32(bytes) {
+  if (!_crcTable) {
+    _crcTable = new Uint32Array(256);
+    for (let n = 0; n < 256; n++) {
+      let c = n;
+      for (let k = 0; k < 8; k++) c = (c & 1) ? (0xEDB88320 ^ (c >>> 1)) : (c >>> 1);
+      _crcTable[n] = c >>> 0;
+    }
+  }
+  let crc = 0xFFFFFFFF;
+  for (let i = 0; i < bytes.length; i++) crc = _crcTable[(crc ^ bytes[i]) & 0xFF] ^ (crc >>> 8);
+  return (crc ^ 0xFFFFFFFF) >>> 0;
+}
+
+function zipStore(files) {
+  const enc = new TextEncoder();
+  const u16 = n => new Uint8Array([n & 0xFF, (n >>> 8) & 0xFF]);
+  const u32 = n => new Uint8Array([n & 0xFF, (n >>> 8) & 0xFF, (n >>> 16) & 0xFF, (n >>> 24) & 0xFF]);
+  const cat = arrs => {
+    let len = 0; for (const a of arrs) len += a.length;
+    const out = new Uint8Array(len);
+    let p = 0; for (const a of arrs) { out.set(a, p); p += a.length; }
+    return out;
+  };
+
+  const body = [], central = [];
+  let offset = 0;
+  // Fixed 1980-01-01 stamp. Word ignores it, and a constant makes the same
+  // screenplay export byte-identical every time, which is what lets the
+  // export be diffed in a test.
+  const dosTime = u16(0), dosDate = u16(33);
+
+  for (const f of files) {
+    const name = enc.encode(f.name);
+    const data = typeof f.data === 'string' ? enc.encode(f.data) : f.data;
+    const crc = crc32(data);
+    // 0x0800 flags the filename as UTF-8.
+    const local = cat([
+      u32(0x04034b50), u16(20), u16(0x0800), u16(0),
+      dosTime, dosDate, u32(crc), u32(data.length), u32(data.length),
+      u16(name.length), u16(0), name
+    ]);
+    body.push(local, data);
+    central.push(cat([
+      u32(0x02014b50), u16(20), u16(20), u16(0x0800), u16(0),
+      dosTime, dosDate, u32(crc), u32(data.length), u32(data.length),
+      u16(name.length), u16(0), u16(0), u16(0), u16(0), u32(0),
+      u32(offset), name
+    ]));
+    offset += local.length + data.length;
+  }
+
+  const cd = cat(central);
+  const end = cat([
+    u32(0x06054b50), u16(0), u16(0), u16(files.length), u16(files.length),
+    u32(cd.length), u32(offset), u16(0)
+  ]);
+  return cat([...body, cd, end]);
+}
+
+// XML 1.0 has no escape for most control characters — a stray one anywhere in
+// the model's output makes Word reject the whole file as unreadable, so they
+// are dropped before escaping.
+function docxText(s) {
+  return escapeXML(String(s ?? '').replace(/[\x00-\x08\x0B\x0C\x0E-\x1F]/g, ''));
+}
+
+/* Industry screenplay layout, in twips (1 inch = 1440; one character of 12pt
+   Courier at 10 cpi = 144). These are the same measurements as the .sp-* CSS
+   rules used by the PDF export — if one changes, change both, or the PDF and
+   the Word file stop agreeing with each other.
+
+     left margin 1.5in · right margin 1in · 60-character text column
+     character cue  22ch    parenthetical  16ch (22ch wide)
+     dialogue       10ch (35ch wide)       transitions flush right          */
+const CH = 144;
+const SP_DOCX = {
+  'sp-title':      { align: 'center', after: 240, shiftForMargin: true },
+  'sp-scene':      { caps: true, bold: true, before: 480, after: 240, keepNext: true },
+  'sp-action':     { after: 240 },
+  'sp-character':  { caps: true, left: 22 * CH, after: 0, keepNext: true },
+  'sp-paren':      { left: 16 * CH, right: 22 * CH, after: 0, keepNext: true },
+  'sp-dialogue':   { left: 10 * CH, right: 15 * CH, after: 240 },
+  'sp-transition': { caps: true, align: 'right', after: 240 },
+  'sp-credit':     { align: 'center', before: 720, size: 18, shiftForMargin: true }
+};
+
+function spDocxParagraph(el, isFirstTitle) {
+  if (el.t === 'sp-titlebreak') {
+    return '<w:p><w:r><w:br w:type="page"/></w:r></w:p>';
+  }
+  const st = SP_DOCX[el.t] || SP_DOCX['sp-action'];
+  const before = isFirstTitle ? 4320 : (st.before || 0);   // title sits ~3in down
+
+  const ind = [];
+  if (st.left) ind.push(`w:left="${st.left}"`);
+  // Centring happens inside the text column, whose centre sits 0.25in right of
+  // the sheet's centre because the left margin is wider than the right. A
+  // 720-twip right indent pulls it back by half that and centres on the page —
+  // the same correction the PDF makes with its -0.25in margin.
+  const right = (st.right || 0) + (st.shiftForMargin ? 720 : 0);
+  if (right) ind.push(`w:right="${right}"`);
+
+  const pPr = '<w:pPr>' +
+    (st.align ? `<w:jc w:val="${st.align}"/>` : '') +
+    (ind.length ? `<w:ind ${ind.join(' ')}/>` : '') +
+    `<w:spacing w:before="${before}" w:after="${st.after ?? 240}" w:line="240" w:lineRule="auto"/>` +
+    (st.keepNext ? '<w:keepNext/>' : '') +
+    '</w:pPr>';
+
+  const rPr = '<w:rPr>' +
+    ((st.bold || isFirstTitle) ? '<w:b/>' : '') +
+    ((st.caps || isFirstTitle) ? '<w:caps/>' : '') +
+    (st.size ? `<w:sz w:val="${st.size}"/>` : '') +
+    '</w:rPr>';
+
+  return `<w:p>${pPr}<w:r>${rPr}<w:t xml:space="preserve">${docxText(el.s)}</w:t></w:r></w:p>`;
+}
+
+function buildScreenplayDocx() {
+  const els = parseScreenplay(state.output);
+  if (isSampleMode()) els.push({ t: 'sp-credit', s: SAMPLE_CREDIT });
+
+  let seenTitle = false;
+  const paras = els.map(el => {
+    const first = el.t === 'sp-title' && !seenTitle;
+    if (el.t === 'sp-title') seenTitle = true;
+    return spDocxParagraph(el, first);
+  }).join('');
+
+  const W = 'xmlns:w="http://schemas.openxmlformats.org/wordprocessingml/2006/main"';
+  const R = 'xmlns:r="http://schemas.openxmlformats.org/officeDocument/2006/relationships"';
+  const XD = '<?xml version="1.0" encoding="UTF-8" standalone="yes"?>';
+
+  // titlePg leaves page 1 without a header, so the title page carries no
+  // number — as a submitted script should.
+  const document = `${XD}<w:document ${W} ${R}><w:body>${paras}<w:sectPr>` +
+    '<w:headerReference w:type="default" r:id="rId1"/>' +
+    '<w:pgSz w:w="12240" w:h="15840"/>' +
+    '<w:pgMar w:top="1440" w:right="1440" w:bottom="1440" w:left="2160" w:header="720" w:footer="720" w:gutter="0"/>' +
+    '<w:titlePg/></w:sectPr></w:body></w:document>';
+
+  const runPr = '<w:rPr><w:rFonts w:ascii="Courier New" w:hAnsi="Courier New"/><w:sz w:val="24"/></w:rPr>';
+  const header = `${XD}<w:hdr ${W}><w:p><w:pPr><w:jc w:val="right"/></w:pPr>` +
+    `<w:r>${runPr}<w:fldChar w:fldCharType="begin"/></w:r>` +
+    `<w:r>${runPr}<w:instrText xml:space="preserve"> PAGE </w:instrText></w:r>` +
+    `<w:r>${runPr}<w:fldChar w:fldCharType="separate"/></w:r>` +
+    `<w:r>${runPr}<w:t>1</w:t></w:r>` +
+    `<w:r>${runPr}<w:fldChar w:fldCharType="end"/></w:r>` +
+    `<w:r>${runPr}<w:t>.</w:t></w:r></w:p></w:hdr>`;
+
+  const styles = `${XD}<w:styles ${W}><w:docDefaults><w:rPrDefault><w:rPr>` +
+    '<w:rFonts w:ascii="Courier New" w:hAnsi="Courier New" w:cs="Courier New"/>' +
+    '<w:sz w:val="24"/><w:szCs w:val="24"/></w:rPr></w:rPrDefault>' +
+    '<w:pPrDefault><w:pPr><w:spacing w:after="0" w:line="240" w:lineRule="auto"/></w:pPr></w:pPrDefault>' +
+    '</w:docDefaults>' +
+    '<w:style w:type="paragraph" w:default="1" w:styleId="Normal"><w:name w:val="Normal"/></w:style>' +
+    '</w:styles>';
+
+  const core = `${XD}<cp:coreProperties ` +
+    'xmlns:cp="http://schemas.openxmlformats.org/package/2006/metadata/core-properties" ' +
+    'xmlns:dc="http://purl.org/dc/elements/1.1/">' +
+    `<dc:title>${docxText(state.title)}</dc:title>` +
+    `<dc:creator>${docxText(state.author || '')}</dc:creator>` +
+    '</cp:coreProperties>';
+
+  const OFF = 'http://schemas.openxmlformats.org/officeDocument/2006/relationships';
+  return zipStore([
+    { name: '[Content_Types].xml', data: `${XD}<Types xmlns="http://schemas.openxmlformats.org/package/2006/content-types">` +
+      '<Default Extension="rels" ContentType="application/vnd.openxmlformats-package.relationships+xml"/>' +
+      '<Default Extension="xml" ContentType="application/xml"/>' +
+      '<Override PartName="/word/document.xml" ContentType="application/vnd.openxmlformats-officedocument.wordprocessingml.document.main+xml"/>' +
+      '<Override PartName="/word/styles.xml" ContentType="application/vnd.openxmlformats-officedocument.wordprocessingml.styles+xml"/>' +
+      '<Override PartName="/word/header1.xml" ContentType="application/vnd.openxmlformats-officedocument.wordprocessingml.header+xml"/>' +
+      '<Override PartName="/docProps/core.xml" ContentType="application/vnd.openxmlformats-package.core-properties+xml"/>' +
+      '</Types>' },
+    { name: '_rels/.rels', data: `${XD}<Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships">` +
+      `<Relationship Id="rId1" Type="${OFF}/officeDocument" Target="word/document.xml"/>` +
+      '<Relationship Id="rId2" Type="http://schemas.openxmlformats.org/package/2006/relationships/metadata/core-properties" Target="docProps/core.xml"/>' +
+      '</Relationships>' },
+    { name: 'word/_rels/document.xml.rels', data: `${XD}<Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships">` +
+      `<Relationship Id="rId1" Type="${OFF}/header" Target="header1.xml"/>` +
+      `<Relationship Id="rId2" Type="${OFF}/styles" Target="styles.xml"/>` +
+      '</Relationships>' },
+    { name: 'word/document.xml', data: document },
+    { name: 'word/header1.xml',  data: header },
+    { name: 'word/styles.xml',   data: styles },
+    { name: 'docProps/core.xml', data: core }
+  ]);
+}
+
+function exportScreenplayDOCX() {
+  // Same principle as the print windows: an export that fails must say so.
+  // A dead button is the one outcome that gets reported as "it doesn't work".
+  try {
+    const bytes = buildScreenplayDocx();
+    downloadFile(bytes, getSlug() + '-screenplay.docx',
+      'application/vnd.openxmlformats-officedocument.wordprocessingml.document');
+    clearPartialSession();
+  } catch (e) {
+    console.error('DOCX export failed', e);
+    alert("Something went wrong building the Word file.\n\nYour screenplay is safe — use the PDF or .fountain export instead, and let us know this happened.");
+  }
+}
+
 // RTF only guarantees 7-bit ASCII in the body; anything else must go through
 // a \uN? escape (signed 16-bit UTF-16 code unit) or Word/Google Docs will
 // read the raw UTF-8 bytes as Windows-1252 and mangle them (e.g. an em dash
@@ -3693,7 +3934,7 @@ ${bodyText}
   downloadFile(rtf, getSlug() + '-manuscript.rtf', 'application/rtf');
   clearPartialSession();
   // Also offer plain text fallback note
-  alert('Your manuscript has been downloaded as an RTF file — open it in Microsoft Word or Google Docs. It will open with Times New Roman 12pt, double-spaced, 1-inch margins automatically.');
+  alert('Your manuscript has been downloaded as an RTF file.\n\nDouble-click it and it opens in Microsoft Word (or Pages, or Google Docs) already set in Times New Roman 12pt, double-spaced, with 1-inch margins.\n\nIt is not a .docx file. If you need one, open it in Word and choose File > Save As > Word Document (.docx).');
 }
 
 function exportManuscriptPDF() {
