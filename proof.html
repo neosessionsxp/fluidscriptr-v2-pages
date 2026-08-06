@@ -80,9 +80,18 @@ header.hero{padding:64px 0 40px;text-align:center}
 .screenplay>.sp-blank{height:.55em}
 
 /* ---- annotations ---- */
+.example-head{max-width:1220px;margin:0 auto 26px;padding:0 28px;text-align:center}
+.example-head h2{margin:.15em 0 .3em;font-size:1.6rem}
+.example-num{display:inline-block;font-family:'Encode Sans Semi Condensed',sans-serif;font-size:.78rem;
+  letter-spacing:.09em;text-transform:uppercase;color:var(--red);font-weight:700;margin-bottom:.2em}
+.example-head>p{max-width:640px;margin:0 auto 16px;color:var(--ink-soft);font-size:.98rem}
+.example-head .badges{justify-content:center}
 .notice{max-width:1220px;margin:0 auto 64px;padding:0 28px}
-.notice-inner{background:var(--bg);border-radius:var(--radius);box-shadow:var(--shadow-in-sm);padding:22px 28px;
-  font-family:'Encode Sans Semi Condensed',sans-serif;font-size:0.9rem;color:var(--ink-soft);line-height:1.7}
+.notice-inner{background:var(--bg);border-radius:var(--radius);box-shadow:var(--shadow-in-sm);
+  border-left:3px solid var(--red);padding:24px 30px 24px 27px;
+  font-family:'Encode Sans Semi Condensed',sans-serif;font-size:0.95rem;color:var(--ink);line-height:1.72}
+.notice-inner strong{color:var(--ink);font-weight:600}
+.notice-inner em{font-style:italic}
 section{padding:74px 0;position:relative;z-index:1}
 .section-head{text-align:center;max-width:660px;margin:0 auto 46px}
 .notice-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:22px}
@@ -128,8 +137,7 @@ footer{padding:44px 0 36px;border-top:1px solid var(--line);margin-top:40px;posi
       it is the first thing the tool returned.
     </p>
     <div class="badges">
-      <span class="badge">467 words in</span>
-      <span class="badge">582 words out</span>
+      <span class="badge">Two full conversions</span>
       <span class="badge">One pass &middot; unedited</span>
       <span class="badge">Public domain source</span>
     </div>
@@ -138,6 +146,146 @@ footer{padding:44px 0 36px;border-top:1px solid var(--line);margin-top:40px;posi
 </header>
 
 <div class="container">
+  <div class="example-head">
+    <span class="example-num">Example 1 &middot; The Great Gatsby</span>
+    <h2>Description becomes action.</h2>
+    <p>Fitzgerald&rsquo;s party is almost pure description, with barely any dialogue to lean on. This is the harder direction of the conversion &mdash; and the one where the most new writing happens.</p>
+    <div class="badges">
+      <span class="badge">537 words in</span>
+      <span class="badge">849 words out</span>
+      <span class="badge">Excerpt of a 13-page conversion</span>
+    </div>
+  </div>
+  <div class="compare">
+    <div class="pane">
+      <div class="pane-head">
+        <div class="pane-title"><span class="dot"></span>The novel</div>
+        <div class="pane-meta">Source &middot; prose</div>
+      </div>
+      <div class="scroll prose">
+      <p>There was music from my neighbor’s house through the summer nights. In his blue gardens men and girls came and went like moths among the whisperings and the champagne and the stars. At high tide in the afternoon I watched</p>
+      <p>his guests diving from the tower of his raft or taking the sun on the hot sand of his beach while his two motor-boats slit the waters of the Sound, drawing aquaplanes over cataracts of foam. On week-ends his Rolls-Royce became an omnibus, bearing parties to and from the city, between nine in the morning and long past midnight, while his station wagon scampered like a brisk yellow bug to meet all trains. And on Mondays eight servants including an extra gardener toiled all day with mops and scrubbing-brushes and hammers and garden-shears, repairing the ravages of the night before.</p>
+      <p>Every Friday five crates of oranges and lemons arrived from a fruiterer in New York—every Monday these same oranges and lemons left his back door in a pyramid of pulpless halves. There was a machine in the kitchen which could extract the juice of two hundred oranges in half an hour, if a little button was pressed two hundred times by a butler’s thumb.</p>
+      <p>At least once a fortnight a corps of caterers came down with several hundred feet of canvas and enough colored lights to make a Christmas tree of Gatsby’s enormous garden. On buffet tables, garnished with glistening hors-d’oeuvre, spiced baked hams crowded against salads of harlequin designs and pastry pigs and turkeys bewitched to a dark gold. In the main hall a bar with a real brass rail was set up, and stocked with gins and liquors and with cordials so long forgotten that most of his female guests were too young to know one from another.</p>
+      <p>By seven o’clock the orchestra has arrived—no thin five-piece affair but a whole pitful of oboes and trombones and saxophones and viols and cornets and piccolos and low and high drums. The last swimmers have come in from the beach now and are dressing upstairs; the cars from New York are parked five deep in the drive, and already the halls and salons and verandas are gaudy with primary colors and hair shorn in strange new ways and shawls beyond the dreams of Castile. The bar is in full swing and floating rounds of cocktails permeate the garden outside until the air is alive with chatter and laughter and casual innuendo and introductions forgotten on the spot and enthusiastic meetings between women who never knew each other’s names.</p>
+      <p>The lights grow brighter as the earth lurches away from the sun and now the orchestra is playing yellow cocktail music and the opera of voices pitches a key higher. Laughter is easier, minute by minute, spilled with prodigality, tipped out at a cheerful word. The groups change more swiftly, swell with new arrivals, dissolve and form in the same breath—already there are wanderers, confident girls who weave here and there among the stouter and more stable, become for a sharp, joyous moment the center of a group and then excited with triumph glide on through the sea-change of faces and voices and color under the constantly changing light.</p>
+      </div>
+    </div>
+    <div class="pane">
+      <div class="pane-head">
+        <div class="pane-title"><span class="dot"></span>The screenplay</div>
+        <div class="pane-meta">FluidScriptr output</div>
+      </div>
+      <div class="scroll screenplay">
+      <div class="sp-blank"></div>
+      <div class="sp-transition">FADE IN:</div>
+      <div class="sp-blank"></div>
+      <div class="sp-scene">EXT. GATSBY'S MANSION - SUMMER NIGHTS - MONTAGE</div>
+      <div class="sp-blank"></div>
+      <div class="sp-action">Blue gardens. Blue as a held breath.</div>
+      <div class="sp-blank"></div>
+      <div class="sp-action">Men and women drift through the grounds like moths drawn toward warm light — silk brushing silk, champagne flutes lifted, voices dissolving into music.</div>
+      <div class="sp-blank"></div>
+      <div class="sp-character">NICK CARRAWAY (V.O.)</div>
+      <div class="sp-blank"></div>
+      <div class="sp-dialogue">There was music from my neighbor's house through the summer nights. In his blue gardens men and girls came and went like moths among the whisperings and the champagne and the stars.</div>
+      <div class="sp-blank"></div>
+      <div class="sp-scene">EXT. GATSBY'S BEACH AND DOCK - AFTERNOON</div>
+      <div class="sp-blank"></div>
+      <div class="sp-action">High tide. The water of the Sound dazzles.</div>
+      <div class="sp-blank"></div>
+      <div class="sp-action">A tower rises from a floating raft offshore. GUESTS dive from it in arcs of white spray. Others lie stretched on the hot sand, motionless, worshipping the sun.</div>
+      <div class="sp-blank"></div>
+      <div class="sp-action">Two motor-boats cut the Sound in long clean lines, trailing AQUAPLANES that buck and spray over cataracts of foam.</div>
+      <div class="sp-blank"></div>
+      <div class="sp-character">NICK (V.O.)</div>
+      <div class="sp-blank"></div>
+      <div class="sp-dialogue">At high tide in the afternoon I watched his guests diving from the tower of his raft while his two motor-boats slit the waters of the Sound, drawing aquaplanes over cataracts of foam.</div>
+      <div class="sp-blank"></div>
+      <div class="sp-scene">EXT. GATSBY'S DRIVE - EARLY MORNING / LATE NIGHT</div>
+      <div class="sp-blank"></div>
+      <div class="sp-action">A ROLLS-ROYCE — gleaming, enormous — moves along the Long Island road. It carries parties toward New York in the morning light. It returns them well past midnight, figures slumped against one another in the back seat.</div>
+      <div class="sp-blank"></div>
+      <div class="sp-action">A small STATION WAGON, yellow as a lemon, darts between the mansion and the train station, collecting arrivals.</div>
+      <div class="sp-blank"></div>
+      <div class="sp-character">NICK (V.O.)</div>
+      <div class="sp-blank"></div>
+      <div class="sp-dialogue">On week-ends his Rolls-Royce became an omnibus, bearing parties to and from the city between nine in the morning and long past midnight, while his station wagon scampered like a brisk yellow bug to meet all trains.</div>
+      <div class="sp-blank"></div>
+      <div class="sp-scene">EXT. GATSBY'S MANSION - MONDAY MORNING</div>
+      <div class="sp-blank"></div>
+      <div class="sp-action">The light is gray and tired. EIGHT SERVANTS move across the grounds with mops, scrubbing-brushes, hammers, garden-shears.</div>
+      <div class="sp-blank"></div>
+      <div class="sp-action">An extra GARDENER kneels in the torn lawn, pressing soil back into place.</div>
+      <div class="sp-blank"></div>
+      <div class="sp-action">Near the kitchen door — a pyramid of orange and lemon halves, squeezed to nothing. Pulpless. Pale as old skin.</div>
+      <div class="sp-blank"></div>
+      <div class="sp-character">NICK (V.O.)</div>
+      <div class="sp-blank"></div>
+      <div class="sp-dialogue">And on Mondays eight servants including an extra gardener toiled all day, repairing the ravages of the night before.</div>
+      <div class="sp-blank"></div>
+      <div class="sp-scene">INT. GATSBY'S KITCHEN - DAY</div>
+      <div class="sp-blank"></div>
+      <div class="sp-action">A BUTLER stands before a chrome machine. He presses a small button. The machine shudders and extrudes juice.</div>
+      <div class="sp-blank"></div>
+      <div class="sp-action">He presses it again. And again.</div>
+      <div class="sp-blank"></div>
+      <div class="sp-character">NICK (V.O.)</div>
+      <div class="sp-blank"></div>
+      <div class="sp-dialogue">Every Friday five crates of oranges and lemons arrived from a fruiterer in New York. Every Monday these same oranges and lemons left his back door in a pyramid of pulpless halves. There was a machine in the kitchen which could extract the juice of two hundred oranges in half an hour, if a little button was pressed two hundred times by a butler's thumb.</div>
+      <div class="sp-blank"></div>
+      <div class="sp-action">The BUTLER presses it again. His face is entirely without expression.</div>
+      <div class="sp-blank"></div>
+      <div class="sp-scene">EXT. GATSBY'S GARDEN - FRIDAY EVENING - SETUP</div>
+      <div class="sp-blank"></div>
+      <div class="sp-action">A CORPS OF CATERERS unroll hundreds of feet of canvas across the lawn. Men string colored lights through every tree and hedge — reds, greens, blues, whites — until the garden becomes a kind of enormous Christmas tree burning against the darkening sky.</div>
+      <div class="sp-blank"></div>
+      <div class="sp-character">NICK (V.O.)</div>
+      <div class="sp-blank"></div>
+      <div class="sp-dialogue">At least once a fortnight a corps of caterers came down with several hundred feet of canvas and enough colored lights to make a Christmas tree of Gatsby's enormous garden.</div>
+      <div class="sp-blank"></div>
+      <div class="sp-scene">INT. GATSBY'S MANSION - BUFFET HALL - EVENING</div>
+      <div class="sp-blank"></div>
+      <div class="sp-action">Tables groan with food. Spiced baked hams press against salads of harlequin design. Pastry pigs. Turkeys roasted to a deep, dark gold.</div>
+      <div class="sp-blank"></div>
+      <div class="sp-action">A BAR runs the length of the main hall — real brass rail gleaming. Bottles of gin, liquor, and cordials crowd every inch of the shelf.</div>
+      <div class="sp-blank"></div>
+      <div class="sp-character">NICK (V.O.)</div>
+      <div class="sp-blank"></div>
+      <div class="sp-dialogue">On buffet tables, garnished with glistening hors-d'oeuvre, spiced baked hams crowded against salads of harlequin designs and pastry pigs and turkeys bewitched to a dark gold. In the main hall a bar with a real brass rail was stocked with cordials so long forgotten that most of his female guests were too young to know one from another.</div>
+      <div class="sp-blank"></div>
+      <div class="sp-scene">EXT. GATSBY'S GARDEN - SEVEN O'CLOCK</div>
+      <div class="sp-blank"></div>
+      <div class="sp-action">The orchestra fills the pit — no thin five-piece affair. OBOES. TROMBONES. SAXOPHONES. VIOLS. CORNETS. PICCOLOS. LOW DRUMS and HIGH DRUMS.</div>
+      <div class="sp-blank"></div>
+      <div class="sp-action">They begin to play. The sound is golden and slightly unreal.</div>
+      <div class="sp-blank"></div>
+      <div class="sp-action">Cars from New York are parked five deep in the drive. GUESTS pour in — hair shorn in strange new ways, shawls in colors beyond the dreams of Castile.</div>
+      <div class="sp-blank"></div>
+      <div class="sp-character">NICK (V.O.)</div>
+      <div class="sp-blank"></div>
+      <div class="sp-dialogue">By seven o'clock the orchestra had arrived — no thin five-piece affair but a whole pitful of oboes and trombones and saxophones and viols and cornets and piccolos and low and high drums.</div>
+      <div class="sp-blank"></div>
+      <div class="sp-action">The bar swings into full operation. WAITERS move through the garden like figures in a dream, trays of cocktails lifted above the crowd.</div>
+      <div class="sp-blank"></div>
+      <div class="sp-action">Chatter rises. Laughter spills out carelessly, tipped like champagne from a glass tilted just a little too far.</div>
+      <div class="sp-blank"></div>
+      <div class="sp-action">NICK (V.O.) (CONT'D)</div>
+      <div class="sp-blank"></div>
+      <div class="sp-action">The bar is in full swing and floating rounds of cocktails permeate the garden outside until the air is alive with chatter and laughter and casual innuendo and introductions forgotten on the spot and enthusiastic meetings between women who never knew each other's names.</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="example-head">
+    <span class="example-num">Example 2 &middot; Pride and Prejudice</span>
+    <h2>Dialogue survives intact.</h2>
+    <p>Austen&rsquo;s opening is almost pure dialogue. Here you can check, line by line, how much of her actual language reaches the page.</p>
+    <div class="badges">
+      <span class="badge">467 words in</span>
+      <span class="badge">582 words out</span>
+    </div>
+  </div>
   <div class="compare">
 
     <div class="pane">
@@ -307,9 +455,11 @@ footer{padding:44px 0 36px;border-top:1px solid var(--line);margin-top:40px;posi
 
 <div class="notice">
   <div class="notice-inner">
-    <strong>The source is <em>Pride and Prejudice</em> by Jane Austen (1813, public domain)</strong> — chosen so you can
-    check the conversion against something you may already know, and so nobody's unpublished manuscript is on display.
-    The screenplay was produced in a single pass with no human editing, no retries, and no clean-up.
+    <strong>Both sources are public domain</strong> — <em>The Great Gatsby</em> by F. Scott Fitzgerald (1925, in the US
+    public domain since January 2021) and <em>Pride and Prejudice</em> by Jane Austen (1813). They were chosen so you can
+    check each conversion against a book you may already know, and so nobody's unpublished manuscript is on display.
+    Each screenplay was produced in a single pass with no human editing, no retries, and no clean-up. The Gatsby panes
+    show the opening of a 13-page conversion; the Austen conversion is shown in full.
   </div>
 </div>
 
