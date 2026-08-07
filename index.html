@@ -132,6 +132,41 @@ input[type=range]::-moz-range-thumb { width: 20px; height: 20px; border-radius: 
       const LS_KEY = 'fsr_license_key';
       const LS_EMAIL = 'fsr_payer_email';
       const WORKER = 'https://fluidscriptr-license.kerospad.workers.dev';
+
+      // ── First-touch attribution ──────────────────────────────────────
+      // The PayPal webhook confirms WHO paid but knows nothing about where
+      // they came from — PayPal never sees the referrer. This captures the
+      // arrival context once, on first visit, and passes it up at unlock
+      // time (the first moment a browser session and a Transaction ID are
+      // known together). Deliberately does NOT touch the payment path.
+      //
+      // First-touch, not last-touch: a buyer typically arrives from a link,
+      // leaves for PayPal, and returns — by unlock time document.referrer is
+      // paypal.com, which is useless. Writing once on first visit and never
+      // overwriting preserves the channel that actually did the work.
+      const LS_ATTR = 'fsr_attribution';
+      function captureAttribution() {
+        try {
+          if (localStorage.getItem(LS_ATTR)) return; // already recorded — never overwrite
+          const p = new URLSearchParams(location.search);
+          const ref = document.referrer || '';
+          let host = '';
+          try { host = ref ? new URL(ref).hostname : ''; } catch {}
+          // Ignore self-referrals (storefront → app is one journey, not a new source)
+          if (host === location.hostname) return;
+          localStorage.setItem(LS_ATTR, JSON.stringify({
+            source:   p.get('utm_source')   || host || 'direct',
+            medium:   p.get('utm_medium')   || (host ? 'referral' : 'none'),
+            campaign: p.get('utm_campaign') || '',
+            landed_at: new Date().toISOString(),
+          }));
+        } catch {} // storage disabled/full — attribution is optional, never block the app
+      }
+      function getAttribution() {
+        try { return JSON.parse(localStorage.getItem(LS_ATTR) || 'null'); }
+        catch { return null; }
+      }
+      captureAttribution();
       const gate = document.getElementById('license-gate');
       const errEl = document.getElementById('gate-error');
       const btn = document.getElementById('gate-btn');
@@ -225,7 +260,7 @@ input[type=range]::-moz-range-thumb { width: 20px; height: 20px; border-radius: 
           const res = await fetch(WORKER, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ license_key: key, email })
+            body: JSON.stringify({ license_key: key, email, attribution: getAttribution() })
           });
           const data = await res.json();
 
