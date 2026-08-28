@@ -105,6 +105,10 @@ input[type=range]::-moz-range-thumb { width: 20px; height: 20px; border-radius: 
           Don't have one yet? <a href="https://tinhousepress.com/fluidscriptr#pricing" target="_blank" style="color: #E8333A; text-decoration: none; font-weight: 600;">See pricing</a>
         </div>
 
+        <div id="gate-back" style="display: none; font-size: 12px; margin-top: 10px;">
+          <a href="#" onclick="location.href = location.pathname; return false;" style="color: #9CA3AF; text-decoration: none; font-weight: 600;">&larr; Back to my free sample</a>
+        </div>
+
         <div style="margin-top: 14px; padding-top: 14px; border-top: 1px solid #D6DBE2;">
           <a href="#" id="gate-sample-link" onclick="return showFreeSample();" style="font-size: 13px; color: #6B7280; text-decoration: none; font-weight: 600;">Or try a free 10-page sample — no card required →</a>
 
@@ -175,6 +179,12 @@ input[type=range]::-moz-range-thumb { width: 20px; height: 20px; border-radius: 
       // Check if already validated in this browser. Both key AND email must be
       // present — we now pass both to every downstream call, so an old install
       // that only has the key needs to re-unlock so we can capture the email.
+      // "Already paid? Unlock here" route. Until Aug 2026 every CTA in the app
+      // and in the sample-delivery email pointed only at the pricing page, so a
+      // buyer who had already paid was walked in a circle with no way to reach
+      // this gate. ?unlock=1 forces it to the front from any of those links.
+      const FORCE_UNLOCK = /(^|[?&])unlock=1(&|$)/.test(location.search) || location.hash === '#unlock';
+
       const savedKey = localStorage.getItem(LS_KEY);
       const savedEmail = localStorage.getItem(LS_EMAIL);
       if (savedKey && savedEmail) {
@@ -186,9 +196,17 @@ input[type=range]::-moz-range-thumb { width: 20px; height: 20px; border-radius: 
       // The email must be present too: every sample call now requires it, so
       // an install from before the email gate has to come back through it
       // rather than hit a wall on its first generation.
-      if (localStorage.getItem('fsr_sample_mode') === 'true' && localStorage.getItem('fsr_sample_email')) {
+      const inSampleMode = localStorage.getItem('fsr_sample_mode') === 'true'
+        && !!localStorage.getItem('fsr_sample_email');
+      if (inSampleMode && !FORCE_UNLOCK) {
         gate.remove();
         return;
+      }
+      // Forced here from inside a sample: show the way back, or a visitor who
+      // clicked "Already paid?" by mistake is stranded on a gate they can't fill in.
+      if (inSampleMode && FORCE_UNLOCK) {
+        const backEl = document.getElementById('gate-back');
+        if (backEl) backEl.style.display = 'block';
       }
 
       // Reveal the email field. The sample can't start without an address —
@@ -305,6 +323,7 @@ input[type=range]::-moz-range-thumb { width: 20px; height: 20px; border-radius: 
         <div id="sample-banner" style="display:none; background:#1A1A2E; color:#fff; text-align:center; font-size:13px; font-weight:600; padding:9px 16px;">
           Free sample — your Story Bible reads your <strong>whole manuscript</strong>; the screenplay covers the first 10 pages.
           <a href="https://tinhousepress.com/fluidscriptr#pricing" target="_blank" style="color:#FF8A8A; text-decoration:underline; margin-left:6px;">Convert the full manuscript →</a>
+          <a href="?unlock=1" style="color:#FF8A8A; text-decoration:underline; margin-left:10px;">Already paid? Unlock here →</a>
         </div>
         <!-- Navbar -->
         <div class="nav-wrap">
@@ -4099,7 +4118,8 @@ function lockedNoticeHTML(label) {
   return `<span style="display:inline-flex;align-items:center;gap:8px;font-size:13px;color:var(--grey);">
       <span style="font-size:14px;">🔒</span>
       <span>${label} is included with a purchased conversion.
-        <a href="https://tinhousepress.com/fluidscriptr#pricing" target="_blank" style="color:var(--red);font-weight:600;text-decoration:none;">See pricing →</a></span>
+        <a href="https://tinhousepress.com/fluidscriptr#pricing" target="_blank" style="color:var(--red);font-weight:600;text-decoration:none;">See pricing →</a>
+        <a href="?unlock=1" style="color:var(--red);font-weight:600;text-decoration:none;margin-left:8px;">Already paid? Unlock →</a></span>
     </span>`;
 }
 
@@ -4478,7 +4498,7 @@ function renderFidelitySampleNotice() {
   const resultsEl = document.getElementById('fidelity-results');
   resultsEl.innerHTML = `
     <div class="fidelity-overall">The change report is part of a purchased conversion.</div>
-    <div style="font-size:13px;color:var(--grey);line-height:1.6;">It reads your full manuscript against the finished screenplay and lists everything cut or reshaped — which needs the whole book and a complete draft, not a 10-page sample. <a href="https://tinhousepress.com/fluidscriptr#pricing" target="_blank" style="color:var(--red);font-weight:600;text-decoration:none;">See pricing →</a></div>
+    <div style="font-size:13px;color:var(--grey);line-height:1.6;">It reads your full manuscript against the finished screenplay and lists everything cut or reshaped — which needs the whole book and a complete draft, not a 10-page sample. <a href="https://tinhousepress.com/fluidscriptr#pricing" target="_blank" style="color:var(--red);font-weight:600;text-decoration:none;">See pricing →</a> <a href="?unlock=1" style="color:var(--red);font-weight:600;text-decoration:none;">Already paid? Unlock →</a></div>
   `;
   resultsEl.style.display = 'block';
 }
