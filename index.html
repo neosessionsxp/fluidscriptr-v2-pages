@@ -2935,7 +2935,34 @@ async function convertToScreenplay(key, bibleText) {
     if (all.length > SAMPLE_WORD_CAP) sourceText = all.slice(0, SAMPLE_WORD_CAP).join(' ');
   }
   const words = sourceText.split(/\s+/);
-  const chunkSize = 2000;
+
+  // Moved ABOVE the chunking: chunk size is now derived from the page target,
+  // so the honest target has to be known first.
+  // A screenplay page comes from roughly 250 words of prose, so a short source
+  // cannot honestly yield a feature — asking for one just makes the model pad.
+  // Idea mode is the exception: its "source" is a synopsis, not prose, so its
+  // length says nothing about how long the finished screenplay should be.
+  const isIdeaMode = !state.rawText;
+  const sourceSupportsPages = Math.max(3, Math.round(words.length / 250));
+  const effectiveTargetPages = isIdeaMode ? targetPages : Math.min(targetPages, sourceSupportsPages);
+
+  // Chunk size is derived from the PAGE TARGET, not fixed at 2,000 words.
+  // A fixed 2,000 split a 137,000-word novel into 69 sections and then asked
+  // each one for 1.4 pages — an awkward ask that no model honours, because
+  // 1.4 pages is not a shaped unit of story. Every section wrote a proper
+  // scene instead and ran ~2.5x long; 69 small overshoots compounded into a
+  // 217-page "feature". Measured on The Ruins of Daemor: asked 95, got 217.
+  //
+  // TARGET_PAGES_PER_CALL is the sweet spot — big enough that the model has
+  // room to write something shaped and therefore no reason to pad, small
+  // enough to stay well inside the output ceiling.
+  //
+  // The 2,000 floor means chunks only ever get BIGGER than the old behaviour,
+  // never smaller: short sources and idea mode keep exactly the chunk counts
+  // they had before, so only the over-chunked long-manuscript case changes.
+  const TARGET_PAGES_PER_CALL = 4;
+  const chunkSizeTarget = Math.ceil(words.length / Math.max(1, Math.ceil(effectiveTargetPages / TARGET_PAGES_PER_CALL)));
+  const chunkSize = Math.max(2000, chunkSizeTarget);
   const chunks = [];
   for (let i = 0; i < words.length; i += chunkSize) chunks.push(words.slice(i, i + chunkSize).join(' '));
 
@@ -2959,9 +2986,7 @@ async function convertToScreenplay(key, bibleText) {
   // cannot honestly yield a feature — asking for one just makes the model pad.
   // Idea mode is the exception: its "source" is a synopsis, not prose, so its
   // length says nothing about how long the finished screenplay should be.
-  const isIdeaMode = !state.rawText;
-  const sourceSupportsPages = Math.max(3, Math.round(words.length / 250));
-  const effectiveTarget = isIdeaMode ? targetPages : Math.min(targetPages, sourceSupportsPages);
+  const effectiveTarget = effectiveTargetPages;
   const pagesPerChunk = Math.min(effectiveTarget / totalChunks, MAX_PAGES_PER_CALL).toFixed(1);
   const formatLabel = FORMAT_TARGETS[state.format]?.label || 'Feature Film';
 
@@ -3015,6 +3040,7 @@ FOUNTAIN FORMAT:
 
   const parts = [];
   let pagesWritten = 0;
+  let scriptLines = 0;
   let stoppedForCredits = false;
   const failedSections = [];
 
@@ -3047,12 +3073,24 @@ FOUNTAIN FORMAT:
     const closeNote = isFinalSection
       ? `\n\nTHIS IS THE FINAL SECTION of the screenplay. Bring the story to its true conclusion: write the closing scene in full, resolve the central conflict and the protagonist's arc, and finish on a line reading FADE OUT. Do not stop mid-scene and do not trail off.`
       : '';
-    const prompt = `${prev}\n\nSOURCE — Section ${i + 1} of ${totalChunks}:\n${chunks[i]}\n\nConvert this section to screenplay format now. Write the full ${pagesPerChunk} pages — do not stop early or summarize. Every scene should be fully written out in Fountain format with scene headings, action lines, and dialogue.${closeNote}`;
+    const prompt = `${prev}\n\nSOURCE — Section ${i + 1} of ${totalChunks}:\n${chunks[i]}\n\nConvert this section to screenplay format now. Write approximately ${pagesPerChunk} pages in Fountain format, with scene headings, action lines and dialogue.\n\nTHAT PAGE COUNT IS A CEILING AS WELL AS A FLOOR. It is the share of the finished screenplay this section is allotted, and ${totalChunks} sections must fit the same budget — so running long here does not add detail, it pushes the finished script past its format. Do not stop early or summarize; equally, do not pad, do not dramatize every beat you are given, and do not exceed roughly ${pagesPerChunk} pages. Select and compress to fit.${closeNote}`;
 
     try {
-      const part = await callAPI(key, systemPrompt, prompt, 4000);
+      // Backstop only. ~190 words a page, ~1.35 tokens a word, doubled so a
+      // well-behaved section never touches it and only a genuine runaway is
+      // stopped. Before this, every section had 4,000 tokens of headroom for
+      // a 1.4-page ask — roughly ten times what it needed.
+      const sectionTokens = Math.max(1500, Math.min(4000, Math.round(parseFloat(pagesPerChunk) * 190 * 1.35 * 2)));
+      const part = await callAPI(key, systemPrompt, prompt, sectionTokens);
       parts.push(part);
-      pagesWritten += Math.round(part.split('\n').filter(l => l.trim()).length / 55);
+      // Count EVERY line, not just the ones with words on them. A screenplay
+      // page is roughly half blank — there is an empty line between each
+      // element — and that whitespace occupies the page. Filtering blanks out
+      // under-reported length by ~40%, so a 217-page script displayed as ~95
+      // and nothing on screen could reveal the overshoot. Round once at the
+      // end rather than per section, so 69 roundings can't compound.
+      scriptLines += part.split('\n').length;
+      pagesWritten = Math.round(scriptLines / 55);
     } catch(err) {
       if (err.code === 'credits_exhausted' || err.code === 'rate_limited') {
         addLog(`⚠️ ${err.message}`);
