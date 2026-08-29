@@ -3616,18 +3616,35 @@ function escapeXML(s) {
   return s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;').replace(/'/g, '&apos;');
 }
 
+// FDX_TYPES maps this app's own screenplay elements onto Final Draft's.
+// This export used to run a private line-by-line classifier that had no
+// Dialogue branch AT ALL — every spoken line fell through to Action, so a
+// finished script opened in Final Draft with all its dialogue flush in the
+// action margin. It also tested for a character cue BEFORE testing for a
+// transition, so "FADE IN:" and the Fountain "===" terminator were typed as
+// character names. The preview, PDF and DOCX never had these faults: they all
+// share parseScreenplay(). Only .fdx forked, and it was the one export an
+// author actually opens to keep writing.
+const FDX_TYPES = {
+  'sp-scene': 'Scene Heading',
+  'sp-action': 'Action',
+  'sp-character': 'Character',
+  'sp-paren': 'Parenthetical',
+  'sp-dialogue': 'Dialogue',
+  'sp-transition': 'Transition',
+  'sp-title': 'Action',
+  'sp-credit': 'Action',
+};
+
 function exportFDX() {
-  const lines = (state.output + sampleCreditText()).split('\n');
+  const els = parseScreenplay(state.output + sampleCreditText());
   let fdx = '';
-  for (const line of lines) {
-    const raw = line.trim();
-    if (!raw) { fdx += '<Paragraph Type="Action"><Text></Text></Paragraph>\n'; continue; }
-    const t = escapeXML(raw);
-    if (/^(INT\.|EXT\.)/.test(raw)) fdx += `<Paragraph Type="Scene Heading"><Text>${t}</Text></Paragraph>\n`;
-    else if (raw === raw.toUpperCase() && raw.length < 40 && !raw.endsWith('.')) fdx += `<Paragraph Type="Character"><Text>${t}</Text></Paragraph>\n`;
-    else if (raw.startsWith('(') && raw.endsWith(')')) fdx += `<Paragraph Type="Parenthetical"><Text>${t}</Text></Paragraph>\n`;
-    else if (/^(FADE|CUT|SMASH|DISSOLVE)/.test(raw)) fdx += `<Paragraph Type="Transition"><Text>${t}</Text></Paragraph>\n`;
-    else fdx += `<Paragraph Type="Action"><Text>${t}</Text></Paragraph>\n`;
+  for (const el of els) {
+    // Final Draft spaces elements by type, so the blank separator paragraphs
+    // the old export emitted are not needed and only double the gaps.
+    if (el.t === 'sp-titlebreak') continue;
+    const type = FDX_TYPES[el.t] || 'Action';
+    fdx += `<Paragraph Type="${type}"><Text>${escapeXML(el.s)}</Text></Paragraph>\n`;
   }
   const xml = `<?xml version="1.0" encoding="UTF-8"?>\n<FinalDraft DocumentType="Script" Template="No" Version="5">\n<Content>\n${fdx}</Content>\n</FinalDraft>`;
   downloadFile(xml, getSlug() + '.fdx', 'application/xml');
