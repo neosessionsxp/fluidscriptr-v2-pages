@@ -1194,6 +1194,16 @@ const SAMPLE_MAX_MANUSCRIPT_WORDS = 150000;
 // never written, and printed as "—". Same class of bug as the conversion
 // truncation in Session 15d — asking for more than one call can deliver — and
 // the richer the manuscript, the more certain it is to bite.
+// A long book's Bible does not fit in 4,096 tokens. The multi-pass path has to
+// rewrite ALL SEVEN sections on every update pass, so a 140k-word novel with a
+// 1,200-word CHARACTERS section ran out of room right after STRUCTURE and the
+// reply stopped mid-Bible — KEY MOTIFS and ENDING never got written, and the
+// parser found no headings for them, so both fields came back empty.
+//
+// Raising this number alone does nothing: ai-proxy-worker.js clamps every
+// request to its own MAX_OUTPUT_TOKENS (4,096), so anything higher is silently
+// cut back server-side. repairBible() is the fix — it re-asks for ONLY the
+// missing sections, so that reply is short and cannot truncate in turn.
 const BIBLE_MAX_TOKENS = 4096;
 
 function isSampleMode() { return localStorage.getItem('fsr_sample_mode') === 'true'; }
@@ -1748,6 +1758,7 @@ async function generateBible() {
         BIBLE_MAX_TOKENS
       );
       parseBible(res);
+      await repairBible(key, text, btn);
     } else {
       // ── Long manuscript: multi-pass Bible ───────────────────────────────
       const segments = [];
@@ -1777,6 +1788,7 @@ async function generateBible() {
       }
 
       parseBible(currentBible);
+      await repairBible(key, segments[segments.length - 1], btn);
     }
     goToStep(2);
   } catch(err) {
@@ -1820,6 +1832,7 @@ THEMES: ${document.getElementById('q6').value}
       `Genre: ${state.genre}\nTitle: "${state.title}"\n\nStory concept provided by the author:\n${ideaText}\n\nBuild a comprehensive Story Bible from this concept. Be specific and creative — fill in details that feel true to the genre and concept, and help the author see their story more clearly.`,
       BIBLE_MAX_TOKENS);
     parseBible(res);
+    await repairBible(key, ideaText, btn);
     goToStep(2);
   } catch(err) {
     alert('Error: ' + (err.message || 'Check your API key.'));
@@ -1968,6 +1981,7 @@ async function generateBibleFromScreenplay() {
       `Screenplay: "${state.title}" by ${state.author}\nGenre: ${state.genre}\n\nSCREENPLAY (extract characters, arcs, tone, themes from the existing script format — scene headings, action lines, dialogue):\n${truncated}`,
       BIBLE_MAX_TOKENS);
     parseBible(res);
+    await repairBible(key, truncated, btn);
     goToStep(2);
   } catch(err) {
     alert('Error: ' + (err.message || 'Check your API key.'));
@@ -2232,7 +2246,7 @@ function bibleHeading(line) {
   return { key, inline: colon === -1 ? '' : stripped.slice(colon + 1).trim() };
 }
 
-function parseBible(raw) {
+function parseBibleFields(raw) {
   const lines = String(raw || '').replace(/\r\n?/g, '\n').split('\n');
 
   // First occurrence wins: a stray "World:" inside the World body can't reopen
@@ -2253,14 +2267,86 @@ function parseBible(raw) {
       .trim();
   });
 
-  state.bible = found;
-  document.getElementById('b-logline').value = state.bible.logline;
+  return found;
+}
+
+// Paint state.bible into the seven textareas.
+function applyBible() {
+  document.getElementById('b-logline').value    = state.bible.logline;
   document.getElementById('b-characters').value = state.bible.characters;
-  document.getElementById('b-world').value = state.bible.world;
-  document.getElementById('b-themes').value = state.bible.themes;
-  document.getElementById('b-structure').value = state.bible.structure;
-  document.getElementById('b-motifs').value = state.bible.motifs;
-  document.getElementById('b-ending').value = state.bible.ending;
+  document.getElementById('b-world').value      = state.bible.world;
+  document.getElementById('b-themes').value     = state.bible.themes;
+  document.getElementById('b-structure').value  = state.bible.structure;
+  document.getElementById('b-motifs').value     = state.bible.motifs;
+  document.getElementById('b-ending').value     = state.bible.ending;
+}
+
+function parseBible(raw) {
+  state.bible = parseBibleFields(raw);
+  applyBible();
+}
+
+// The heading each field is written under, for prompting and for display.
+const BIBLE_FIELD_LABELS = {
+  logline:    'LOGLINE',
+  characters: 'CHARACTERS',
+  world:      'WORLD & TONE',
+  themes:     'THEMES',
+  structure:  'STRUCTURE',
+  motifs:     'KEY MOTIFS',
+  ending:     'ENDING'
+};
+
+// Second chance for any section that came back empty — whether the reply hit the
+// token ceiling, the model skipped a heading, or it decorated one past what
+// bibleHeading() recognises. Asks for ONLY the missing sections, so the reply is
+// small and cannot truncate again, and merges without ever overwriting a section
+// that already has content. Silent by design: a failed repair leaves the Bible
+// exactly as it was, and the author can still type the sections in by hand.
+async function repairBible(key, sourceText, btn) {
+  const keys    = Object.keys(BIBLE_FIELD_LABELS);
+  const missing = keys.filter(k => !String(state.bible[k] || '').trim());
+  if (!missing.length) return;
+
+  const label = btn && btn.innerHTML;
+  if (btn) btn.innerHTML = '<span class="spinner spinner-dark"></span> Completing the bible\u2026';
+
+  // The CLOSING portion of the source is what the missing sections need: ENDING
+  // and KEY MOTIFS are the two that get cut off, and both are decided by how the
+  // book finishes. Sending the tail beats sending the opening.
+  const w    = String(sourceText || '').trim().split(/\s+/);
+  const tail = w.slice(Math.max(0, w.length - 40000)).join(' ');
+
+  const have = keys.filter(k => String(state.bible[k] || '').trim())
+                   .map(k => BIBLE_FIELD_LABELS[k] + '\n' + state.bible[k])
+                   .join('\n\n');
+  const want = missing.map(k => BIBLE_FIELD_LABELS[k]).join(', ');
+
+  try {
+    const res = await callAPI(key,
+      'You are a story analyst finishing a Story Bible that was left incomplete.\n\n' +
+      'Write ONLY these sections: ' + want + '.\n' +
+      'Output each as a bare capitalised heading alone on its line, followed by its content.\n' +
+      'Do not restate any section already provided. Do not add commentary or preamble.\n' +
+      'Be specific: reference actual character names and plot points.',
+      'Title: "' + state.title + '" by ' + state.author + '\nGenre: ' + state.genre +
+      '\n\nSTORY BIBLE SO FAR (already written \u2014 do not repeat):\n' + have +
+      '\n\nSOURCE TEXT (the closing portion of the work):\n' + tail +
+      '\n\nNow write the missing sections: ' + want + '.',
+      BIBLE_MAX_TOKENS);
+
+    const filled = parseBibleFields(res);
+    missing.forEach(k => {
+      const v = String(filled[k] || '').trim();
+      if (v) state.bible[k] = v;
+    });
+    applyBible();
+  } catch (err) {
+    // Leave the Bible as-is; the fields stay editable.
+    console.warn('Bible repair pass failed:', err);
+  }
+
+  if (btn && label) btn.innerHTML = label;
 }
 
 // ── Format / approach ─────────────────────────────────────
