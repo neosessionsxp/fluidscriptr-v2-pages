@@ -4491,10 +4491,66 @@ function buildFidelityConversionContext(cs) {
   return lines.join("\n") + "\n\n";
 }
 
-function buildFidelityStructuralPrompt(manuscriptText, screenplayText, cs) {
+// The worker refuses any single call over MAX_INPUT_CHARS (750,000). A 137,000-word
+// novel is ~790,000 characters on its own, so the fidelity check used to die with
+// "Input too large" before the screenplay was even appended — every book past roughly
+// 120,000 words could never produce a change report at all. Rather than fail, sample
+// evenly across the WHOLE manuscript and tell the model plainly that it is looking at
+// labelled windows with marked gaps, so it never mistakes a gap for a cut.
+const FIDELITY_MAX_INPUT_CHARS = 700000;   // headroom under the worker's 750,000
+const FIDELITY_MIN_MANUSCRIPT_CHARS = 200000;
+const FIDELITY_SAMPLE_WINDOWS = 14;
+
+function sampleManuscriptForFidelity(text, budget) {
+  if (!text || text.length <= budget) return { text: text || '', sampled: false, coverage: 1 };
+
+  const windows = FIDELITY_SAMPLE_WINDOWS;
+  const winLen = Math.floor(budget / windows);
+  const stride = text.length / windows;
+  const parts = [];
+  let taken = 0, prevEnd = 0;
+
+  for (let i = 0; i < windows; i++) {
+    let start = Math.floor(i * stride);
+    // snap forward to a paragraph break so a window never opens mid-sentence
+    const para = text.indexOf('\n\n', start);
+    if (para !== -1 && para - start < 2000) start = para + 2;
+    if (start < prevEnd) start = prevEnd;
+    let end = Math.min(start + winLen, text.length);
+    // snap back to a sentence end so a window never closes mid-sentence
+    const stop = text.lastIndexOf('. ', end);
+    if (stop > start + winLen * 0.8) end = stop + 1;
+    if (end <= start) continue;
+
+    const gapWords = Math.round((start - prevEnd) / 5.8);
+    if (i > 0 && gapWords > 200) parts.push('\n\n[... approximately ' + gapWords.toLocaleString() + ' words of the manuscript are not shown here ...]\n\n');
+    parts.push(text.slice(start, end));
+    taken += end - start;
+    prevEnd = end;
+  }
+  if (prevEnd < text.length) {
+    const gapWords = Math.round((text.length - prevEnd) / 5.8);
+    if (gapWords > 200) parts.push('\n\n[... approximately ' + gapWords.toLocaleString() + ' words of the manuscript are not shown here ...]');
+  }
+  return { text: parts.join(''), sampled: true, coverage: taken / text.length };
+}
+
+function fidelityGroundingRule(sampled, coverage) {
+  if (!sampled) {
+    return 'GROUNDING RULE — the MANUSCRIPT text below is the ENTIRE source that was actually used to generate this screenplay. Do not assume, infer, or reference any manuscript content beyond what is provided here — even if you recognize the book or expect it to continue. If the provided text ends mid-story, treat it as the complete manuscript for this analysis; do NOT invent a summary unit for "the rest of the book" or any chapter/section you were not actually given.';
+  }
+  const pct = Math.round(coverage * 100);
+  return 'GROUNDING RULE — the manuscript is too long to send whole, so the MANUSCRIPT text below is a set of ' + FIDELITY_SAMPLE_WINDOWS + ' excerpts sampled at even intervals across the ENTIRE book, covering roughly ' + pct + '% of it. Passages that are not shown are marked inline with "[... approximately N words of the manuscript are not shown here ...]".\n' +
+    'Three rules follow from that, and they matter:\n' +
+    '1. The WHOLE book was converted into this screenplay. A marked gap is text you were not shown — it is NOT material that was cut, and it is NOT out of scope. Never report a gap, or anything you assume sits inside one, as an omission.\n' +
+    '2. Only cite omissions you can actually verify from excerpt text in front of you. Do not reach for what you remember or expect about this book, and never invent an element to fill a gap.\n' +
+    '3. Because you are seeing roughly ' + pct + '% of the book, the count fields must be scaled up to a whole-book estimate rather than reported as raw sample tallies. Say what the full manuscript most likely contains.';
+}
+
+function buildFidelityStructuralPrompt(manuscriptText, screenplayText, cs, sampled, coverage) {
   const system = `You are a structural analyst comparing a book manuscript to its screenplay adaptation.
 
-${buildFidelityConversionContext(cs)}GROUNDING RULE — the MANUSCRIPT text below is the ENTIRE source that was actually used to generate this screenplay. Do not assume, infer, or reference any manuscript content beyond what is provided here — even if you recognize the book or expect it to continue. If the provided text ends mid-story, treat it as the complete manuscript for this analysis; do NOT invent a summary unit for "the rest of the book" or any chapter/section you were not actually given.
+${buildFidelityConversionContext(cs)}${fidelityGroundingRule(sampled, coverage)}
 
 STEP 0 — SCOPE CHECK. By default, most conversions use the whole submitted source — do not assume format choice alone (e.g. Short Film) means chapters were skipped; the real pipeline compresses the entire submitted manuscript unless told otherwise below. Material that was never in scope must NOT be reported as cut: it was not attempted, so calling it a cut would be wrong.
 
@@ -4521,10 +4577,10 @@ Your entire response must be a single JSON object and nothing else. Do not inclu
   return { system, user };
 }
 
-function buildFidelityDialoguePrompt(manuscriptText, screenplayText, cs) {
+function buildFidelityDialoguePrompt(manuscriptText, screenplayText, cs, sampled, coverage) {
   const system = `You are comparing dialogue between a book manuscript and its screenplay adaptation.
 
-${buildFidelityConversionContext(cs)}Identify dialogue exchanges — where a screenplay line clearly derives from a manuscript line (spoken dialogue, or narration converted into spoken dialogue) — and classify each:
+${buildFidelityConversionContext(cs)}${sampled ? fidelityGroundingRule(sampled, coverage) + '\n\n' : ''}Identify dialogue exchanges — where a screenplay line clearly derives from a manuscript line (spoken dialogue, or narration converted into spoken dialogue) — and classify each:
 - "verbatim": word-for-word or nearly identical to the manuscript source
 - "lightly_edited": same meaning and most wording, minor changes for format or brevity
 - "rewritten": same story beat or intent, substantially reworded for the screen
@@ -4625,11 +4681,17 @@ async function runFidelityCheck() {
     // which the worker silently clamped — so on a long book the JSON was cut off
     // and the whole check died in JSON.parse with "please try again". The
     // response is much smaller now that no structure/mapping arrays are needed.
-    const sp = buildFidelityStructuralPrompt(state.rawText, state.output, cs);
+    // Budget against the ACTUAL screenplay length rather than a guess: the
+    // worker caps system+user, so the manuscript gets whatever is left over.
+    const overhead = state.output.length + 12000;   // screenplay + system prompt + framing
+    const budget = Math.max(FIDELITY_MIN_MANUSCRIPT_CHARS, FIDELITY_MAX_INPUT_CHARS - overhead);
+    const ms = sampleManuscriptForFidelity(state.rawText, budget);
+
+    const sp = buildFidelityStructuralPrompt(ms.text, state.output, cs, ms.sampled, ms.coverage);
     const structuralRaw = await callAPI(key, sp.system, sp.user, BIBLE_MAX_TOKENS, 'fidelity');
     const structuralResult = fidelityExtractJSON(structuralRaw);
 
-    const dp = buildFidelityDialoguePrompt(state.rawText, state.output, cs);
+    const dp = buildFidelityDialoguePrompt(ms.text, state.output, cs, ms.sampled, ms.coverage);
     const dialogueRaw = await callAPI(key, dp.system, dp.user, BIBLE_MAX_TOKENS, 'fidelity');
     const dialogueResult = fidelityExtractJSON(dialogueRaw);
 
