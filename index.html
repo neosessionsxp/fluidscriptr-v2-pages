@@ -4611,15 +4611,19 @@ STEP 0 — SCOPE CHECK. By default, most conversions use the whole submitted sou
 
 EXCEPTION — if the CONVERSION CONTEXT above states this was a PARTIAL CONVERSION with a specific percentage, that percentage is authoritative, VERIFIED information about what was actually generated — it is not a textual inference and outranks the default rule above. In that case, treat manuscript material beyond the stated boundary as out of scope and leave it out of your list entirely, even without additional evidence in the screenplay text itself, since that remainder was never attempted, not creatively excluded. Only fall back to inferring scope from the screenplay text itself when no PARTIAL CONVERSION note is present above.
 
-Then identify the manuscript elements that do NOT appear in the screenplay at all: subplots, character beats, thematic threads, minor characters, world/setting details. For each, classify narrative importance IN LIGHT OF THE CONVERSION CONTEXT ABOVE:
+Then identify the manuscript elements that do NOT appear in the screenplay at all: subplots, character beats, thematic threads, minor characters, world/setting details.
+
+ABSENCE TEST — apply this to every candidate BEFORE you list it. Search the screenplay for the element. If you find it there in ANY form — staged in full, compressed, merged into another scene, moved, or reported in dialogue — then it was NOT omitted, and it does not belong in "omissions" at all. Do not list it in order to note that it survived. Do not list it with a reason explaining that it is present and was correctly retained. An entry in "omissions" is a claim that the reader will not find this in the screenplay, so a retained element listed there is simply a false statement, and it is worse than a missing entry: it sends the author hunting for a loss that never happened, and a "load_bearing" tag on something that was kept will alarm them badly. When in doubt about whether an element made it in, leave it out.
+
+For each element that genuinely IS absent, classify narrative importance IN LIGHT OF THE CONVERSION CONTEXT ABOVE:
    - "load_bearing": removing it changes the story's meaning or a character's motivation, even accounting for the chosen format and approach
    - "moderate": noticeable but not structurally critical
    - "cosmetic": detail-level, low impact if cut
-   Give a one-sentence reason for each classification.
+   Give a one-sentence reason for each classification. The reason must explain what the STORY LOSES by this element being absent — never whether the element appears in the screenplay, which the absence test above has already settled.
 
 IMPORTANT for full-length manuscripts — keep the response compact:
    A long manuscript will naturally have far more omissions than can be usefully listed. In "omissions", list at most the 20 MOST SIGNIFICANT ones (prioritize load_bearing and moderate; include only a few cosmetic examples if there's room) — do NOT try to catalog every omission exhaustively. Only draw these from WITHIN the in-scope material (per SCOPE CHECK above).
-   Separately, in "omission_counts", give your best estimate of the TOTAL count in each classification across the WHOLE in-scope portion (not just the sampled list above) — this is what the headline figure is taken from, so it must reflect the full in-scope material even though the list itself is a sample.
+   Separately, in "omission_counts", give your best estimate of the TOTAL count in each classification across the WHOLE in-scope portion (not just the sampled list above) — this is what the headline figure is taken from, so it must reflect the full in-scope material even though the list itself is a sample. Each count must therefore be GREATER THAN OR EQUAL TO the number of items you listed in that classification: the list is a sample of the total, so a total smaller than its own sample is a contradiction the reader can see for themselves.
 
 Keep every "description" and "reason" to one short sentence, under 20 words. This keeps the response a manageable size for longer manuscripts.
 
@@ -4786,9 +4790,23 @@ function renderFidelitySampleNotice() {
 // the two comparison passes, not the arithmetic. What an author can actually act
 // on is the concrete list: this got cut, this line became that line.
 function renderFidelityResults(structuralResult, dialogueResult) {
-  const counts = structuralResult.omission_counts || {};
-  const loadBearing = counts.load_bearing || 0;
-  const total = loadBearing + (counts.moderate || 0) + (counts.cosmetic || 0);
+  // The headline is taken from omission_counts while the list below comes from
+  // omissions[], and the model has reported a total smaller than its own list —
+  // a report saying "2 load-bearing" above four items tagged LOAD BEARING. The
+  // prompt now forbids it; this makes it impossible on screen regardless, by
+  // treating each count as at least the number of items actually shown.
+  const reported = structuralResult.omission_counts || {};
+  const listed = {};
+  for (const o of (structuralResult.omissions || [])) {
+    const c = String(o && o.classification || '');
+    if (c) listed[c] = (listed[c] || 0) + 1;
+  }
+  const counts = {};
+  for (const c of ['load_bearing', 'moderate', 'cosmetic']) {
+    counts[c] = Math.max(parseInt(reported[c]) || 0, listed[c] || 0);
+  }
+  const loadBearing = counts.load_bearing;
+  const total = loadBearing + counts.moderate + counts.cosmetic;
 
   const headline = total === 0
     ? 'No significant material was dropped in the adaptation.'
