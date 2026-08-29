@@ -3081,7 +3081,12 @@ FOUNTAIN FORMAT:
       // stopped. Before this, every section had 4,000 tokens of headroom for
       // a 1.4-page ask — roughly ten times what it needed.
       const sectionTokens = Math.max(1500, Math.min(4000, Math.round(parseFloat(pagesPerChunk) * 190 * 1.35 * 2)));
-      const part = await callAPI(key, systemPrompt, prompt, sectionTokens);
+      // purpose:'screenplay' is what lets the worker meter these calls against
+      // the cumulative 10-page cap. The Bible pass stays 'generate' and stays
+      // unmetered, so it still reads the whole manuscript. Do not "tidy" this
+      // back to the default — without it the 10-page limit is browser-only,
+      // and anything calling the endpoint directly can convert a whole novel.
+      const part = await callAPI(key, systemPrompt, prompt, sectionTokens, 'screenplay');
       parts.push(part);
       // Count EVERY line, not just the ones with words on them. A screenplay
       // page is roughly half blank — there is an empty line between each
