@@ -1788,6 +1788,7 @@ async function generateBible() {
       }
 
       parseBible(currentBible);
+      await rebuildStructureAndEnding(key, words, btn);
       await repairBible(key, segments[segments.length - 1], btn);
     }
     goToStep(2);
@@ -2022,6 +2023,72 @@ What happens and what it means thematically.
 Be specific and insightful. Reference actual names and plot points.`;
 }
 
+// Long-manuscript multi-pass leaves one section systematically wrong: STRUCTURE.
+//
+// Every other field accumulates — characters, themes, world, motifs all get
+// bigger as more of the book is read, so "preserve and extend" is right for
+// them. Act structure does not work that way. The three acts of the first 80k
+// words are not the first part of the three acts of the whole book; they are a
+// different shape entirely. Pass 1 writes a complete-looking Act 1/2/3 covering
+// the opening, and the update pass — which is told to preserve six times over —
+// keeps it. The finished Bible then describes the front of the book as though
+// it were the whole story, which is exactly what a reader notices first.
+//
+// The prompt changes above stop the model defending the old boundaries. This
+// pass is what actually rebuilds them: one focused call whose ONLY job is the
+// act structure and the ending. Small output, so it cannot truncate, and no
+// competition from six other sections.
+//
+// Context is opening + closing rather than the accumulated Bible alone: Act 1
+// and Act 3 get grounded in real manuscript text, and the Bible carries the
+// middle. Overwriting is intended here (unlike repairBible) — this runs
+// immediately after generation, before the author has typed anything.
+async function rebuildStructureAndEnding(key, allWords, btn) {
+  const HEAD = 15000, TAIL = 25000;
+  if (!allWords || allWords.length < HEAD + TAIL) return; // short enough to be right already
+
+  const label = btn && btn.innerHTML;
+  if (btn) btn.innerHTML = '<span class="spinner spinner-dark"></span> Mapping the full arc\u2026';
+
+  const opening = allWords.slice(0, HEAD).join(' ');
+  const closing = allWords.slice(allWords.length - TAIL).join(' ');
+  const carry   = ['logline', 'characters', 'world', 'themes']
+    .map(k => BIBLE_FIELD_LABELS[k] + '\n' + (state.bible[k] || ''))
+    .join('\n\n');
+
+  try {
+    const res = await callAPI(key,
+      'You are a story analyst. You are given the OPENING and the CLOSING of a manuscript ' +
+      'verbatim, plus a Story Bible covering the whole of it.\n\n' +
+      'Write ONLY these two sections:\n\n' +
+      'STRUCTURE\nAct 1: [summary]\nAct 2: [summary]\nAct 3: [summary]\n\n' +
+      'ENDING\nWhat happens and what it means thematically.\n\n' +
+      'The acts must span the ENTIRE book. Act 1 ends where the story commits to its ' +
+      'central conflict; Act 3 begins at the final turn and runs to the last page shown ' +
+      'in the closing text. A structure that stops short of the real ending is wrong.\n' +
+      'The ending is the one in the closing text — not a guess, and not anything carried ' +
+      'over from an earlier draft of the Bible.\n' +
+      'No commentary, no preamble, no other headings.',
+      'Title: "' + state.title + '" by ' + state.author + '\nGenre: ' + state.genre +
+      '\nFull length: ' + allWords.length.toLocaleString() + ' words\n\n' +
+      'STORY BIBLE (built from the complete manuscript):\n' + carry +
+      '\n\n===== OPENING OF THE MANUSCRIPT (first ' + HEAD.toLocaleString() + ' words) =====\n' + opening +
+      '\n\n===== CLOSING OF THE MANUSCRIPT (last ' + TAIL.toLocaleString() + ' words) =====\n' + closing +
+      '\n\nNow write STRUCTURE and ENDING for the complete book.',
+      BIBLE_MAX_TOKENS);
+
+    const got = parseBibleFields(res);
+    if (String(got.structure || '').trim()) state.bible.structure = got.structure.trim();
+    if (String(got.ending    || '').trim()) state.bible.ending    = got.ending.trim();
+    applyBible();
+  } catch (err) {
+    // Keep the incremental version rather than losing the section outright.
+    console.warn('Structure rebuild failed:', err);
+  }
+
+  if (btn && label) btn.innerHTML = label;
+}
+
 // Long-manuscript multi-pass: update the Bible with new manuscript segments
 // while preserving what was already captured from earlier sections.
 function getBibleUpdatePrompt() {
@@ -2047,15 +2114,22 @@ STRUCTURE
 Act 1: [summary]
 Act 2: [summary]
 Act 3: [summary]
-Update the act structure so it reflects the manuscript-so-far, not just the new segment.
+PROVISIONAL. Unlike the sections above, act structure is NOT cumulative — it cannot be
+extended, only re-derived. The acts you were given describe a fraction of the book, so
+the earlier "Act 3" is almost certainly the middle of the real story. Re-derive all three
+acts across everything read so far. Do not preserve the previous act boundaries.
 
 KEY MOTIFS
 Recurring images, objects, phrases. Preserve existing motifs; add new ones.
 
 ENDING
-What happens and what it means thematically. Only update if the new segment reveals more of the ending.
+PROVISIONAL. Any ending in the Bible below was guessed from an incomplete book and is
+more likely wrong than right. Replace it with what the manuscript-so-far actually shows.
+Never keep an earlier ending merely because it is already written.
 
-Be specific and insightful. Reference actual names and plot points. Do not lose anything essential from the existing Bible.`;
+Be specific and insightful. Reference actual names and plot points. Do not lose anything
+essential from the existing Bible — except the act structure and the ending, which you are
+required to re-derive rather than carry forward.`;
 }
 
 // `purpose` lets the worker refuse specific features on the free path
