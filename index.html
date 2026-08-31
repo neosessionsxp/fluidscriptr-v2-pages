@@ -54,6 +54,7 @@ input[type=range]::-moz-range-thumb { width: 20px; height: 20px; border-radius: 
  .sp-title { text-align: center; max-width: 60ch; margin: 0 0 0.9em; }
  .sp-title:first-child { text-transform: uppercase; font-weight: 700; margin-top: 2em; }
  .sp-titlebreak { border-top: 1px solid var(--border); margin: 2em 0; height: 0; }
+ .sp-episode, .sp-episode-end { text-align: center; font-weight: 700; text-transform: uppercase; letter-spacing: 0.12em; margin: 2.4em 0 2em; max-width: 60ch; }
  .sp-credit { margin: 2.5em 0 0; padding-top: 1em; border-top: 1px solid var(--border); font-size: 11px; color: var(--grey); text-align: center; max-width: 60ch; letter-spacing: 0.03em; }
  @media (max-width: 768px) { .results-cols { grid-template-columns: 1fr; } } /* ── Divider ── */.divider { border: none; border-top: 1px solid var(--border); margin: 2rem 0; } /* ── Responsive ── */@media (max-width:640px){ .grid-2, .format-grid, .approach-grid, .path-grid, .output-grid, .export-grid {  grid-template-columns: 1fr; }  .steps-nav .step-label {  display: none; }  .screenplay-out, .manuscript-out {  padding: 1.5rem; }  .nav-wrap {  padding: 8px 8px 0; } } /* ── Resume banner ── */#resume-banner { display:none; align-items:center; gap:14px; background:var(--navy); color:white; border-radius:var(--r-lg); padding:1rem 1.5rem; margin-bottom:1.5rem; box-shadow:var(--sh-md); flex-wrap:wrap; } #resume-banner .rb-icon { font-size:1.5rem; flex-shrink:0; } #resume-banner .rb-text { flex:1; min-width:160px; } #resume-banner .rb-title { font-size:14px; font-weight:700; margin-bottom:2px; } #resume-banner .rb-sub { font-size:12px; opacity:0.7; } #resume-banner .rb-actions { display:flex; gap:8px; flex-shrink:0; } #resume-banner .rb-btn { background:var(--red); color:white; border:none; border-radius:var(--r-full); padding:8px 18px; font-size:12px; font-weight:700; letter-spacing:0.05em; text-transform:uppercase; cursor:pointer; font-family:'Inter',sans-serif; } #resume-banner .rb-dismiss { background:transparent; color:rgba(255,255,255,0.6); border:1px solid rgba(255,255,255,0.2); border-radius:var(--r-full); padding:8px 14px; font-size:12px; font-weight:600; cursor:pointer; font-family:'Inter',sans-serif; letter-spacing:0.04em; text-transform:uppercase; }</style>
         <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Open+Sans&display=swap">
@@ -2968,6 +2969,20 @@ async function convertToScreenplay(key, bibleText) {
 
   const totalChunks = chunks.length;
 
+  // ── Episode plan (Limited Series only) ────────────────────────────────
+  // "8 episodes" used to reach the arithmetic and nothing else: it set the
+  // page target and the number of sections, and was never told to the part
+  // that writes. The Ruins of Daemor came back on 2026-09-01 as one unbroken
+  // 222-page screenplay with the word "episode" nowhere in it.
+  //
+  // Boundaries are computed here and the cards are INSERTED at assembly —
+  // never asked for. A marker the model is asked to emit is a marker it can
+  // forget, and one missing card silently merges two episodes.
+  const episodeCount = (state.format === 'limited') ? Math.max(1, state.episodes || 4) : 1;
+  const episodeOfChunk = i => episodeCount === 1
+    ? 1
+    : Math.min(episodeCount, Math.floor((i * episodeCount) / totalChunks) + 1);
+
   // How much a single call can actually deliver. One request is capped at
   // MAX_OUTPUT_TOKENS (4,096) ≈ 3,000 words ≈ 18 screenplay pages; 12 leaves
   // headroom so a scene isn't guillotined at the end.
@@ -3070,17 +3085,50 @@ FOUNTAIN FORMAT:
     // when every section succeeded. Tell the last section to land the ending.
     // Sample mode is exempt: stopping mid-story IS the sample.
     const isFinalSection = (i === totalChunks - 1) && !isSampleMode();
+
+    // Where this section sits in the series. An episode has to open on its own
+    // terms and end on a turn, or eight episodes read as one long film cut into
+    // eight equal lengths — which is exactly what the page budget alone gives.
+    const episodeNo      = episodeOfChunk(i);
+    const isEpisodeStart = episodeCount > 1 && (i === 0 || episodeOfChunk(i - 1) !== episodeNo);
+    const isEpisodeEnd   = episodeCount > 1 && (i === totalChunks - 1 || episodeOfChunk(i + 1) !== episodeNo);
+    const episodeNote = episodeCount === 1 ? '' :
+      `\n\nSERIES POSITION: this section is part of EPISODE ${episodeNo} of ${episodeCount}.`
+      + (isEpisodeStart ? ` It OPENS that episode — begin on a scene that stands as its own way in and re-establishes where we are. Do not write a recap.` : '')
+      + (isEpisodeEnd && !isFinalSection ? ` It CLOSES that episode — finish on a deliberate act-out: a turn, reveal or reversal that leaves a question the next episode has to answer. Do not resolve the series here.` : '')
+      + ` Do not write an episode title card, an episode number, or an "END OF EPISODE" line — those are added automatically and yours would duplicate them.`;
     const closeNote = isFinalSection
       ? `\n\nTHIS IS THE FINAL SECTION of the screenplay. Bring the story to its true conclusion: write the closing scene in full, resolve the central conflict and the protagonist's arc, and finish on a line reading FADE OUT. Do not stop mid-scene and do not trail off.`
       : '';
-    const prompt = `${prev}\n\nSOURCE — Section ${i + 1} of ${totalChunks}:\n${chunks[i]}\n\nConvert this section to screenplay format now. Write approximately ${pagesPerChunk} pages in Fountain format, with scene headings, action lines and dialogue.\n\nTHAT PAGE COUNT IS A CEILING AS WELL AS A FLOOR. It is the share of the finished screenplay this section is allotted, and ${totalChunks} sections must fit the same budget — so running long here does not add detail, it pushes the finished script past its format. Do not stop early or summarize; equally, do not pad, do not dramatize every beat you are given, and do not exceed roughly ${pagesPerChunk} pages. Select and compress to fit.${closeNote}`;
+    // LENGTH RULE — deliberately different for series and everything else.
+    //
+    // The ceiling wording below was written to stop a 2.3x feature overshoot and
+    // it worked: the delivered Daemor feature asked 95 and came in at 118. That
+    // path is proven, has shipped to a customer, and is left exactly as it was.
+    //
+    // The series path overcorrected. Three anti-length clauses ("do not pad",
+    // "do not dramatize every beat", "do not exceed") pushed against one weak
+    // "do not stop early", and the 8-episode run asked 5.8 pages a section,
+    // averaged ~3.2, and finished at ~222 pages against a 400-page target.
+    // A band gives the floor the same force as the ceiling — short becomes as
+    // explicitly wrong as long — and is applied ONLY where the shortfall was
+    // measured. Do not widen this to features without a run to justify it.
+    const loPages = (parseFloat(pagesPerChunk) * 0.9).toFixed(1);
+    const hiPages = (parseFloat(pagesPerChunk) * 1.15).toFixed(1);
+    const budgetPages = episodeCount > 1 ? hiPages : pagesPerChunk;
+
+    const lengthRule = episodeCount > 1
+      ? `Write between ${loPages} and ${hiPages} pages in Fountain format, with scene headings, action lines and dialogue.\n\nTHAT RANGE IS A FLOOR AS WELL AS A CEILING. It is the share of the finished series this section is allotted, and ${totalChunks} sections must fit the same budget — so running long pushes the finished scripts past their format, and running short leaves them under-length, with no later section able to make up the difference. Coming in under ${loPages} pages is as wrong as going over ${hiPages}. Do not summarize, do not skip material, and do not pad. Dramatize what this section gives you at the scale that fills the range.`
+      : `Write approximately ${pagesPerChunk} pages in Fountain format, with scene headings, action lines and dialogue.\n\nTHAT PAGE COUNT IS A CEILING AS WELL AS A FLOOR. It is the share of the finished screenplay this section is allotted, and ${totalChunks} sections must fit the same budget — so running long here does not add detail, it pushes the finished script past its format. Do not stop early or summarize; equally, do not pad, do not dramatize every beat you are given, and do not exceed roughly ${pagesPerChunk} pages. Select and compress to fit.`;
+
+    const prompt = `${prev}\n\nSOURCE — Section ${i + 1} of ${totalChunks}:\n${chunks[i]}\n\nConvert this section to screenplay format now. ${lengthRule}${episodeNote}${closeNote}`;
 
     try {
       // Backstop only. ~190 words a page, ~1.35 tokens a word, doubled so a
       // well-behaved section never touches it and only a genuine runaway is
       // stopped. Before this, every section had 4,000 tokens of headroom for
       // a 1.4-page ask — roughly ten times what it needed.
-      const sectionTokens = Math.max(1500, Math.min(4000, Math.round(parseFloat(pagesPerChunk) * 190 * 1.35 * 2)));
+      const sectionTokens = Math.max(1500, Math.min(4000, Math.round(parseFloat(budgetPages) * 190 * 1.35 * 2)));
       // purpose:'screenplay' is what lets the worker meter these calls against
       // the cumulative 10-page cap. The Bible pass stays 'generate' and stays
       // unmetered, so it still reads the whole manuscript. Do not "tidy" this
@@ -3121,7 +3169,23 @@ FOUNTAIN FORMAT:
   // a tool credit on the title page is not something a buyer should have to
   // explain away.
   const titlePage = `Title: ${state.title}\nBy ${state.author || 'Unknown'}\nFormat: ${formatLabel}\n\n===\n\n`;
-  let assembled = (state._partialOutput ? state._partialOutput + '\n\n' : titlePage) + parts.join('\n\n');
+
+  // Cards are placed by chunk index, not by position in `parts`, so a resumed
+  // run picks up mid-episode without re-announcing an episode already open and
+  // without closing one that has not finished.
+  const joinWithEpisodes = (list) => {
+    if (episodeCount <= 1) return list.join('\n\n');
+    const out = [];
+    for (let p = 0; p < list.length; p++) {
+      const c  = startChunk + p;
+      const ep = episodeOfChunk(c);
+      if (c === 0 || episodeOfChunk(c - 1) !== ep) out.push(`EPISODE ${episodeWord(ep)}`);
+      out.push(list[p]);
+      if (c === totalChunks - 1 || episodeOfChunk(c + 1) !== ep) out.push(`END OF EPISODE ${episodeWord(ep)}`);
+    }
+    return out.join('\n\n');
+  };
+  let assembled = (state._partialOutput ? state._partialOutput + '\n\n' : titlePage) + joinWithEpisodes(parts);
 
   // Belt and braces for the ending. The final-section instruction above usually
   // lands FADE OUT, but the model can still finish on a stray action line. Only
@@ -3639,6 +3703,8 @@ const FDX_TYPES = {
   'sp-transition': 'Transition',
   'sp-title': 'Action',
   'sp-credit': 'Action',
+  'sp-episode': 'Action',
+  'sp-episode-end': 'Action',
 };
 
 function exportFDX() {
@@ -3661,6 +3727,11 @@ function exportFDX() {
 // element so the preview and the PDF can indent it the way Final Draft would,
 // instead of dumping everything flush left.
 const SP_SCENE_RE  = /^(INT\.?|EXT\.?|EST\.?|INT\.?\/EXT\.?|I\/E\.?)[\s.]/i;
+// Episode title cards and act-outs. These are INSERTED by the assembler, never
+// written by the model, so the pattern only has to match what we emit.
+const SP_EPISODE_RE = /^(END OF )?EPISODE (ONE|TWO|THREE|FOUR|FIVE|SIX|SEVEN|EIGHT|NINE|TEN|ELEVEN|TWELVE)$/;
+const EPISODE_WORDS = ['','ONE','TWO','THREE','FOUR','FIVE','SIX','SEVEN','EIGHT','NINE','TEN','ELEVEN','TWELVE'];
+function episodeWord(n) { return EPISODE_WORDS[n] || String(n); }
 const SP_TRANS_RE  = /^(FADE IN|FADE OUT|FADE TO|CUT TO|SMASH CUT|HARD CUT|MATCH CUT|JUMP CUT|DISSOLVE TO|WIPE TO|IRIS OUT|THE END)\b/i;
 // NOTE: standard format puts the opening FADE IN flush LEFT while every other
 // transition goes flush right. That was implemented in 15j and reverted the same
@@ -3700,7 +3771,10 @@ function splitTitlePage(lines) {
   let bodyAt = -1;
   for (let i = 0; i < lines.length; i++) {
     const l = lines[i].trim();
-    if (SP_SCENE_RE.test(l) || SP_BODY_START_RE.test(l)) { bodyAt = i; break; }
+    // An episode card is body, not title-page copy. Without it here the first
+    // "EPISODE ONE" sits before the opening slugline, gets swallowed into the
+    // title block and is printed as part of the title — caught in test, not live.
+    if (SP_SCENE_RE.test(l) || SP_BODY_START_RE.test(l) || SP_EPISODE_RE.test(l)) { bodyAt = i; break; }
   }
   // No slugline found at all — treat the whole thing as body rather than
   // silently swallowing the script into a title page.
@@ -3749,7 +3823,8 @@ function parseScreenplay(text) {
     // dialogue by a blank line, so don't skip past blanks looking for one.
     const next = (lines[i + 1] || '').trim();
 
-    if (SP_SCENE_RE.test(raw))            { out.push({ t: 'sp-scene', s: raw });      inDialogue = false; }
+    if (SP_EPISODE_RE.test(raw))          { out.push({ t: raw.startsWith('END OF ') ? 'sp-episode-end' : 'sp-episode', s: raw }); inDialogue = false; }
+    else if (SP_SCENE_RE.test(raw))       { out.push({ t: 'sp-scene', s: raw });      inDialogue = false; }
     else if (SP_TRANS_RE.test(raw) || /^[A-Z0-9\s]+TO:$/.test(raw))
                                           { out.push({ t: 'sp-transition', s: raw }); inDialogue = false; }
     else if (raw.startsWith('(') && raw.endsWith(')') && inDialogue)
@@ -3939,6 +4014,12 @@ function exportScreenplayPDF() {
     .sp-title{text-align:center;max-width:60ch;margin:0 0 1em -0.25in;}
     .sp-title:first-child{text-transform:uppercase;font-weight:bold;margin-top:3in;}
     .sp-titlebreak{page-break-after:always;break-after:page;height:0;margin:0;}
+    .sp-episode,.sp-episode-end{text-align:center;font-weight:bold;
+      text-transform:uppercase;letter-spacing:0.12em;margin:0 0 2em -0.25in;
+      max-width:60ch;}
+    .sp-episode{break-before:page;page-break-before:always;}
+    .sp-episode-end{margin-top:3em;break-before:auto;page-break-before:auto;}
+    .sp-page > .sp-episode:first-of-type{break-before:auto;page-break-before:auto;}
     .sp-credit{margin:3em 0 0;font-size:9pt;color:#666;text-align:center;
       max-width:60ch;page-break-before:avoid;break-before:avoid;}
     @media print{html,body{margin:0;}}
@@ -4047,10 +4128,14 @@ const SP_DOCX = {
   'sp-paren':      { left: 16 * CH, right: 22 * CH, after: 0, keepNext: true },
   'sp-dialogue':   { left: 10 * CH, right: 15 * CH, after: 240 },
   'sp-transition': { caps: true, align: 'right', after: 240 },
-  'sp-credit':     { align: 'center', before: 720, size: 18, shiftForMargin: true }
+  'sp-credit':     { align: 'center', before: 720, size: 18, shiftForMargin: true },
+  'sp-episode':    { align: 'center', bold: true, caps: true, before: 480, after: 480, shiftForMargin: true, breakBefore: true },
+  // No page break: an act-out belongs at the foot of the episode it ends, not
+  // alone on a sheet of its own.
+  'sp-episode-end': { align: 'center', bold: true, caps: true, before: 720, after: 240, shiftForMargin: true }
 };
 
-function spDocxParagraph(el, isFirstTitle) {
+function spDocxParagraph(el, isFirstTitle, suppressBreak) {
   if (el.t === 'sp-titlebreak') {
     return '<w:p><w:r><w:br w:type="page"/></w:r></w:p>';
   }
@@ -4067,6 +4152,9 @@ function spDocxParagraph(el, isFirstTitle) {
   if (right) ind.push(`w:right="${right}"`);
 
   const pPr = '<w:pPr>' +
+    // The first episode card follows the title page, which already ends in a
+    // page break — breaking again there would leave a blank sheet.
+    ((st.breakBefore && !suppressBreak) ? '<w:pageBreakBefore/>' : '') +
     (st.align ? `<w:jc w:val="${st.align}"/>` : '') +
     (ind.length ? `<w:ind ${ind.join(' ')}/>` : '') +
     `<w:spacing w:before="${before}" w:after="${st.after ?? 240}" w:line="240" w:lineRule="auto"/>` +
@@ -4086,11 +4174,13 @@ function buildScreenplayDocx() {
   const els = parseScreenplay(state.output);
   if (isSampleMode()) els.push({ t: 'sp-credit', s: SAMPLE_CREDIT });
 
-  let seenTitle = false;
+  let seenTitle = false, seenEpisode = false;
   const paras = els.map(el => {
     const first = el.t === 'sp-title' && !seenTitle;
     if (el.t === 'sp-title') seenTitle = true;
-    return spDocxParagraph(el, first);
+    const firstEpisode = el.t === 'sp-episode' && !seenEpisode;
+    if (el.t === 'sp-episode') seenEpisode = true;
+    return spDocxParagraph(el, first, firstEpisode);
   }).join('');
 
   const W = 'xmlns:w="http://schemas.openxmlformats.org/wordprocessingml/2006/main"';
