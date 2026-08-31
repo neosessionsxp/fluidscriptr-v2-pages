@@ -1612,6 +1612,20 @@ function handleFileSelect(e) {
   if (file) extractFile(file);
 }
 
+// Capitalising every word turned "The-Ruins-of-Daemor" into "The Ruins Of
+// Daemor" on a title page that goes to a producer. Small words stay lowercase
+// unless they open or close the title.
+const TITLE_MINOR = new Set(['a','an','and','as','at','but','by','for','from',
+  'in','nor','of','on','or','the','to','v','via','vs','with']);
+function titleCaseFromFilename(name) {
+  const words = name.replace(/\.[^.]+$/, '').replace(/[-_]+/g, ' ').trim().split(/\s+/);
+  return words.map((w, i) => {
+    const lower = w.toLowerCase();
+    if (i > 0 && i < words.length - 1 && TITLE_MINOR.has(lower)) return lower;
+    return lower.charAt(0).toUpperCase() + lower.slice(1);
+  }).join(' ');
+}
+
 async function extractFile(file) {
   const prog = document.getElementById('upload-progress');
   const progText = document.getElementById('upload-progress-text');
@@ -1705,7 +1719,7 @@ async function extractFile(file) {
       state.sampleTruncated = words.length > SAMPLE_WORD_CAP; // screenplay will stop at 10 pages
     }
 
-    const autoTitle = file.name.replace(/\.[^.]+$/, '').replace(/[-_]/g, ' ').replace(/\b\w/g, c => c.toUpperCase());
+    const autoTitle = titleCaseFromFilename(file.name);
     const titleEl = document.getElementById('book-title');
     if (!titleEl.value) titleEl.value = autoTitle;
 
@@ -1942,7 +1956,7 @@ async function extractScreenplayFile(file) {
     }
     state.isScreenplayInput = true;
 
-    const autoTitle = file.name.replace(/\.[^.]+$/, '').replace(/[-_]/g, ' ').replace(/\b\w/g, c => c.toUpperCase());
+    const autoTitle = titleCaseFromFilename(file.name);
     const titleEl = document.getElementById('sp-title');
     if (!titleEl.value) titleEl.value = autoTitle;
 
@@ -3707,6 +3721,11 @@ const FDX_TYPES = {
   'sp-episode-end': 'Action',
 };
 
+const FDX_ATTRS = {
+  'sp-episode':     ' Alignment="Center" StartsNewPage="Yes"',
+  'sp-episode-end': ' Alignment="Center"',
+};
+
 function exportFDX() {
   const els = parseScreenplay(state.output + sampleCreditText());
   let fdx = '';
@@ -3715,7 +3734,11 @@ function exportFDX() {
     // the old export emitted are not needed and only double the gaps.
     if (el.t === 'sp-titlebreak') continue;
     const type = FDX_TYPES[el.t] || 'Action';
-    fdx += `<Paragraph Type="${type}"><Text>${escapeXML(el.s)}</Text></Paragraph>\n`;
+    // Final Draft has no episode element, so the cards would otherwise land as
+    // plain Action — body text stacked mid-page, with nothing to read as a
+    // card. Centre both, and open each episode on its own page. The closer
+    // deliberately does NOT break: it sits at the foot of the episode it ends.
+    fdx += `<Paragraph Type="${type}"${FDX_ATTRS[el.t] || ''}><Text>${escapeXML(el.s)}</Text></Paragraph>\n`;
   }
   const xml = `<?xml version="1.0" encoding="UTF-8"?>\n<FinalDraft DocumentType="Script" Template="No" Version="5">\n<Content>\n${fdx}</Content>\n</FinalDraft>`;
   downloadFile(xml, getSlug() + '.fdx', 'application/xml');
