@@ -915,7 +915,7 @@ input[type=range]::-moz-range-thumb { width: 20px; height: 20px; border-radius: 
             <div class="panel" id="panel-conv">
                 <div class="eyebrow">Converting…</div>
                 <h1 class="panel-title">Your story is being written.</h1>
-                <p class="panel-sub">This may take a few minutes. You can cancel at any time — this will still count as one conversion.</p>
+                <p class="panel-sub">This may take a few minutes. <strong>Please keep this tab open</strong> — closing or reloading will interrupt it. You can cancel at any time, though this will still count as one conversion.</p>
                 <div class="progress-card">
                     <div class="prog-header">
                         <span class="prog-label" id="progress-label">Initializing…</span>
@@ -5257,6 +5257,112 @@ function exportPitchPDF() {
   w.document.close();
   setTimeout(() => w.print(), 600);
 }
+
+// ══ IN-PROGRESS FEEDBACK & ACCIDENTAL-CLOSE PROTECTION ════════════════════
+// Two real failures from 2026-09-07, both with paying customers:
+//
+// 1. A long step showed nothing but a spinner inside a button. On a full
+//    manuscript that is minutes of apparent silence, so people concluded the
+//    tool had frozen, clicked again, or walked away mid-run.
+// 2. Nothing stopped a customer closing or refreshing the tab. A conversion is
+//    charged the moment it starts, so a stray reload cost real money and real
+//    output, with no warning and no way back.
+//
+// Deliberately additive: it reads the status text the app already writes to its
+// own buttons and progress panel rather than threading a callback through every
+// AI call site. No existing flow changes, and no status update can be missed.
+// Polls rather than observing — a handful of elements twice a second is free,
+// and it cannot miss a mutation the way a mis-scoped observer can.
+(function () {
+  const WATCH = ['bible-btn', 'sp-bible-btn', 'idea-bible-btn', 'convert-btn', 'fidelity-btn'];
+  const KEEP_OPEN = 'Please keep this tab open — closing or reloading will interrupt this and you may lose the run.';
+
+  const css = document.createElement('style');
+  css.textContent = `
+    #fsr-working-bar { position: fixed; left: 50%; bottom: 22px; transform: translateX(-50%) translateY(140%);
+      display: flex; align-items: center; gap: 12px; flex-wrap: wrap; justify-content: center;
+      max-width: min(760px, calc(100vw - 32px)); padding: 14px 22px; border-radius: 999px;
+      background: #1A1A2E; color: #fff; font-family: 'Inter',system-ui,sans-serif; font-size: 13px;
+      box-shadow: 0 10px 40px rgba(0,0,0,0.28); z-index: 9999; opacity: 0;
+      transition: transform .28s cubic-bezier(.32,.08,.24,1), opacity .28s ease; pointer-events: none; }
+    #fsr-working-bar.on { transform: translateX(-50%) translateY(0); opacity: 1; }
+    #fsr-working-bar .fsr-wb-spin { width: 14px; height: 14px; flex-shrink: 0; border-radius: 50%;
+      border: 2px solid rgba(255,255,255,0.25); border-top-color: #fff; animation: spin .7s linear infinite; }
+    #fsr-working-bar .fsr-wb-text { font-weight: 700; }
+    #fsr-working-bar .fsr-wb-time { font-variant-numeric: tabular-nums; color: #FF8A8A; font-weight: 700; }
+    #fsr-working-bar .fsr-wb-warn { color: rgba(255,255,255,0.72); border-left: 1px solid rgba(255,255,255,0.2);
+      padding-left: 12px; }
+    @media (max-width: 640px) { #fsr-working-bar .fsr-wb-warn { border-left: 0; padding-left: 0; flex-basis: 100%;
+      text-align: center; } }
+  `;
+  document.head.appendChild(css);
+
+  const bar = document.createElement('div');
+  bar.id = 'fsr-working-bar';
+  bar.innerHTML = '<span class="fsr-wb-spin"></span><span class="fsr-wb-text">Working…</span>'
+    + '<span class="fsr-wb-time"></span><span class="fsr-wb-warn"></span>';
+  document.body.appendChild(bar);
+  const elText = bar.querySelector('.fsr-wb-text');
+  const elTime = bar.querySelector('.fsr-wb-time');
+  const elWarn = bar.querySelector('.fsr-wb-warn');
+  elWarn.textContent = KEEP_OPEN;
+
+  // A watched button is working when it holds a *visible* spinner. The check on
+  // display matters: one button keeps a permanently-present spinner hidden
+  // until it fires, and treating that as work would pin the bar on forever.
+  function workingButton() {
+    for (const id of WATCH) {
+      const el = document.getElementById(id);
+      if (!el) continue;
+      const sp = el.querySelector('.spinner');
+      if (sp && sp.style.display !== 'none') return el;
+    }
+    return null;
+  }
+
+  let startedAt = 0;
+
+  function currentLabel(btn) {
+    // Mid-conversion the button is parked on a stale "Starting…" behind another
+    // panel, while the live detail is in the progress card. Prefer that.
+    const conv = document.getElementById('panel-conv');
+    if (conv && conv.classList.contains('active')) {
+      const st = document.getElementById('progress-status');
+      const lb = document.getElementById('progress-label');
+      const t = (st && st.textContent.trim()) || (lb && lb.textContent.trim());
+      if (t) return t;
+    }
+    return (btn.textContent || 'Working').trim() || 'Working';
+  }
+
+  function tick() {
+    const btn = workingButton();
+    if (btn) {
+      if (!startedAt) startedAt = Date.now();
+      const secs = Math.floor((Date.now() - startedAt) / 1000);
+      const mins = Math.floor(secs / 60);
+      elTime.textContent = mins ? `${mins}m ${String(secs % 60).padStart(2, '0')}s` : `${secs}s`;
+      elText.textContent = currentLabel(btn);
+      bar.classList.add('on');
+    } else {
+      startedAt = 0;
+      bar.classList.remove('on');
+    }
+  }
+  setInterval(tick, 500);
+  tick();
+
+  // Browsers ignore custom text here and show their own wording, but the
+  // prompt itself is the point — it is the only thing standing between a
+  // reflexive Cmd-R and a conversion the buyer has already been charged for.
+  window.addEventListener('beforeunload', function (e) {
+    if (!workingButton()) return;
+    e.preventDefault();
+    e.returnValue = KEEP_OPEN;
+    return KEEP_OPEN;
+  });
+})();
+
 </script>
     </body>
 </html>
