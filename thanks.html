@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Thank you — FluidScriptr</title>
+<meta name="robots" content="noindex" />
+<link rel="icon" href="Favicon.png" />
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Open+Sans:wght@600;700;800&display=swap" rel="stylesheet" />
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  :root {
+    --bg: #E8ECF1; --nm-l: #FFFFFF; --nm-d: #C4CAD4;
+    --navy: #1A1A2E; --red: #E8333A; --redLt: #F05555;
+    --grey: #6B7280; --greyLt: #9CA3AF; --text2: #5A6A7E;
+    --r-md: 14px; --r-xl: 28px; --r-full: 999px;
+  }
+  body {
+    font-family: 'Inter', system-ui, sans-serif; background: var(--bg); color: var(--navy);
+    min-height: 100vh; display: flex; align-items: center; justify-content: center; padding: 32px 16px;
+  }
+  .card {
+    background: var(--bg); border-radius: var(--r-xl); padding: 48px 44px 36px;
+    width: 100%; max-width: 520px; text-align: center;
+    box-shadow: -16px -16px 40px var(--nm-l), 16px 16px 40px var(--nm-d);
+  }
+  .logo { height: 34px; width: auto; display: block; margin: 0 auto 28px; }
+  .tick {
+    width: 64px; height: 64px; border-radius: 50%; margin: 0 auto 22px;
+    display: flex; align-items: center; justify-content: center;
+    background: var(--bg); color: var(--red); font-size: 30px; line-height: 1;
+    box-shadow: -6px -6px 14px var(--nm-l), 6px 6px 14px var(--nm-d);
+  }
+  h1 {
+    font-family: 'Open Sans', 'Inter', sans-serif; font-size: 1.9rem; font-weight: 700;
+    letter-spacing: -0.02em; margin-bottom: 12px;
+  }
+  .lede { font-size: 15px; color: var(--grey); line-height: 1.75; margin-bottom: 26px; }
+  .next {
+    text-align: left; background: var(--bg); border-radius: var(--r-md); padding: 20px 22px;
+    box-shadow: inset -4px -4px 10px var(--nm-d), inset 4px 4px 10px var(--nm-l); margin-bottom: 26px;
+  }
+  .next h2 {
+    font-size: 11px; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase;
+    color: var(--red); margin-bottom: 12px;
+  }
+  .next p { font-size: 14px; color: var(--text2); line-height: 1.7; }
+  .next p + p { margin-top: 10px; }
+  .btn {
+    display: inline-block; background: var(--red); color: #fff; text-decoration: none;
+    border-radius: var(--r-full); padding: 13px 32px;
+    font-size: 13px; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase;
+    box-shadow: -3px -3px 7px rgba(255,255,255,0.45), 5px 7px 18px rgba(160,15,15,0.45);
+    transition: background 0.15s, transform 0.15s;
+  }
+  .btn:hover { background: var(--redLt); transform: translateY(-2px); }
+  .hint { font-size: 12.5px; color: var(--greyLt); line-height: 1.7; margin-top: 16px; }
+  .foot {
+    margin-top: 24px; padding-top: 18px; border-top: 1px solid #D6DBE2;
+    font-size: 12.5px; color: var(--greyLt); line-height: 1.7;
+  }
+  .foot a { color: var(--grey); font-weight: 600; text-decoration: none; }
+  @media (max-width: 480px) { .card { padding: 36px 24px 28px; } h1 { font-size: 1.55rem; } }
+</style>
+</head>
+<body>
+  <div class="card">
+    <img class="logo" src="fluidscriptr_new_logo.png" alt="FluidScriptr" />
+    <div class="tick" aria-hidden="true">&#10003;</div>
+
+    <h1>Payment received</h1>
+    <p class="lede">Thank you — your purchase went through and your FluidScriptr access is ready.</p>
+
+    <div class="next">
+      <h2>What happens next</h2>
+      <p><strong>Check your email in the next few minutes.</strong> We're sending your access email now. It has an unlock button with your Transaction ID already filled in — one click and you're in.</p>
+      <p>You'll also get a separate receipt from PayPal. That one is just your record of payment.</p>
+    </div>
+
+    <a class="btn" href="/?unlock=1">Unlock FluidScriptr</a>
+    <p class="hint">Already have your access email? Use the button in it instead — it fills everything in for you.</p>
+
+    <div class="foot">
+      Nothing after ten minutes? Check your spam folder, then reply to your PayPal receipt and we'll sort it out.<br />
+      <a href="https://tinhousepress.com/fluidscriptr">Tin House Press</a>
+    </div>
+  </div>
+</body>
+</html>
