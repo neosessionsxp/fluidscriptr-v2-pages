@@ -186,6 +186,29 @@ input[type=range]::-moz-range-thumb { width: 20px; height: 20px; border-radius: 
       // this gate. ?unlock=1 forces it to the front from any of those links.
       const FORCE_UNLOCK = /(^|[?&])unlock=1(&|$)/.test(location.search) || location.hash === '#unlock';
 
+      // Pre-fill the Transaction ID from the unlock link we email on every
+      // sale (?unlock=1&t=<capture id>).
+      //
+      // Why: a PayPal receipt shows the buyer TWO numbers, and the one it
+      // labels "Your Transaction ID" is NOT the one entitlements are keyed on
+      // — that is the "Merchant Transaction ID". A buyer reading their receipt
+      // top-down types the wrong number and is told it is not recognised,
+      // which reads as "my purchase failed" rather than "wrong field". Seen
+      // 2026-09-11. The buyer email already quotes the correct id; this makes
+      // the link fill it in so there is nothing to mistype or choose between.
+      //
+      // Only the id travels in the URL — never the email address. The email
+      // stays typed by hand: it is the half that proves the person opening the
+      // link is the buyer, and putting it in a link would spread it through
+      // referrer headers and request logs for no gain.
+      try {
+        const prefillTxn = new URLSearchParams(location.search).get('t');
+        if (prefillTxn) {
+          const f = document.getElementById('gate-license');
+          if (f) f.value = prefillTxn.trim();
+        }
+      } catch {} // a malformed query string must never block the gate
+
       const savedKey = localStorage.getItem(LS_KEY);
       const savedEmail = localStorage.getItem(LS_EMAIL);
       if (savedKey && savedEmail) {
