@@ -962,6 +962,10 @@ input[type=range]::-moz-range-thumb { width: 20px; height: 20px; border-radius: 
             <div class="panel" id="panel-6" style="max-width:100%;">
                 <div class="eyebrow">Step 6 — Export</div>
                 <h1 class="panel-title">Your output is ready.</h1>
+                <div style="text-align:center;margin:-0.5rem 0 1rem;">
+                    <button class="btn-secondary" onclick="startOver()" style="font-size:13px;padding:8px 18px;">＋ Convert another project</button>
+                    <div style="font-size:12px;color:var(--grey);margin-top:6px;">Export everything you want first — starting a new project clears this one.</div>
+                </div>
                 <div style="display:flex;gap:8px;flex-wrap:wrap;justify-content:center;margin-bottom:1rem;">
                     <span class="meta-pill red" id="out-stat1">—</span>
                     <span class="meta-pill" id="out-stat2">—</span>
@@ -1295,9 +1299,16 @@ function updateEntitlementUI(ent) {
     return;
   }
   const remaining = ent.conversions_remaining ?? Math.max(0, ent.conversions_allowed - (ent.conversions_used || 0));
-  el.textContent = remaining <= 0
-    ? `${label}: 0 of ${ent.conversions_allowed} conversions left — purchase another to continue`
-    : `${label}: ${remaining} of ${ent.conversions_allowed} conversion${ent.conversions_allowed === 1 ? '' : 's'} left`;
+  if (remaining > 0) {
+    el.textContent = `${label}: ${remaining} of ${ent.conversions_allowed} conversion${ent.conversions_allowed === 1 ? '' : 's'} left`;
+    return;
+  }
+  // Exhausted. A repeat buyer's newer purchase is a SEPARATE key, and once a
+  // licence is stored the unlock gate never shows again — so without this link
+  // there is no way inside the app to switch to the pack they just bought, and
+  // "purchase another" is wrong advice to give someone who already did.
+  el.innerHTML = `${label}: 0 of ${ent.conversions_allowed} conversions left — `
+    + `<a href="?unlock=1" style="color:var(--red);font-weight:600;">bought another? switch purchase →</a>`;
 }
 // True when the user can generate in the current mode
 function canGenerate() { return isSampleMode() ? true : (getAIMode() === 'own' ? !!getKey() : !!getLicense()); }
@@ -1546,6 +1557,13 @@ function pickOutput(el, type) {
 
 // goToStep — injects output options when entering step 3, briefing on step 5
 function goToStep(n) {
+  // A finished run left convert-btn disabled with a live spinner. Nothing reset
+  // it on the success path, so the fixed "working" bar stayed on and kept
+  // counting (a customer saw "Starting… 101m") and beforeunload still warned.
+  if (n !== 5) {
+    const cb = document.getElementById('convert-btn');
+    if (cb && cb.querySelector('.spinner')) { cb.disabled = false; cb.innerHTML = '\ud83c\udfac Begin Conversion'; }
+  }
   if (n === 3) buildOutputOptions();
   if (n === 4) applyFormatConstraints();
   if (n === 5) populateBriefing();
