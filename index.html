@@ -2974,6 +2974,208 @@ that is not on this list unless it appears in the section you are given.
 ${roster}`;
 }
 
+// ── Continuity: the three fixes for "it repeated itself and got details wrong"
+//
+// The blind spot is described in full above buildNameRoster: every section is a
+// separate call that has never seen the others. The name sheet fixed ONE symptom
+// (names drifting). These three fix the rest, and they are deliberately layered
+// cheapest-first so that if the paid call fails the free ones still work.
+//
+//   1. chunkAtSceneBreaks  — cut the source at chapter/scene boundaries instead
+//      of every N words, so a section never starts mid-scene. FREE.
+//   2. writtenBeatsBlock   — tell each section which scenes have ALREADY been
+//      dramatized, read out of the previous sections' own scene headings. FREE,
+//      and derived from real output rather than asked for, so there is nothing
+//      the model can forget to emit and nothing that can leak into the script.
+//   3. buildStoryMap       — read the whole book ONCE up front and hand every
+//      section the same ordered beat list, so it knows where its own slice sits
+//      in the story. ONE extra call, same shape as the name sheet.
+
+// A "unit" is one paragraph. mammoth gives one newline per paragraph and the
+// PDF path gives line breaks too, so lines are the only structure we actually
+// have — there is no guarantee of blank lines between paragraphs.
+//
+// A chapter heading is a short line that isn't a sentence: "CHAPTER ELEVEN",
+// "Part Two", "17". Those are the strongest break points in the book and a
+// section that starts on one starts where the author started something.
+const CHAPTER_RE = /^\s*((chapter|part|book|section|prologue|epilogue|interlude)\b.{0,40}|[IVXLC]{1,7}|\d{1,3}|[-—*#\s]{3,})\s*$/i;
+
+function isChapterBreak(line) {
+  const t = line.trim();
+  if (!t || t.length > 60) return false;
+  if (/[.!?,;:]$/.test(t) && !/^\d+\.$/.test(t)) return false;
+  if (t.split(/\s+/).length > 8) return false;
+  return CHAPTER_RE.test(t);
+}
+
+// Greedy packer. Fill a chunk to targetWords, then close it at the nearest
+// chapter break or paragraph end rather than mid-sentence.
+//
+// ⚠️ totalChunks drives the per-section page budget, so this must produce
+// roughly the same NUMBER of chunks as the old word-slicing did or every
+// section's page allowance shifts. It packs to the same target and only moves
+// the seams, which keeps the count within one either way.
+function chunkAtSceneBreaks(text, targetWords) {
+  const lines = String(text || '').split('\n');
+  const units = [];
+  for (const line of lines) {
+    if (!line.trim()) continue;
+    units.push({ text: line, words: line.split(/\s+/).filter(Boolean).length, chapter: isChapterBreak(line) });
+  }
+  // No usable structure at all (one unbroken wall of text — some PDF
+  // extractions do this). Fall back to the old behaviour rather than returning
+  // one enormous chunk.
+  if (units.length < 4) return null;
+
+  const chunks = [];
+  let cur = [], curWords = 0;
+  const flush = () => { if (cur.length) { chunks.push(cur.join('\n\n')); cur = []; curWords = 0; } };
+
+  for (let i = 0; i < units.length; i++) {
+    const u = units[i];
+    // A chapter opening closes the current chunk only once that chunk is
+    // nearly full. ⚠️ This threshold is load-bearing: at 0.6 a book of many
+    // short chapters produced one section PER CHAPTER, inflating the section
+    // count — the same over-chunking that once turned a 95-page target into a
+    // 217-page script. At 0.85 no chunk can be smaller than 85% of target, so
+    // the count can never grow by more than ~18% over the old word-slicing.
+    if (u.chapter && curWords >= targetWords * 0.85) flush();
+    cur.push(u.text);
+    curWords += u.words;
+    if (curWords >= targetWords) {
+      // Look ahead a little: if a chapter break is within reach, run on to it
+      // so the seam lands on the author's own break instead of ours.
+      let j = i + 1, lookahead = 0;
+      while (j < units.length && lookahead < targetWords * 0.25) {
+        if (units[j].chapter) break;
+        lookahead += units[j].words;
+        j++;
+      }
+      if (j < units.length && units[j].chapter && lookahead < targetWords * 0.25) {
+        for (let k = i + 1; k < j; k++) { cur.push(units[k].text); curWords += units[k].words; }
+        i = j - 1;
+      }
+      flush();
+    }
+  }
+  flush();
+
+  // A runt tail. The last chunk takes whatever is left over, which can be a few
+  // hundred words — and a near-empty section still gets asked for its full page
+  // allowance, so it pads to fill it. Fold anything under 40% of target back
+  // into the section before it.
+  if (chunks.length > 1) {
+    const lastWords = chunks[chunks.length - 1].split(/\s+/).filter(Boolean).length;
+    if (lastWords < targetWords * 0.4) {
+      const tail = chunks.pop();
+      chunks[chunks.length - 1] += '\n\n' + tail;
+    }
+  }
+  return chunks.length ? chunks : null;
+}
+
+// ── 2. What has already been dramatized ──────────────────────────────────
+//
+// Read straight out of the screenplay the previous sections actually produced.
+// Scene headings are the record of what has been staged, and SP_SCENE_RE is the
+// same test the preview and every export already use, so this cannot disagree
+// with what the author sees.
+const BEATS_MAX = 60;
+
+function writtenBeatsBlock(parts) {
+  if (!parts.length) return '';
+  const headings = [];
+  for (const part of parts) {
+    for (const raw of String(part || '').split('\n')) {
+      const t = raw.trim();
+      if (t && SP_SCENE_RE.test(t)) headings.push(t);
+    }
+  }
+  if (!headings.length) return '';
+  // Oldest headings matter least for "don't repeat the scene you just wrote",
+  // but they matter most for "don't restage chapter two". Keep the first few
+  // and the most recent, and say how many were dropped so the count is honest.
+  let list;
+  if (headings.length <= BEATS_MAX) list = headings;
+  else {
+    const head = headings.slice(0, 10);
+    const tail = headings.slice(-(BEATS_MAX - 11));
+    list = head.concat([`… ${headings.length - head.length - tail.length} earlier scenes omitted …`], tail);
+  }
+  return `
+
+ALREADY DRAMATIZED — these scenes have been written by earlier sections of this
+same screenplay. You have not seen their pages, only this list. Do NOT stage any
+of them again, do not re-introduce a character as if for the first time, and do
+not re-establish a location already opened here. If your source material covers
+ground this list shows is already covered, move past it to what is new.
+
+${list.join('\n')}`;
+}
+
+// ── 3. The story map ─────────────────────────────────────────────────────
+//
+// Same pattern as the name sheet: read the whole book ONCE, hand the identical
+// result to every section. The name sheet stops names drifting; this stops a
+// section dramatizing a beat that belongs to a different part of the film,
+// because for the first time each section can see where its own slice sits.
+const STORY_MAP_MAX_TOKENS = 1600;
+
+async function buildStoryMap(key, sourceText) {
+  // The beats have to come from the WHOLE book or the map cannot say what is
+  // early and what is late — which is the only thing it is for.
+  const sample = sourceText.split(/\s+/).slice(0, 60000).join(' ');
+  const raw = await callAPI(key,
+`You are a story analyst producing a beat sheet for an adaptation. Report only what the manuscript contains. Never invent a beat, never resolve a thread the text leaves open.`,
+`Read the manuscript below and list its major story beats IN THE ORDER THEY HAPPEN.
+
+OUTPUT FORMAT — exactly this, nothing else, no preamble:
+1. <one line: what happens, naming the characters involved>
+2. <one line>
+...
+
+Rules:
+- Between 15 and 40 beats. Fewer for a short work, more for a long one.
+- One line each, under 25 words. No act labels, no commentary, no headings.
+- Cover the WHOLE book, including the ending. Do not stop early.
+- Use the names exactly as the manuscript spells them.
+
+MANUSCRIPT:
+${sample}`, STORY_MAP_MAX_TOKENS);
+  return String(raw || '').trim();
+}
+
+// Wrapped exactly like tryBuildNameRoster: a failed map never costs the author
+// their conversion. The run continues with fixes 1 and 2 still in force.
+async function tryBuildStoryMap(key, sourceText) {
+  if (isSampleMode()) return '';      // free sample: not worth the extra call
+  try {
+    addLog('Mapping the story from end to end…');
+    const map = await buildStoryMap(key, sourceText);
+    const beats = map.split('\n').filter(l => /^\s*\d+[.)]/.test(l)).length;
+    if (!beats) { addLog('⚠️ Story map came back empty — continuing without it'); return ''; }
+    addLog(`Story map ready — ${beats} beats shared with every section`);
+    return map;
+  } catch (e) {
+    addLog(`⚠️ Story map unavailable (${e.message || 'error'}) — continuing without it`);
+    return '';
+  }
+}
+
+function storyMapPromptBlock(map) {
+  if (!map) return '';
+  return `
+
+STORY MAP — the beats of the whole book, in order. This is the ONLY view you
+have of the parts of the story you were not given. Use it to place your own
+section: everything above your material has already been told, everything below
+it is still to come. Do not dramatize a beat that is not in the source text you
+are given, do not summarize the map, and do not reach forward to an ending that
+belongs to a later section.
+
+${map}`;
+}
+
 async function convertToScreenplay(key, bibleText) {
   let targetPages;
   if (state.format === 'feature') targetPages = 95;
@@ -3019,8 +3221,17 @@ async function convertToScreenplay(key, bibleText) {
   const TARGET_PAGES_PER_CALL = 4;
   const chunkSizeTarget = Math.ceil(words.length / Math.max(1, Math.ceil(effectiveTargetPages / TARGET_PAGES_PER_CALL)));
   const chunkSize = Math.max(2000, chunkSizeTarget);
-  const chunks = [];
-  for (let i = 0; i < words.length; i += chunkSize) chunks.push(words.slice(i, i + chunkSize).join(' '));
+  // Cut at the author's own chapter and scene breaks where the source has them,
+  // falling back to the old fixed word-slicing when it doesn't. The old slicing
+  // cut wherever the word count landed — usually mid-scene — which is what made
+  // material arrive out of order across a seam. It also flattened the book to
+  // one unbroken line of words; chunkAtSceneBreaks keeps the paragraphing, so
+  // the section can see where scenes start and stop in its own source.
+  let chunks = chunkAtSceneBreaks(sourceText, chunkSize);
+  if (!chunks || !chunks.length) {
+    chunks = [];
+    for (let i = 0; i < words.length; i += chunkSize) chunks.push(words.slice(i, i + chunkSize).join(' '));
+  }
 
   const totalChunks = chunks.length;
 
@@ -3076,6 +3287,12 @@ async function convertToScreenplay(key, bibleText) {
   setProgress(3, 'Reading names…', 'Building the name sheet…', `0 of ~${effectiveTarget} pages`);
   const roster = isIdeaMode ? '' : await tryBuildNameRoster(key, sourceText);
 
+  // The story map. Idea mode has no book to map, and a single-section run has
+  // nothing to be out of order WITH — in both cases the call would be spent for
+  // nothing, so it isn't made.
+  setProgress(4, 'Mapping the story…', 'Reading the whole arc…', `0 of ~${effectiveTarget} pages`);
+  const storyMap = (isIdeaMode || totalChunks < 2) ? '' : await tryBuildStoryMap(key, sourceText);
+
   const progressMsgs = [
     'Reading opening act…','Establishing characters…','Setting the scene…',
     'Developing conflict…','Compressing subplots…','Building tension…',
@@ -3094,6 +3311,7 @@ async function convertToScreenplay(key, bibleText) {
 
 ${bibleText}
 ${rosterPromptBlock(roster)}
+${storyMapPromptBlock(storyMap)}
 
 APPROACH: ${approachNote}
 TONE: ${state.tone}
@@ -3133,7 +3351,13 @@ FOUNTAIN FORMAT:
     setProgress(pct, `Section ${i + 1} of ${totalChunks}`, msg, `~${pagesWritten} of ~${effectiveTarget} pages`);
     addLog(`Section ${i + 1}/${totalChunks} — ${msg}`);
 
-    const prev = parts.length > 0 ? '\n\nPREVIOUS ENDING:\n' + parts[parts.length - 1].split('\n').slice(-12).join('\n') : '';
+    // On a RESUMED run `parts` is empty even though sections already exist —
+    // they are held in state._partialOutput. Without this the first section
+    // after a Continue had no previous ending and no memory of the film at all,
+    // which is the worst possible place to lose continuity: the seam the author
+    // already knows about. Treat the saved output as the section before this one.
+    const priorParts = state._partialOutput ? [state._partialOutput].concat(parts) : parts;
+    const prev = priorParts.length > 0 ? '\n\nPREVIOUS ENDING:\n' + priorParts[priorParts.length - 1].split('\n').slice(-12).join('\n') : '';
     // Every section used to get an identical instruction, so the final one had
     // no idea it was final — it converted its 2,000 words and stopped wherever
     // they ran out. A finished script that simply halts reads as truncated even
@@ -3176,7 +3400,11 @@ FOUNTAIN FORMAT:
       ? `Write between ${loPages} and ${hiPages} pages in Fountain format, with scene headings, action lines and dialogue.\n\nTHAT RANGE IS A FLOOR AS WELL AS A CEILING. It is the share of the finished series this section is allotted, and ${totalChunks} sections must fit the same budget — so running long pushes the finished scripts past their format, and running short leaves them under-length, with no later section able to make up the difference. Coming in under ${loPages} pages is as wrong as going over ${hiPages}. Do not summarize, do not skip material, and do not pad. Dramatize what this section gives you at the scale that fills the range.`
       : `Write approximately ${pagesPerChunk} pages in Fountain format, with scene headings, action lines and dialogue.\n\nTHAT PAGE COUNT IS A CEILING AS WELL AS A FLOOR. It is the share of the finished screenplay this section is allotted, and ${totalChunks} sections must fit the same budget — so running long here does not add detail, it pushes the finished script past its format. Do not stop early or summarize; equally, do not pad, do not dramatize every beat you are given, and do not exceed roughly ${pagesPerChunk} pages. Select and compress to fit.`;
 
-    const prompt = `${prev}\n\nSOURCE — Section ${i + 1} of ${totalChunks}:\n${chunks[i]}\n\nConvert this section to screenplay format now. ${lengthRule}${episodeNote}${closeNote}`;
+    // Everything the earlier sections actually staged, read out of their own
+    // scene headings. This is the section's memory of the film so far, and it
+    // is the part that stops the same beat being written twice.
+    const written = writtenBeatsBlock(priorParts);
+    const prompt = `${written}${prev}\n\nSOURCE — Section ${i + 1} of ${totalChunks}:\n${chunks[i]}\n\nConvert this section to screenplay format now. ${lengthRule}${episodeNote}${closeNote}`;
 
     try {
       // Backstop only. ~190 words a page, ~1.35 tokens a word, doubled so a
