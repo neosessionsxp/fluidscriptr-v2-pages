@@ -997,6 +997,21 @@ input[type=range]::-moz-range-thumb { width: 20px; height: 20px; border-radius: 
                             <div class="screenplay-out output-scroll" id="screenplay-out"></div>
                             <div class="export-section">
                                 <label class="lbl" style="margin-bottom:10px;text-align:left;">Export as</label>
+                                <!-- One-click bundle. Saves .fountain, .fdx and .docx straight to
+                                     Downloads, then opens the PDF print view last. The PDF CANNOT be
+                                     saved silently — a browser only writes a PDF through its own
+                                     print dialog — so the wording promises three files and a print
+                                     view, not four files. Do not reword it to "downloads all four". -->
+                                <button class="btn-primary" id="export-all-btn" type="button" onclick="exportAllFormats()"
+                                        style="width:100%;justify-content:center;margin-bottom:14px;">
+                                    ⬇️ Download All Formats
+                                </button>
+                                <div style="font-size:12px;color:var(--grey);line-height:1.6;margin:-6px 0 14px;text-align:center;">
+                                    Saves <strong>.fountain</strong>, <strong>.fdx</strong> and <strong>.docx</strong> to your
+                                    Downloads folder, then opens the PDF print view — choose
+                                    <em>Save as PDF</em> there. Your browser may ask once to allow
+                                    multiple downloads; say yes.
+                                </div>
                                 <div class="export-grid">
                                     <div class="export-btn" onclick="exportFountain()">
                                         <span class="ei">📝</span>
@@ -4547,6 +4562,40 @@ function exportScreenplayDOCX() {
   } catch (e) {
     console.error('DOCX export failed', e);
     alert("Something went wrong building the Word file.\n\nYour screenplay is safe — use the PDF or .fountain export instead, and let us know this happened.");
+  }
+}
+
+// ── One-click "all formats" ───────────────────────────────
+//
+// Every file is written inside the SAME click handler, synchronously. A
+// download or window.open pushed into a setTimeout has lost its user
+// activation and Chrome/Safari silently drop it — so nothing here may be
+// deferred, and the PDF print window must be opened from this call stack too.
+//
+// Each format is wrapped on its own: a DOCX that throws must not cost the
+// author the .fdx that would have worked. Whatever fails is named at the end
+// with the single-format button to fall back to, because a partial bundle
+// that says nothing reads as "it only gave me two files".
+function exportAllFormats() {
+  const failed = [];
+  const step = (label, fn) => { try { fn(); } catch (e) { console.error(label + ' export failed', e); failed.push(label); } };
+
+  step('.fountain', exportFountain);
+  step('.fdx', exportFDX);
+  // buildScreenplayDocx directly, not exportScreenplayDOCX — that one raises
+  // its own alert, which would stack a second dialog on top of ours.
+  step('DOCX', () => {
+    downloadFile(buildScreenplayDocx(), getSlug() + '-screenplay.docx',
+      'application/vnd.openxmlformats-officedocument.wordprocessingml.document');
+  });
+  // PDF last: its print dialog is modal and would block the downloads behind it.
+  step('PDF', exportScreenplayPDF);
+
+  clearPartialSession();
+
+  if (failed.length) {
+    alert('Saved everything except: ' + failed.join(', ') +
+      '.\n\nYour screenplay is safe — use the individual export buttons below for those formats, and let us know this happened.');
   }
 }
 
