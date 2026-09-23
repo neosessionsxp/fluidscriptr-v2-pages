@@ -4813,10 +4813,10 @@ function printBible() {
   const rows = sections.map(([lbl, val]) => `
     <div style="margin-bottom:1.5rem;">
       <div style="font-size:10px;font-weight:700;letter-spacing:0.1em;text-transform:uppercase;color:#E8333A;margin-bottom:6px;">${lbl}</div>
-      <div style="font-size:13px;line-height:1.75;color:#1A1A2E;white-space:pre-wrap;">${val || '—'}</div>
+      <div style="font-size:13px;line-height:1.75;color:#1A1A2E;white-space:pre-wrap;">${val ? escHTML(val) : '—'}</div>
     </div>`).join('');
   const win = openPrintWindow(); if (!win) return;
-  win.document.write(`<!DOCTYPE html><html><head><title>Story Bible — ${state.title || 'FluidScriptr'}</title>
+  win.document.write(`<!DOCTYPE html><html><head><title>Story Bible — ${escHTML(state.title || 'FluidScriptr')}</title>
     <style>body{font-family:'Inter',sans-serif;max-width:700px;margin:40px auto;padding:0 24px;color:#1A1A2E;}
     h1{font-size:22px;font-weight:800;margin-bottom:4px;}
     .sub{font-size:13px;color:#6B7280;margin-bottom:2rem;}
@@ -4832,11 +4832,16 @@ function printBible() {
     @media print{body{margin:0 auto;padding:0;max-width:100%;}}
     </style></head><body>
     <h1>Story Bible</h1>
-    <div class="sub">${state.title || 'Untitled'}${state.author && state.author !== 'Unknown' ? ' &mdash; ' + escHTML(state.author) : ''}</div>
+    <div class="sub">${escHTML(state.title || 'Untitled')}${state.author && state.author !== 'Unknown' ? ' &mdash; ' + escHTML(state.author) : ''}</div>
     <hr>${rows}
-    <script>window.onload=function(){window.print();}<\/script>
     </body></html>`);
   win.document.close();
+  // Printed from here, after a short delay, like every other export. The old
+  // version put window.print() inside the new page's own onload — which fires
+  // during document.close(), while the app's click is still running — and the
+  // Bible was the only print path built that way. It is also the one reported
+  // as taking the app down with it.
+  setTimeout(() => win.print(), 600);
 }
 
 // ── Partial conversion slider ────────────────────────────
