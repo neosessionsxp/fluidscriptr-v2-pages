@@ -1832,56 +1832,11 @@ async function generateBible() {
   const btn = document.getElementById('bible-btn');
   btn.disabled = true;
 
-  const SINGLE_PASS_THRESHOLD = 100000; // words
-  const SEGMENT_SIZE = 80000;           // words per segment for long manuscripts
-  const words = state.rawText.split(/\s+/);
-  const totalWords = words.length;
-
   try {
-    if (totalWords <= SINGLE_PASS_THRESHOLD) {
-      // ── Short/normal manuscript: single Bible pass ──────────────────────
-      btn.innerHTML = '<span class="spinner spinner-dark"></span> Generating bible…';
-      const text = words.slice(0, SINGLE_PASS_THRESHOLD).join(' ');
-      const res = await callAPI(
-        key,
-        getBibleSystemPrompt(),
-        `Book: "${state.title}" by ${state.author}\nGenre: ${state.genre}\n\nManuscript:\n${text}`,
-        BIBLE_MAX_TOKENS
-      );
-      parseBible(res);
-      await repairBible(key, text, btn);
-    } else {
-      // ── Long manuscript: multi-pass Bible ───────────────────────────────
-      const segments = [];
-      for (let i = 0; i < totalWords; i += SEGMENT_SIZE) segments.push(words.slice(i, i + SEGMENT_SIZE).join(' '));
-      const totalSegs = segments.length;
-
-      // First pass — build initial Bible from segment 1
-      btn.innerHTML = `<span class="spinner spinner-dark"></span> Reading segment 1 of ${totalSegs}…`;
-      let currentBible = await callAPI(
-        key,
-        getBibleSystemPrompt(),
-        `Book: "${state.title}" by ${state.author}\nGenre: ${state.genre}\n\nManuscript (segment 1 of ${totalSegs} — the beginning of the book):\n${segments[0]}`,
-        BIBLE_MAX_TOKENS
-      );
-
-      // Update passes — feed current Bible + next segment, ask for updated Bible
-      for (let i = 1; i < totalSegs; i++) {
-        btn.innerHTML = `<span class="spinner spinner-dark"></span> Reading segment ${i + 1} of ${totalSegs}…`;
-        const positionNote = (i === totalSegs - 1) ? 'the final section of the book' : `section ${i + 1} of ${totalSegs}`;
-        const updated = await callAPI(
-          key,
-          getBibleUpdatePrompt(),
-          `Book: "${state.title}" by ${state.author}\nGenre: ${state.genre}\n\nEXISTING STORY BIBLE (built from segments 1–${i}):\n${currentBible}\n\nNEW MANUSCRIPT SEGMENT (${positionNote}):\n${segments[i]}\n\nProduce the complete updated Story Bible reflecting the full manuscript-so-far.`,
-          BIBLE_MAX_TOKENS
-        );
-        currentBible = updated;
-      }
-
-      parseBible(currentBible);
-      await rebuildStructureAndEnding(key, words, btn);
-      await repairBible(key, segments[segments.length - 1], btn);
-    }
+    await readSourceIntoBible(key, btn, {
+      header: `Book: "${state.title}" by ${state.author}\nGenre: ${state.genre}`,
+      label: 'Manuscript', segLabel: 'Manuscript', segName: 'MANUSCRIPT', unit: 'book', soFar: 'manuscript-so-far',
+    });
     goToStep(2);
   } catch(err) {
     alert('Error: ' + (err.message || 'Check your API key.'));
@@ -1889,6 +1844,67 @@ async function generateBible() {
 
   btn.disabled = false;
   btn.innerHTML = 'Generate Story Bible →';
+}
+
+// ── Read the whole source into the Bible ─────────────────
+// Shared by the book path and the screenplay-upload path, so both keep the
+// "reads everything first" promise. Up to 100k words: one pass. Longer: 80k-word
+// segments, each folded into the Bible so far, then the structure and ending
+// rebuilt from the real opening and closing. The screenplay path used to have
+// its own copy that silently dropped everything past 60,000 words (Sean found
+// the mismatch 2026-09-23); do not give it a separate reader again.
+async function readSourceIntoBible(key, btn, src) {
+  const SINGLE_PASS_THRESHOLD = 100000; // words
+  const SEGMENT_SIZE = 80000;           // words per segment for long manuscripts
+  const words = state.rawText.split(/\s+/);
+  const totalWords = words.length;
+
+  if (totalWords <= SINGLE_PASS_THRESHOLD) {
+    // ── Short/normal manuscript: single Bible pass ──────────────────────
+    if (src.singleSpinner) btn.innerHTML = `<span class="spinner spinner-dark"></span> ${src.singleSpinner}`;
+    else btn.innerHTML = '<span class="spinner spinner-dark"></span> Generating bible…';
+    const text = words.slice(0, SINGLE_PASS_THRESHOLD).join(' ');
+    const res = await callAPI(
+      key,
+      getBibleSystemPrompt(),
+      `${src.header}\n\n${src.label}:\n${text}`,
+      BIBLE_MAX_TOKENS
+    );
+    parseBible(res);
+    await repairBible(key, text, btn);
+    return;
+  }
+
+  // ── Long manuscript: multi-pass Bible ───────────────────────────────
+  const segments = [];
+  for (let i = 0; i < totalWords; i += SEGMENT_SIZE) segments.push(words.slice(i, i + SEGMENT_SIZE).join(' '));
+  const totalSegs = segments.length;
+
+  // First pass — build initial Bible from segment 1
+  btn.innerHTML = `<span class="spinner spinner-dark"></span> Reading segment 1 of ${totalSegs}…`;
+  let currentBible = await callAPI(
+    key,
+    getBibleSystemPrompt(),
+    `${src.header}\n\n${src.segLabel} (segment 1 of ${totalSegs} — the beginning of the ${src.unit}):\n${segments[0]}`,
+    BIBLE_MAX_TOKENS
+  );
+
+  // Update passes — feed current Bible + next segment, ask for updated Bible
+  for (let i = 1; i < totalSegs; i++) {
+    btn.innerHTML = `<span class="spinner spinner-dark"></span> Reading segment ${i + 1} of ${totalSegs}…`;
+    const positionNote = (i === totalSegs - 1) ? `the final section of the ${src.unit}` : `section ${i + 1} of ${totalSegs}`;
+    const updated = await callAPI(
+      key,
+      getBibleUpdatePrompt(),
+      `${src.header}\n\nEXISTING STORY BIBLE (built from segments 1–${i}):\n${currentBible}\n\nNEW ${src.segName} SEGMENT (${positionNote}):\n${segments[i]}\n\nProduce the complete updated Story Bible reflecting the full ${src.soFar}.`,
+      BIBLE_MAX_TOKENS
+    );
+    currentBible = updated;
+  }
+
+  parseBible(currentBible);
+  await rebuildStructureAndEnding(key, words, btn);
+  await repairBible(key, segments[segments.length - 1], btn);
 }
 
 // ── Bible from idea ───────────────────────────────────────
@@ -2065,15 +2081,13 @@ async function generateBibleFromScreenplay() {
   btn.disabled = true;
   btn.innerHTML = '<span class="spinner spinner-dark"></span> Analyzing screenplay…';
 
-  const words = state.rawText.split(/\s+/);
-  const truncated = words.slice(0, 60000).join(' ');
-
   try {
-    const res = await callAPI(key, getBibleSystemPrompt(),
-      `Screenplay: "${state.title}" by ${state.author}\nGenre: ${state.genre}\n\nSCREENPLAY (extract characters, arcs, tone, themes from the existing script format — scene headings, action lines, dialogue):\n${truncated}`,
-      BIBLE_MAX_TOKENS);
-    parseBible(res);
-    await repairBible(key, truncated, btn);
+    await readSourceIntoBible(key, btn, {
+      header: `Screenplay: "${state.title}" by ${state.author}\nGenre: ${state.genre}`,
+      label: 'SCREENPLAY (extract characters, arcs, tone, themes from the existing script format — scene headings, action lines, dialogue)',
+      segLabel: 'SCREENPLAY', segName: 'SCREENPLAY', unit: 'screenplay', soFar: 'screenplay-so-far',
+      singleSpinner: 'Analyzing screenplay…',
+    });
     goToStep(2);
   } catch(err) {
     alert('Error: ' + (err.message || 'Check your API key.'));
